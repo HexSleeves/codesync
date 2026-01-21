@@ -3,8 +3,8 @@
   "private": true,
   "scripts": {
     "start": "meteor run",
-    "css": "npx tailwindcss -i ./client/main.css -o ./public/styles.css --watch",
-    "build:css": "npx tailwindcss -i ./client/main.css -o ./public/styles.css --minify",
+    "css": "npx tailwindcss -i ./client/main.source.css -o ./client/main.css --watch",
+    "build:css": "npx tailwindcss -i ./client/main.source.css -o ./client/main.css --minify",
     "test": "meteor test --once --driver-package meteortesting:mocha",
     "test-app": "TEST_WATCH=1 meteor test --full-app --driver-package meteortesting:mocha",
     "visualize": "meteor --production --extra-packages bundle-visualizer"
