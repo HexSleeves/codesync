@@ -31,14 +31,16 @@ Meteor.methods({
     
     const user = await Meteor.users.findOneAsync(this.userId);
     const profile = user?.profile as any;
-    const githubUsername = (user?.services as any)?.github?.username;
+    const services = user?.services as any;
+    const githubUsername = services?.github?.username;
+    const githubAvatar = services?.github?.avatar_url;
     
     const messageId = await ChatMessages.insertAsync({
       _id: nanoid(),
       sessionId: data.sessionId,
       userId: this.userId,
       userName: profile?.name || githubUsername || user?.emails?.[0]?.address || 'Anonymous',
-      userAvatar: profile?.avatar,
+      userAvatar: profile?.avatar || githubAvatar,
       message: data.message,
       type: data.code ? 'code_snippet' : 'text',
       code: data.code,

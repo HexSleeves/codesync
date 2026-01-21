@@ -46,6 +46,6 @@ Meteor.publish('session.users', async function(sessionId: string) {
   
   return Meteor.users.find(
     { _id: { $in: [...new Set(userIds)] }},
-    { fields: { 'profile': 1, 'emails': 1, 'services.github.username': 1 }}
+    { fields: { 'profile': 1, 'emails': 1, 'services.github.username': 1, 'services.github.avatar_url': 1 }}
   );
 });

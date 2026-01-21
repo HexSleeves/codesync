@@ -28,6 +28,11 @@
     "uuid": "^13.0.0"
   },
   "devDependencies": {
+    "@meteorjs/rspack": "^0.0.43",
+    "@rsdoctor/rspack-plugin": "^1.2.3",
+    "@rspack/cli": "^1.7.3",
+    "@rspack/core": "^1.7.3",
+    "@rspack/plugin-react-refresh": "^1.4.3",
     "@types/diff": "^8.0.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "^25.0.9",
@@ -35,6 +40,7 @@
     "@types/react": "^19.2.9",
     "@types/react-dom": "^19.2.3",
     "@types/react-router-dom": "^5.3.3",
+    "react-refresh": "^0.17.0",
     "typescript": "^5.9.3"
   },
   "meteor": {

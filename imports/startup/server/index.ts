@@ -41,6 +41,10 @@ Accounts.onCreateUser((options, user) => {
   // If logging in with GitHub, extract profile info
   if (user.services?.github) {
     user.profile.name = user.services.github.username;
+    // Store GitHub avatar URL
+    if (user.services.github.avatar_url) {
+      user.profile.avatar = user.services.github.avatar_url;
+    }
   }
 
   return user;

@@ -1,7 +1,6 @@
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
-import type React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { Session } from "../../../api/sessions/sessions";
 import { Button } from "../UI/Button";

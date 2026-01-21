@@ -31,7 +31,7 @@ export function usePresence(sessionId: string | undefined) {
       return {
         _id: user._id,
         name: profile?.name || services?.github?.username || user.emails?.[0]?.address || 'Anonymous',
-        avatar: profile?.avatar,
+        avatar: profile?.avatar || services?.github?.avatar_url,
         email: user.emails?.[0]?.address,
         currentFileId: cursor?.fileId,
         isActive: !!cursor && (Date.now() - cursor.updatedAt.getTime()) < 30000

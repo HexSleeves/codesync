@@ -24,3 +24,4 @@ zodern:types            # Pull in type declarations from other Meteor packages
 accounts-password
 accounts-github
 service-configuration
+rspack
