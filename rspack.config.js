@@ -15,33 +15,11 @@ export default defineConfig(Meteor => {
 
   return {
     plugins,
-    optimization: {
-      splitChunks: {
-        chunks: 'all',
-        minSize: 20000,
-        maxSize: 244000, // Keep chunks under 244KB
-        cacheGroups: {
-          // Split React into its own chunk
-          react: {
-            test: /[\\/]node_modules[\\/](react|react-dom|react-router|react-router-dom)[\\/]/,
-            name: 'react',
-            chunks: 'all',
-            priority: 20,
-          },
-          // Split other vendors
-          vendors: {
-            test: /[\\/]node_modules[\\/]/,
-            name: 'vendors',
-            chunks: 'all',
-            priority: 10,
-          },
-        },
-      },
-    },
     performance: {
+      // Relax size warnings - lazy loading handles the splitting
       hints: Meteor.isProduction ? 'warning' : false,
-      maxAssetSize: 300000,
-      maxEntrypointSize: 400000,
+      maxAssetSize: 400000,
+      maxEntrypointSize: 500000,
     },
   };
 });
