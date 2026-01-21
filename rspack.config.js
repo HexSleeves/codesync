@@ -15,8 +15,22 @@ export default defineConfig(Meteor => {
 
   return {
     plugins,
+    optimization: {
+      // Extract common modules like @swc/helpers into a shared chunk
+      splitChunks: {
+        cacheGroups: {
+          // Extract @swc/helpers into its own chunk to avoid duplication
+          swcHelpers: {
+            test: /[\\/]node_modules[\\/]@swc[\\/]helpers[\\/]/,
+            name: 'swc-helpers',
+            chunks: 'all',
+            enforce: true,
+            priority: 30,
+          },
+        },
+      },
+    },
     performance: {
-      // Relax size warnings - lazy loading handles the splitting
       hints: Meteor.isProduction ? 'warning' : false,
       maxAssetSize: 400000,
       maxEntrypointSize: 500000,
