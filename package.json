@@ -3,11 +3,13 @@
   "private": true,
   "scripts": {
     "start": "meteor run",
-    "css": "npx tailwindcss -i ./client/main.source.css -o ./client/main.css --watch",
-    "build:css": "npx tailwindcss -i ./client/main.source.css -o ./client/main.css --minify",
+    "dev": "meteor run",
+    "build": "meteor build ../output --directory",
+    "build:analyze": "RSDOCTOR=true meteor build ../output --directory",
     "test": "meteor test --once --driver-package meteortesting:mocha",
-    "test-app": "TEST_WATCH=1 meteor test --full-app --driver-package meteortesting:mocha",
-    "visualize": "meteor --production --extra-packages bundle-visualizer"
+    "test:watch": "TEST_WATCH=1 meteor test --full-app --driver-package meteortesting:mocha",
+    "typecheck": "tsc --noEmit",
+    "lint": "meteor lint"
   },
   "dependencies": {
     "@babel/runtime": "^7.28.6",
