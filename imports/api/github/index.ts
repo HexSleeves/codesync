@@ -1,3 +1,3 @@
 // GitHub integration exports
-export * from "./github";
-export * from "./methods";
+export * from './github';
+export * from './methods';

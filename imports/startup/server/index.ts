@@ -1,7 +1,6 @@
 // Server-side startup
-
-import { Accounts } from 'meteor/accounts-base';
 import { Meteor } from 'meteor/meteor';
+import { Accounts } from 'meteor/accounts-base';
 import { ServiceConfiguration } from 'meteor/service-configuration';
 
 // Import collections and methods
@@ -85,7 +84,7 @@ ServiceConfiguration.configurations.upsertAsync(
     $set: {
       loginStyle: 'popup',
       clientId: 'Ov23li8HongvGIUS6cgX', // insert your clientId here
-      secret: '', // insert your secret here
+      secret: '6abeb4e2a46727740b7293d4f6f7dc9d8bb3a522', // insert your secret here
     },
   }
 );
