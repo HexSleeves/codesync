@@ -2,14 +2,41 @@ import { defineConfig } from '@meteorjs/rspack';
 
 /**
  * Rspack configuration for Meteor projects.
- *
- * Provides typed flags on the `Meteor` object, such as:
- * - `Meteor.isClient` / `Meteor.isServer`
- * - `Meteor.isDevelopment` / `Meteor.isProduction`
- * - …and other flags available
- *
- * Use these flags to adjust your build settings based on environment.
+ * Using Rspack for faster builds (Rust-based bundler).
  */
 export default defineConfig(Meteor => {
-  return {};
+  return {
+    resolve: {
+      extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
+    },
+    module: {
+      rules: [
+        {
+          test: /\.css$/,
+          use: ['postcss-loader'],
+          type: 'css',
+        },
+      ],
+    },
+    optimization: {
+      // Enable tree shaking
+      usedExports: true,
+      // Split chunks for better caching
+      splitChunks: Meteor.isProduction ? {
+        chunks: 'all',
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            chunks: 'all',
+          },
+        },
+      } : false,
+    },
+    devtool: Meteor.isDevelopment ? 'eval-source-map' : 'source-map',
+    experiments: {
+      // Enable incremental rebuilds for faster HMR
+      incrementalRebuild: Meteor.isDevelopment,
+    },
+  };
 });
