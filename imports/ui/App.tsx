@@ -24,15 +24,15 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
     user: Meteor.user(),
     isLoading: Meteor.loggingIn()
   }), []);
-  
+
   if (isLoading) {
     return <PageLoader />;
   }
-  
+
   if (!user) {
     return <Navigate to="/login" replace />;
   }
-  
+
   return <>{children}</>;
 };
 

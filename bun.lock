@@ -14,7 +14,6 @@
         "diff": "^8.0.3",
         "meteor-node-stubs": "^1.2.25",
         "nanoid": "^5.1.6",
-        "postcss": "^8.5.6",
         "prismjs": "^1.30.0",
         "react": "^19.2.3",
         "react-dom": "^19.2.3",
@@ -35,6 +34,8 @@
         "@types/react": "^19.2.9",
         "@types/react-dom": "^19.2.3",
         "@types/react-router-dom": "^5.3.3",
+        "postcss": "^8.5.6",
+        "postcss-load-config": "^6.0.1",
         "react-refresh": "^0.17.0",
         "typescript": "^5.9.3",
       },
@@ -861,7 +862,7 @@
 
     "postcss-js": ["postcss-js@4.1.0", "", { "dependencies": { "camelcase-css": "^2.0.1" }, "peerDependencies": { "postcss": "^8.4.21" } }, ""],
 
-    "postcss-load-config": ["postcss-load-config@4.0.2", "", { "dependencies": { "lilconfig": "^3.0.0", "yaml": "^2.3.4" }, "peerDependencies": { "postcss": ">=8.0.9", "ts-node": ">=9.0.0" }, "optionalPeers": ["ts-node"] }, ""],
+    "postcss-load-config": ["postcss-load-config@6.0.1", "", { "dependencies": { "lilconfig": "^3.1.1" }, "peerDependencies": { "jiti": ">=1.21.0", "postcss": ">=8.0.9", "tsx": "^4.8.1", "yaml": "^2.4.2" }, "optionalPeers": ["jiti", "postcss", "tsx", "yaml"] }, "sha512-oPtTM4oerL+UXmx+93ytZVN82RrlY/wPUV8IeDxFrzIjXOLF1pN+EmKPLbubvKHT2HC20xXsCAH2Z+CKV6Oz/g=="],
 
     "postcss-nested": ["postcss-nested@6.2.0", "", { "dependencies": { "postcss-selector-parser": "^6.1.1" }, "peerDependencies": { "postcss": "^8.2.14" } }, ""],
 
@@ -1156,6 +1157,8 @@
     "sucrase/commander": ["commander@4.1.1", "", {}, ""],
 
     "sucrase/lines-and-columns": ["lines-and-columns@1.2.4", "", {}, ""],
+
+    "tailwindcss/postcss-load-config": ["postcss-load-config@4.0.2", "", { "dependencies": { "lilconfig": "^3.0.0", "yaml": "^2.3.4" }, "peerDependencies": { "postcss": ">=8.0.9", "ts-node": ">=9.0.0" }, "optionalPeers": ["ts-node"] }, ""],
 
     "tinyglobby/picomatch": ["picomatch@4.0.3", "", {}, ""],
 
