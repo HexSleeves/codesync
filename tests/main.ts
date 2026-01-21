@@ -1,21 +1,21 @@
-import { Meteor } from 'meteor/meteor';
-import assert from 'assert';
+import assert from "assert";
+import { Meteor } from "meteor/meteor";
 
-describe('codesync', function () {
-  it('package.json has correct name', async function () {
-    const { name } = await import('../package.json');
-    assert.strictEqual(name, 'codesync');
-  });
+describe("codesync", () => {
+	it("package.json has correct name", async () => {
+		const { name } = await import("../package.json");
+		assert.strictEqual(name, "codesync");
+	});
 
-  if (Meteor.isClient) {
-    it('client is not server', function () {
-      assert.strictEqual(Meteor.isServer, false);
-    });
-  }
+	if (Meteor.isClient) {
+		it("client is not server", () => {
+			assert.strictEqual(Meteor.isServer, false);
+		});
+	}
 
-  if (Meteor.isServer) {
-    it('server is not client', function () {
-      assert.strictEqual(Meteor.isClient, false);
-    });
-  }
+	if (Meteor.isServer) {
+		it("server is not client", () => {
+			assert.strictEqual(Meteor.isClient, false);
+		});
+	}
 });

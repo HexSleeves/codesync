@@ -1,48 +1,49 @@
 {
-  "name": "codesync",
-  "private": true,
-  "scripts": {
-    "start": "meteor run",
-    "css": "npx tailwindcss -i ./client/main.source.css -o ./client/main.css --watch",
-    "build:css": "npx tailwindcss -i ./client/main.source.css -o ./client/main.css --minify",
-    "test": "meteor test --once --driver-package meteortesting:mocha",
-    "test-app": "TEST_WATCH=1 meteor test --full-app --driver-package meteortesting:mocha",
-    "visualize": "meteor --production --extra-packages bundle-visualizer"
-  },
-  "dependencies": {
-    "@babel/runtime": "^7.28.6",
-    "@octokit/rest": "19.0.13",
-    "@swc/helpers": "^0.5.18",
-    "@types/meteor": "^2.9.10",
-    "@types/uuid": "^11.0.0",
-    "autoprefixer": "^10.4.23",
-    "diff": "^8.0.3",
-    "meteor-node-stubs": "^1.2.25",
-    "nanoid": "^5.1.6",
-    "postcss": "^8.5.6",
-    "prismjs": "^1.30.0",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
-    "react-router-dom": "^6.28.0",
-    "tailwindcss": "^3.4.17",
-    "uuid": "^13.0.0"
-  },
-  "devDependencies": {
-    "@types/diff": "^8.0.0",
-    "@types/mocha": "^10.0.10",
-    "@types/node": "^25.0.9",
-    "@types/prismjs": "^1.26.5",
-    "@types/react": "^19.2.9",
-    "@types/react-dom": "^19.2.3",
-    "@types/react-router-dom": "^5.3.3",
-    "typescript": "^5.9.3"
-  },
-  "meteor": {
-    "mainModule": {
-      "client": "client/main.tsx",
-      "server": "server/main.ts"
-    },
-    "testModule": "tests/main.ts",
-    "modern": true
-  }
+	"name": "codesync",
+	"private": true,
+	"scripts": {
+		"start": "meteor run",
+		"css": "npx tailwindcss -i ./client/main.source.css -o ./client/main.css --watch",
+		"build:css": "npx tailwindcss -i ./client/main.source.css -o ./client/main.css --minify",
+		"test": "meteor test --once --driver-package meteortesting:mocha",
+		"test-app": "TEST_WATCH=1 meteor test --full-app --driver-package meteortesting:mocha",
+		"visualize": "meteor --production --extra-packages bundle-visualizer"
+	},
+	"dependencies": {
+		"@babel/runtime": "^7.28.6",
+		"@octokit/rest": "19.0.13",
+		"@swc/helpers": "^0.5.18",
+		"@types/meteor": "^2.9.10",
+		"@types/uuid": "^11.0.0",
+		"autoprefixer": "^10.4.23",
+		"diff": "^8.0.3",
+		"meteor-node-stubs": "^1.2.25",
+		"nanoid": "^5.1.6",
+		"postcss": "^8.5.6",
+		"prismjs": "^1.30.0",
+		"react": "^19.2.3",
+		"react-dom": "^19.2.3",
+		"react-router-dom": "^6.28.0",
+		"tailwindcss": "^3.4.17",
+		"uuid": "^13.0.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.3.11",
+		"@types/diff": "^8.0.0",
+		"@types/mocha": "^10.0.10",
+		"@types/node": "^25.0.9",
+		"@types/prismjs": "^1.26.5",
+		"@types/react": "^19.2.9",
+		"@types/react-dom": "^19.2.3",
+		"@types/react-router-dom": "^5.3.3",
+		"typescript": "^5.9.3"
+	},
+	"meteor": {
+		"mainModule": {
+			"client": "client/main.tsx",
+			"server": "server/main.ts"
+		},
+		"testModule": "tests/main.ts",
+		"modern": true
+	}
 }
