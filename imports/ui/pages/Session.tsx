@@ -14,8 +14,8 @@ import { CommentThread } from '../components/Comments/CommentThread';
 import { UserList } from '../components/Sidebar/UserList';
 import { ChatPanel } from '../components/Sidebar/ChatPanel';
 import { TopBar } from '../components/Header/TopBar';
-import { Button } from '../components/UI/Button';
-import { KeyboardShortcutsModal } from '../components/UI/KeyboardShortcutsModal';
+import { Button } from '../components/common/Button';
+import { KeyboardShortcutsModal } from '../components/common/KeyboardShortcutsModal';
 
 export const SessionPage: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>();

@@ -3,7 +3,7 @@ import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import { useChat } from '../../hooks/useChat';
 import { ChatMessage } from '../../../api/chat/chat';
-import { Avatar } from '../UI/Avatar';
+import { Avatar } from '../common/Avatar';
 
 interface ChatPanelProps {
   sessionId: string;

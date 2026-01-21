@@ -1,7 +1,7 @@
 import React from 'react';
 import { usePresence, UserPresence } from '../../hooks/usePresence';
 import { useFiles } from '../../hooks/useFileContent';
-import { Avatar } from '../UI/Avatar';
+import { Avatar } from '../common/Avatar';
 
 interface UserListProps {
   sessionId: string;

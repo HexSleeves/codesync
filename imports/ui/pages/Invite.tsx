@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Meteor } from 'meteor/meteor';
-import { Button } from '../components/UI/Button';
+import { Button } from '../components/common/Button';
 
 export const InvitePage: React.FC = () => {
   const { token } = useParams<{ token: string }>();

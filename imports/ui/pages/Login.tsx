@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Meteor } from 'meteor/meteor';
 import { Accounts } from 'meteor/accounts-base';
-import { Button } from '../components/UI/Button';
+import { Button } from '../components/common/Button';
 
 export const Login: React.FC = () => {
   const navigate = useNavigate();

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import { Comment } from '../../../api/comments/comments';
-import { Avatar } from '../UI/Avatar';
+import { Avatar } from '../common/Avatar';
 import { ReactionPicker } from './ReactionPicker';
 
 interface CommentItemProps {
