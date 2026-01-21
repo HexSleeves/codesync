@@ -23,6 +23,10 @@ import '../../api/chat/chat';
 import '../../api/chat/methods';
 import '../../api/chat/publications';
 
+// GitHub integration
+import '../../api/github/github';
+import '../../api/github/methods';
+
 // Configure accounts
 Accounts.config({
   sendVerificationEmail: false

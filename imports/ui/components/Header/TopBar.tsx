@@ -6,6 +6,7 @@ import { Session } from '../../../api/sessions/sessions';
 import { Button } from '../UI/Button';
 import { Modal } from '../UI/Modal';
 import { ShareButton } from './ShareButton';
+import { useToast } from '../UI/Toast';
 
 interface TopBarProps {
   session: Session;
@@ -14,6 +15,9 @@ interface TopBarProps {
 export const TopBar: React.FC<TopBarProps> = ({ session }) => {
   const navigate = useNavigate();
   const [showSettings, setShowSettings] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewAction, setReviewAction] = useState<'approve' | 'request_changes' | null>(null);
+  const { addToast } = useToast();
   
   const user = useTracker(() => Meteor.user(), []);
   const profile = user?.profile as any;
@@ -21,10 +25,44 @@ export const TopBar: React.FC<TopBarProps> = ({ session }) => {
   const userName = profile?.name || services?.github?.username || user?.emails?.[0]?.address || 'Anonymous';
   
   const isOwner = session.createdBy === Meteor.userId();
+  const isReviewer = session.reviewers.some(r => r.userId === Meteor.userId());
+  const myReview = session.reviewers.find(r => r.userId === Meteor.userId());
+  const canReview = isReviewer && session.status === 'in_review' && myReview?.status === 'pending';
   
   const handleLogout = () => {
     Meteor.logout(() => {
       navigate('/login');
+    });
+  };
+
+  const handleStartReview = () => {
+    Meteor.call('sessions.startReview', session._id, (err: any) => {
+      if (err) {
+        addToast(err.reason || 'Failed to start review', 'error');
+      } else {
+        addToast('Review started', 'success');
+      }
+    });
+  };
+
+  const handleSubmitReview = (status: 'approved' | 'changes_requested') => {
+    Meteor.call('sessions.submitReview', session._id, status, (err: any) => {
+      if (err) {
+        addToast(err.reason || 'Failed to submit review', 'error');
+      } else {
+        addToast(status === 'approved' ? 'Review approved!' : 'Changes requested', 'success');
+        setShowReviewModal(false);
+      }
+    });
+  };
+
+  const handleMerge = () => {
+    Meteor.call('sessions.merge', session._id, (err: any) => {
+      if (err) {
+        addToast(err.reason || 'Failed to merge', 'error');
+      } else {
+        addToast('Session merged!', 'success');
+      }
     });
   };
   
@@ -85,6 +123,57 @@ export const TopBar: React.FC<TopBarProps> = ({ session }) => {
       </div>
       
       <div className="flex items-center gap-3">
+        {/* Review Actions */}
+        {isOwner && session.status === 'draft' && (
+          <Button onClick={handleStartReview} size="sm">
+            Start Review
+          </Button>
+        )}
+        
+        {canReview && (
+          <>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                setReviewAction('request_changes');
+                setShowReviewModal(true);
+              }}
+            >
+              <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              Request Changes
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => {
+                setReviewAction('approve');
+                setShowReviewModal(true);
+              }}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Approve
+            </Button>
+          </>
+        )}
+        
+        {isOwner && session.status === 'approved' && (
+          <Button
+            size="sm"
+            onClick={handleMerge}
+            className="bg-purple-600 hover:bg-purple-700"
+          >
+            <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+            </svg>
+            Merge
+          </Button>
+        )}
+        
         {/* Share button */}
         <ShareButton session={session} />
         
@@ -142,7 +231,73 @@ export const TopBar: React.FC<TopBarProps> = ({ session }) => {
       >
         <SessionSettings session={session} onClose={() => setShowSettings(false)} />
       </Modal>
+      
+      {/* Review Modal */}
+      <Modal
+        isOpen={showReviewModal}
+        onClose={() => setShowReviewModal(false)}
+        title={reviewAction === 'approve' ? 'Approve Review' : 'Request Changes'}
+        size="md"
+      >
+        <ReviewSubmitForm
+          action={reviewAction}
+          onSubmit={handleSubmitReview}
+          onCancel={() => setShowReviewModal(false)}
+        />
+      </Modal>
     </header>
+  );
+};
+
+interface ReviewSubmitFormProps {
+  action: 'approve' | 'request_changes' | null;
+  onSubmit: (status: 'approved' | 'changes_requested') => void;
+  onCancel: () => void;
+}
+
+const ReviewSubmitForm: React.FC<ReviewSubmitFormProps> = ({ action, onSubmit, onCancel }) => {
+  const [comment, setComment] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  
+  const handleSubmit = () => {
+    setSubmitting(true);
+    onSubmit(action === 'approve' ? 'approved' : 'changes_requested');
+  };
+  
+  return (
+    <div className="space-y-4">
+      <p className="text-gray-600 dark:text-gray-400">
+        {action === 'approve'
+          ? 'You are about to approve this code review.'
+          : 'You are requesting changes to this code review.'}
+      </p>
+      
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Comment (optional)
+        </label>
+        <textarea
+          value={comment}
+          onChange={e => setComment(e.target.value)}
+          rows={3}
+          placeholder={action === 'approve' ? 'LGTM! 🎉' : 'Please address the following...'}
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+      
+      <div className="flex justify-end gap-3 pt-4">
+        <Button variant="secondary" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button
+          onClick={handleSubmit}
+          loading={submitting}
+          className={action === 'approve' ? 'bg-green-600 hover:bg-green-700' : 'bg-orange-600 hover:bg-orange-700'}
+        >
+          {action === 'approve' ? 'Approve' : 'Request Changes'}
+        </Button>
+      </div>
+    </div>
   );
 };
 
