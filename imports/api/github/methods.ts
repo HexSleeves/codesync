@@ -1,18 +1,12 @@
 import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
-import { Sessions, Session } from '../sessions/sessions';
+import { Sessions, Session } from '../sessions/collection';
 import { Files, File } from '../files/files';
 import { nanoid } from 'nanoid';
 import { detectLanguage } from '../../ui/utils/file-icons';
-import {
-  parseGitHubPRUrl,
-  getGitHubToken,
-  createOctokit,
-  fetchPRDetails,
-  fetchPRFiles,
-  fetchFileContent,
-  parsePatch
-} from './github';
+import { getGitHubToken, createOctokit } from './client';
+import { parseGitHubPRUrl, parsePatch } from './parser';
+import { fetchPRDetails, fetchPRFiles, fetchFileContent } from './fetcher';
 
 Meteor.methods({
   /**

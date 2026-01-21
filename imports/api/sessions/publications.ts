@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { Sessions } from './sessions';
+import { Sessions } from './collection';
 
 Meteor.publish('session', async function(sessionId: string) {
   if (!this.userId) return this.ready();

@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { check, Match } from 'meteor/check';
 import { Cursors, Cursor, Selection, Viewport } from './cursors';
-import { Sessions } from '../sessions/sessions';
+import { Sessions } from '../sessions/collection';
 import { canAccessSession } from '../sessions/methods';
 
 Meteor.methods({

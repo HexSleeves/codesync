@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
 import { Files, File, Hunk } from './files';
-import { Sessions } from '../sessions/sessions';
+import { Sessions } from '../sessions/collection';
 import { canAccessSession, canEditSession } from '../sessions/methods';
 import { nanoid } from 'nanoid';
 import { detectLanguage } from '../../ui/utils/file-icons';

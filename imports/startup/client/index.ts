@@ -2,7 +2,7 @@
 import { Meteor } from 'meteor/meteor';
 
 // Import collections for client-side use
-import '../../api/sessions/sessions';
+import '../../api/sessions/collection';
 import '../../api/files/files';
 import '../../api/comments/comments';
 import '../../api/cursors/cursors';

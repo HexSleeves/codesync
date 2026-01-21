@@ -2,7 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
 import { Comments } from './comments';
 import { Files } from '../files/files';
-import { Sessions } from '../sessions/sessions';
+import { Sessions } from '../sessions/collection';
 
 Meteor.publish('file.comments', async function(fileId: string) {
   check(fileId, String);

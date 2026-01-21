@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
 import { Files } from './files';
-import { Sessions } from '../sessions/sessions';
+import { Sessions } from '../sessions/collection';
 
 Meteor.publish('session.files', async function(sessionId: string) {
   check(sessionId, String);

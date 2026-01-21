@@ -1,6 +1,6 @@
 import { useTracker } from 'meteor/react-meteor-data';
 import { Meteor } from 'meteor/meteor';
-import { Sessions, Session } from '../../api/sessions/sessions';
+import { Sessions, Session } from '../../api/sessions/collection';
 
 export function useSession(sessionId: string | undefined) {
   return useTracker(() => {

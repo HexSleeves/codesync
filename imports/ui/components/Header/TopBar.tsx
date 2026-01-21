@@ -2,10 +2,12 @@ import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import type { Session } from "../../../api/sessions/sessions";
-import { Button } from "../UI/Button";
-import { Modal } from "../UI/Modal";
-import { useToast } from "../UI/Toast";
+import type { Session } from "../../../api/sessions/collection";
+import { Button } from "../common/Button";
+import { Modal } from "../common/Modal";
+import { useToast } from "../common/Toast";
+import { ReviewModal } from "../session/ReviewModal";
+import { SettingsModal } from "../session/SettingsModal";
 import { ShareButton } from "./ShareButton";
 
 interface TopBarProps {
@@ -290,7 +292,7 @@ export const TopBar: React.FC<TopBarProps> = ({ session }) => {
 				title="Session Settings"
 				size="md"
 			>
-				<SessionSettings
+				<SettingsModal
 					session={session}
 					onClose={() => setShowSettings(false)}
 				/>
@@ -305,182 +307,12 @@ export const TopBar: React.FC<TopBarProps> = ({ session }) => {
 				}
 				size="md"
 			>
-				<ReviewSubmitForm
+				<ReviewModal
 					action={reviewAction}
 					onSubmit={handleSubmitReview}
 					onCancel={() => setShowReviewModal(false)}
 				/>
 			</Modal>
 		</header>
-	);
-};
-
-interface ReviewSubmitFormProps {
-	action: "approve" | "request_changes" | null;
-	onSubmit: (status: "approved" | "changes_requested") => void;
-	onCancel: () => void;
-}
-
-const ReviewSubmitForm: React.FC<ReviewSubmitFormProps> = ({
-	action,
-	onSubmit,
-	onCancel,
-}) => {
-	const [comment, setComment] = useState("");
-	const [submitting, setSubmitting] = useState(false);
-
-	const handleSubmit = () => {
-		setSubmitting(true);
-		onSubmit(action === "approve" ? "approved" : "changes_requested");
-	};
-
-	return (
-		<div className="space-y-4">
-			<p className="text-gray-600 dark:text-gray-400">
-				{action === "approve"
-					? "You are about to approve this code review."
-					: "You are requesting changes to this code review."}
-			</p>
-
-			<div>
-				<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-					Comment (optional)
-				</label>
-				<textarea
-					value={comment}
-					onChange={(e) => setComment(e.target.value)}
-					rows={3}
-					placeholder={
-						action === "approve"
-							? "LGTM! 🎉"
-							: "Please address the following..."
-					}
-					className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-				/>
-			</div>
-
-			<div className="flex justify-end gap-3 pt-4">
-				<Button variant="secondary" onClick={onCancel}>
-					Cancel
-				</Button>
-				<Button
-					onClick={handleSubmit}
-					loading={submitting}
-					className={
-						action === "approve"
-							? "bg-green-600 hover:bg-green-700"
-							: "bg-orange-600 hover:bg-orange-700"
-					}
-				>
-					{action === "approve" ? "Approve" : "Request Changes"}
-				</Button>
-			</div>
-		</div>
-	);
-};
-
-interface SessionSettingsProps {
-	session: Session;
-	onClose: () => void;
-}
-
-const SessionSettings: React.FC<SessionSettingsProps> = ({
-	session,
-	onClose,
-}) => {
-	const [title, setTitle] = useState(session.title);
-	const [description, setDescription] = useState(session.description || "");
-	const [isPublic, setIsPublic] = useState(session.isPublic);
-	const [diffMode, setDiffMode] = useState(session.settings.diffMode);
-	const [saving, setSaving] = useState(false);
-
-	const handleSave = () => {
-		setSaving(true);
-		Meteor.call(
-			"sessions.update",
-			session._id,
-			{
-				title,
-				description,
-				isPublic,
-				settings: {
-					...session.settings,
-					diffMode,
-				},
-			},
-			(error: any) => {
-				setSaving(false);
-				if (!error) {
-					onClose();
-				}
-			},
-		);
-	};
-
-	return (
-		<div className="space-y-4">
-			<div>
-				<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-					Title
-				</label>
-				<input
-					type="text"
-					value={title}
-					onChange={(e) => setTitle(e.target.value)}
-					className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-				/>
-			</div>
-
-			<div>
-				<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-					Description
-				</label>
-				<textarea
-					value={description}
-					onChange={(e) => setDescription(e.target.value)}
-					rows={3}
-					className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-				/>
-			</div>
-
-			<div>
-				<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-					Diff Mode
-				</label>
-				<select
-					value={diffMode}
-					onChange={(e) => setDiffMode(e.target.value as any)}
-					className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-				>
-					<option value="unified">Unified</option>
-					<option value="split">Split</option>
-				</select>
-			</div>
-
-			<div className="flex items-center gap-2">
-				<input
-					type="checkbox"
-					id="isPublic"
-					checked={isPublic}
-					onChange={(e) => setIsPublic(e.target.checked)}
-					className="w-4 h-4 text-blue-600 rounded"
-				/>
-				<label
-					htmlFor="isPublic"
-					className="text-sm text-gray-700 dark:text-gray-300"
-				>
-					Make this session public
-				</label>
-			</div>
-
-			<div className="flex justify-end gap-3 pt-4">
-				<Button variant="secondary" onClick={onClose}>
-					Cancel
-				</Button>
-				<Button onClick={handleSave} loading={saving}>
-					Save Changes
-				</Button>
-			</div>
-		</div>
 	);
 };

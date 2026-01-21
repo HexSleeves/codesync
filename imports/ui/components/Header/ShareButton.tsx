@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Meteor } from 'meteor/meteor';
-import { Session } from '../../../api/sessions/sessions';
-import { Button } from '../UI/Button';
-import { Modal } from '../UI/Modal';
-import { useToast } from '../UI/Toast';
+import { Session } from '../../../api/sessions/collection';
+import { Button } from '../common/Button';
+import { Modal } from '../common/Modal';
+import { useToast } from '../common/Toast';
 
 interface ShareButtonProps {
   session: Session;

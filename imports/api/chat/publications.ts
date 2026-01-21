@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { check, Match } from 'meteor/check';
 import { ChatMessages } from './chat';
-import { Sessions } from '../sessions/sessions';
+import { Sessions } from '../sessions/collection';
 
 Meteor.publish('session.chat', async function(sessionId: string, limit: number = 100) {
   check(sessionId, String);

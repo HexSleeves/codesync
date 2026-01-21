@@ -2,7 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { check, Match } from 'meteor/check';
 import { Comments, Comment } from './comments';
 import { Files } from '../files/files';
-import { Sessions } from '../sessions/sessions';
+import { Sessions } from '../sessions/collection';
 import { canAccessSession } from '../sessions/methods';
 import { nanoid } from 'nanoid';
 

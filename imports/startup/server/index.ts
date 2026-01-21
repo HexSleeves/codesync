@@ -4,9 +4,9 @@ import { Accounts } from 'meteor/accounts-base';
 import { ServiceConfiguration } from 'meteor/service-configuration';
 
 // Import collections and methods
-import { Sessions } from '../../api/sessions/sessions';
+import { Sessions } from '../../api/sessions/collection';
 import '../../api/sessions/invites';
-import '../../api/sessions/methods';
+import '../../api/sessions/methods/index';
 import '../../api/sessions/publications';
 
 import { Files } from '../../api/files/files';
