@@ -71,10 +71,11 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ sessionId }) => {
         <div className="flex gap-2">
           <input
             type="text"
+            data-chat-input
             value={inputText}
             onChange={e => setInputText(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Type a message..."
+            placeholder="Type a message... (press C)"
             className="flex-1 px-3 py-2 text-sm bg-gray-100 dark:bg-gray-700 border-0 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white placeholder-gray-400"
           />
           <button

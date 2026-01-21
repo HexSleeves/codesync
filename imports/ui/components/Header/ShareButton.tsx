@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { Meteor } from 'meteor/meteor';
 import { Session } from '../../../api/sessions/sessions';
 import { Button } from '../UI/Button';
 import { Modal } from '../UI/Modal';
+import { useToast } from '../UI/Toast';
 
 interface ShareButtonProps {
   session: Session;
@@ -10,6 +12,9 @@ interface ShareButtonProps {
 export const ShareButton: React.FC<ShareButtonProps> = ({ session }) => {
   const [showModal, setShowModal] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteLoading, setInviteLoading] = useState(false);
+  const { showToast } = useToast();
   
   const shareUrl = `${window.location.origin}/session/${session._id}`;
   const tokenUrl = session.shareToken 
@@ -20,6 +25,27 @@ export const ShareButton: React.FC<ShareButtonProps> = ({ session }) => {
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleInvite = () => {
+    if (!inviteEmail.trim()) return;
+    
+    setInviteLoading(true);
+    Meteor.call('sessions.inviteByEmail', session._id, inviteEmail.trim(), (err: any, result: any) => {
+      setInviteLoading(false);
+      if (err) {
+        showToast(err.reason || 'Failed to send invite', 'error');
+      } else if (result.status === 'added') {
+        showToast('User added to session!', 'success');
+        setInviteEmail('');
+      } else if (result.status === 'already_invited') {
+        showToast('User has already been invited', 'info');
+      } else {
+        showToast('Invite sent! Share this link with them:', 'success');
+        copyToClipboard(result.inviteUrl);
+        setInviteEmail('');
+      }
+    });
   };
   
   return (
@@ -42,6 +68,35 @@ export const ShareButton: React.FC<ShareButtonProps> = ({ session }) => {
         size="md"
       >
         <div className="space-y-6">
+          {/* Invite by email */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Invite by Email
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="email"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleInvite()}
+                placeholder="colleague@example.com"
+                className="flex-1 px-3 py-2 text-sm bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400"
+              />
+              <Button
+                onClick={handleInvite}
+                loading={inviteLoading}
+                disabled={!inviteEmail.trim()}
+              >
+                Invite
+              </Button>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              If they have an account, they'll be added instantly. Otherwise, they'll get an invite link.
+            </p>
+          </div>
+
+          <div className="border-t border-gray-200 dark:border-gray-700" />
+
           {/* Direct link */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -73,7 +128,7 @@ export const ShareButton: React.FC<ShareButtonProps> = ({ session }) => {
           {tokenUrl && (
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Invite Link
+                Quick Invite Link
               </label>
               <div className="flex gap-2">
                 <input
@@ -90,7 +145,7 @@ export const ShareButton: React.FC<ShareButtonProps> = ({ session }) => {
                 </Button>
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Anyone with this link will be added as a participant
+                Anyone with this link will be added as a participant when they sign in
               </p>
             </div>
           )}

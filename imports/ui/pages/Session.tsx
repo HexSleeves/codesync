@@ -1,10 +1,12 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Meteor } from 'meteor/meteor';
 import { useSession } from '../hooks/useSession';
 import { useFiles, useFile } from '../hooks/useFileContent';
 import { useCommentsByLine } from '../hooks/useComments';
 import { useCursors } from '../hooks/useCursors';
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
+import { useNotifications } from '../hooks/useNotifications';
 import { FileTree } from '../components/FileTree/FileTree';
 import { CodeView } from '../components/CodeEditor/CodeView';
 import { DiffViewer } from '../components/Diff/DiffViewer';
@@ -13,6 +15,7 @@ import { UserList } from '../components/Sidebar/UserList';
 import { ChatPanel } from '../components/Sidebar/ChatPanel';
 import { TopBar } from '../components/Header/TopBar';
 import { Button } from '../components/UI/Button';
+import { KeyboardShortcutsModal } from '../components/UI/KeyboardShortcutsModal';
 
 export const SessionPage: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -20,8 +23,10 @@ export const SessionPage: React.FC = () => {
 
   const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'code' | 'diff'>('diff');
+  const [diffMode, setDiffMode] = useState<'unified' | 'split'>('unified');
   const [commentLine, setCommentLine] = useState<number | null>(null);
   const [showRightSidebar, setShowRightSidebar] = useState(true);
+  const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
 
   // Data subscriptions
   const { session, isLoading: sessionLoading } = useSession(sessionId);
@@ -29,6 +34,59 @@ export const SessionPage: React.FC = () => {
   const { file: selectedFile, isLoading: fileLoading } = useFile(selectedFileId);
   const { commentsByLine, isLoading: commentsLoading } = useCommentsByLine(selectedFileId);
   const { cursors, updateCursor } = useCursors(sessionId, selectedFileId);
+
+  // Keyboard shortcuts
+  const shortcuts = useMemo(() => [
+    {
+      key: '?',
+      shift: true,
+      description: 'Show keyboard shortcuts',
+      action: () => setShowKeyboardHelp(true)
+    },
+    {
+      key: 'Escape',
+      description: 'Close panel',
+      action: () => {
+        if (showKeyboardHelp) setShowKeyboardHelp(false);
+        else if (commentLine !== null) setCommentLine(null);
+      }
+    },
+    {
+      key: 'd',
+      description: 'Toggle diff mode',
+      action: () => setDiffMode(m => m === 'unified' ? 'split' : 'unified')
+    },
+    {
+      key: 'b',
+      description: 'Toggle sidebar',
+      action: () => setShowRightSidebar(s => !s)
+    },
+    {
+      key: 'r',
+      description: 'Mark file as reviewed',
+      action: () => {
+        if (selectedFileId) {
+          const file = files.find(f => f._id === selectedFileId);
+          if (file) {
+            Meteor.call(file.isReviewed ? 'files.unmarkReviewed' : 'files.markReviewed', selectedFileId);
+          }
+        }
+      }
+    },
+    {
+      key: 'c',
+      description: 'Focus chat',
+      action: () => {
+        const chatInput = document.querySelector<HTMLInputElement>('[data-chat-input]');
+        chatInput?.focus();
+      }
+    },
+  ], [showKeyboardHelp, commentLine, selectedFileId, files]);
+
+  useKeyboardShortcuts(shortcuts);
+
+  // Enable notifications for mentions
+  useNotifications(sessionId);
 
   // Handle line click to open comment panel
   const handleLineClick = useCallback((lineNumber: number) => {
@@ -194,6 +252,45 @@ export const SessionPage: React.FC = () => {
                       Diff
                     </button>
                   </div>
+
+                  {/* Diff mode toggle (only shown in diff view) */}
+                  {viewMode === 'diff' && (
+                    <div className="flex rounded-lg overflow-hidden border border-gray-600">
+                      <button
+                        onClick={() => setDiffMode('unified')}
+                        className={`px-3 py-1 text-sm transition-colors ${
+                          diffMode === 'unified'
+                            ? 'bg-purple-600 text-white'
+                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        }`}
+                        title="Unified diff (press D)"
+                      >
+                        Unified
+                      </button>
+                      <button
+                        onClick={() => setDiffMode('split')}
+                        className={`px-3 py-1 text-sm transition-colors ${
+                          diffMode === 'split'
+                            ? 'bg-purple-600 text-white'
+                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        }`}
+                        title="Split diff (press D)"
+                      >
+                        Split
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Keyboard help button */}
+                  <button
+                    onClick={() => setShowKeyboardHelp(true)}
+                    className="p-1.5 text-gray-400 hover:text-gray-200 hover:bg-gray-700 rounded"
+                    title="Keyboard shortcuts (Shift+?)"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </button>
                 </div>
               </div>
 
@@ -214,7 +311,7 @@ export const SessionPage: React.FC = () => {
                 ) : (
                   <DiffViewer
                     file={selectedFile}
-                    mode={session.settings.diffMode}
+                    mode={diffMode}
                     comments={commentsByLine}
                     onLineClick={handleLineClick}
                   />
@@ -264,6 +361,12 @@ export const SessionPage: React.FC = () => {
           onClose={() => setCommentLine(null)}
         />
       )}
+
+      {/* Keyboard shortcuts help modal */}
+      <KeyboardShortcutsModal
+        isOpen={showKeyboardHelp}
+        onClose={() => setShowKeyboardHelp(false)}
+      />
     </div>
   );
 };

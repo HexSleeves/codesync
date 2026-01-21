@@ -5,6 +5,7 @@ import { ServiceConfiguration } from 'meteor/service-configuration';
 
 // Import collections and methods
 import '../../api/sessions/sessions';
+import '../../api/sessions/invites';
 import '../../api/sessions/methods';
 import '../../api/sessions/publications';
 
