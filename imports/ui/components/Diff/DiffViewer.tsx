@@ -70,7 +70,7 @@ interface DiffProps {
 
 const UnifiedDiff: React.FC<DiffProps> = ({ hunks, comments, onLineClick }) => {
   return (
-    <div className="font-mono text-sm bg-gray-900 text-gray-100 overflow-x-auto">
+    <div className="font-mono text-[13px] leading-5 bg-gray-900 text-gray-100 overflow-x-auto">
       {hunks.map((hunk, hunkIndex) => (
         <div key={hunkIndex} className="mb-2">
           {/* Hunk header */}
@@ -96,7 +96,7 @@ const UnifiedDiff: React.FC<DiffProps> = ({ hunks, comments, onLineClick }) => {
 
 const SplitDiff: React.FC<DiffProps> = ({ hunks, comments, onLineClick }) => {
   return (
-    <div className="font-mono text-sm bg-gray-900 text-gray-100 overflow-x-auto">
+    <div className="font-mono text-[13px] leading-5 bg-gray-900 text-gray-100 overflow-x-auto">
       {hunks.map((hunk, hunkIndex) => (
         <div key={hunkIndex} className="mb-2">
           {/* Hunk header */}

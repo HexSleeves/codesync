@@ -95,7 +95,7 @@ export const CodeView: React.FC<CodeViewProps> = ({
       {/* Cursor overlay */}
       <CursorOverlay cursors={cursors} lineHeight={24} charWidth={8} />
 
-      <div ref={codeRef} className="font-mono text-sm leading-6">
+      <div ref={codeRef} className="font-mono text-[13px] leading-5">
         {lines.map((line, index) => {
           const lineNumber = index + 1;
           const lineComments = comments.get(lineNumber);
