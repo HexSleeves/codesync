@@ -20,32 +20,32 @@ Meteor.methods({
    */
   async 'github.importPR'(prUrl: string, options: { isPublic?: boolean } = {}) {
     check(prUrl, String);
-    
+
     if (!this.userId) {
       throw new Meteor.Error('not-authorized', 'You must be logged in');
     }
-    
+
     // Parse the PR URL
     const prInfo = parseGitHubPRUrl(prUrl);
     if (!prInfo) {
       throw new Meteor.Error('invalid-url', 'Invalid GitHub PR URL. Use format: https://github.com/owner/repo/pull/123');
     }
-    
+
     // Get GitHub token
-    const token = getGitHubToken(this.userId);
+    const token = await getGitHubToken(this.userId);
     if (!token) {
       throw new Meteor.Error('no-github-token', 'Please connect your GitHub account to import pull requests. Sign in with GitHub to continue.');
     }
-    
+
     const octokit = createOctokit(token);
-    
+
     try {
       // Fetch PR details
       const prData = await fetchPRDetails(octokit, prInfo.owner, prInfo.repo, prInfo.prNumber);
-      
+
       // Create session
       const sessionId = nanoid();
-      
+
       await Sessions.insertAsync({
         _id: sessionId,
         title: prData.title || `PR #${prInfo.prNumber}`,
@@ -78,20 +78,20 @@ Meteor.methods({
           activeUsers: 1
         }
       } as Session);
-      
+
       // Fetch PR files
       const prFiles = await fetchPRFiles(octokit, prInfo.owner, prInfo.repo, prInfo.prNumber);
-      
+
       // Process each file
       let fileCount = 0;
       const now = new Date();
-      
+
       for (const prFile of prFiles) {
         try {
           // Fetch original content for modified/deleted files
           let originalContent: string | undefined;
           let content = '';
-          
+
           if (prFile.status === 'removed' || prFile.status === 'modified' || prFile.status === 'renamed') {
             const pathToFetch = prFile.previous_filename || prFile.filename;
             originalContent = await fetchFileContent(
@@ -102,7 +102,7 @@ Meteor.methods({
               prData.base.sha
             ) || '';
           }
-          
+
           // Fetch new content for added/modified files
           if (prFile.status === 'added' || prFile.status === 'modified' || prFile.status === 'renamed' || prFile.status === 'changed') {
             const fetchedContent = await fetchFileContent(
@@ -116,15 +116,15 @@ Meteor.methods({
           } else if (prFile.status === 'removed') {
             content = ''; // File was deleted
           }
-          
+
           // Parse the patch into hunks
           const hunks = parsePatch(prFile.patch);
-          
+
           // Determine file properties
           const name = prFile.filename.split('/').pop() || prFile.filename;
           const extension = name.includes('.') ? name.split('.').pop() || '' : '';
           const language = detectLanguage(name);
-          
+
           await Files.insertAsync({
             _id: nanoid(),
             sessionId,
@@ -147,14 +147,14 @@ Meteor.methods({
             createdAt: now,
             updatedAt: now
           } as File);
-          
+
           fileCount++;
         } catch (fileError: any) {
           // Log error but continue with other files
           console.error(`Error processing file ${prFile.filename}:`, fileError.message);
         }
       }
-      
+
       // Update session stats
       await Sessions.updateAsync(sessionId, {
         $set: {
@@ -162,9 +162,9 @@ Meteor.methods({
           updatedAt: new Date()
         }
       });
-      
+
       return sessionId;
-      
+
     } catch (error: any) {
       // Handle GitHub API errors
       if (error.status === 401) {
@@ -176,23 +176,23 @@ Meteor.methods({
       if (error.status === 404) {
         throw new Meteor.Error('pr-not-found', `Pull request not found. Make sure the repository is accessible and the PR exists.`);
       }
-      
+
       console.error('GitHub import error:', error);
       throw new Meteor.Error('github-error', error.message || 'Failed to import pull request from GitHub');
     }
   },
-  
+
   /**
    * Import PR files into an existing session
    */
   async 'github.importPRToSession'(sessionId: string, prUrl: string) {
     check(sessionId, String);
     check(prUrl, String);
-    
+
     if (!this.userId) {
       throw new Meteor.Error('not-authorized', 'You must be logged in');
     }
-    
+
     // Check session access
     const session = await Sessions.findOneAsync(sessionId);
     if (!session) {
@@ -201,33 +201,33 @@ Meteor.methods({
     if (session.createdBy !== this.userId) {
       throw new Meteor.Error('not-authorized', 'Only the session owner can import files');
     }
-    
+
     // Parse the PR URL
     const prInfo = parseGitHubPRUrl(prUrl);
     if (!prInfo) {
       throw new Meteor.Error('invalid-url', 'Invalid GitHub PR URL');
     }
-    
+
     // Get GitHub token
-    const token = getGitHubToken(this.userId);
+    const token = await getGitHubToken(this.userId);
     if (!token) {
       throw new Meteor.Error('no-github-token', 'Please connect your GitHub account');
     }
-    
+
     const octokit = createOctokit(token);
-    
+
     try {
       const prData = await fetchPRDetails(octokit, prInfo.owner, prInfo.repo, prInfo.prNumber);
       const prFiles = await fetchPRFiles(octokit, prInfo.owner, prInfo.repo, prInfo.prNumber);
-      
+
       let fileCount = 0;
       const now = new Date();
-      
+
       for (const prFile of prFiles) {
         try {
           let originalContent: string | undefined;
           let content = '';
-          
+
           if (prFile.status === 'removed' || prFile.status === 'modified' || prFile.status === 'renamed') {
             const pathToFetch = prFile.previous_filename || prFile.filename;
             originalContent = await fetchFileContent(
@@ -238,7 +238,7 @@ Meteor.methods({
               prData.base.sha
             ) || '';
           }
-          
+
           if (prFile.status === 'added' || prFile.status === 'modified' || prFile.status === 'renamed' || prFile.status === 'changed') {
             const fetchedContent = await fetchFileContent(
               octokit,
@@ -249,12 +249,12 @@ Meteor.methods({
             );
             content = fetchedContent || '';
           }
-          
+
           const hunks = parsePatch(prFile.patch);
           const name = prFile.filename.split('/').pop() || prFile.filename;
           const extension = name.includes('.') ? name.split('.').pop() || '' : '';
           const language = detectLanguage(name);
-          
+
           await Files.insertAsync({
             _id: nanoid(),
             sessionId,
@@ -277,13 +277,13 @@ Meteor.methods({
             createdAt: now,
             updatedAt: now
           } as File);
-          
+
           fileCount++;
         } catch (fileError: any) {
           console.error(`Error processing file ${prFile.filename}:`, fileError.message);
         }
       }
-      
+
       // Update session
       await Sessions.updateAsync(sessionId, {
         $set: {
@@ -299,9 +299,9 @@ Meteor.methods({
         },
         $inc: { 'stats.fileCount': fileCount }
       });
-      
+
       return { fileCount };
-      
+
     } catch (error: any) {
       if (error.status === 401) {
         throw new Meteor.Error('github-auth-error', 'GitHub authentication failed');
@@ -312,55 +312,55 @@ Meteor.methods({
       if (error.status === 404) {
         throw new Meteor.Error('pr-not-found', 'Pull request not found');
       }
-      
+
       throw new Meteor.Error('github-error', error.message || 'Failed to import pull request');
     }
   },
-  
+
   /**
    * Check if user has GitHub connected
    */
-  'github.checkConnection'() {
+  async 'github.checkConnection'() {
     if (!this.userId) {
-      return { connected: false };
+      return { connected: false, username: null };
     }
-    
-    const token = getGitHubToken(this.userId);
-    const user = Meteor.users.findOne(this.userId);
+
+    const token = await getGitHubToken(this.userId);
+    const user = await Meteor.users.findOneAsync(this.userId);
     const services = user?.services as any;
-    
+
     return {
       connected: !!token,
       username: services?.github?.username || null
     };
   },
-  
+
   /**
    * Validate a PR URL and return basic info
    */
   async 'github.validatePRUrl'(prUrl: string) {
     check(prUrl, String);
-    
+
     if (!this.userId) {
       throw new Meteor.Error('not-authorized');
     }
-    
+
     const prInfo = parseGitHubPRUrl(prUrl);
     if (!prInfo) {
       throw new Meteor.Error('invalid-url', 'Invalid GitHub PR URL');
     }
-    
-    const token = getGitHubToken(this.userId);
+
+    const token = await getGitHubToken(this.userId);
     if (!token) {
       throw new Meteor.Error('no-github-token', 'GitHub not connected');
     }
-    
+
     const octokit = createOctokit(token);
-    
+
     try {
       const prData = await fetchPRDetails(octokit, prInfo.owner, prInfo.repo, prInfo.prNumber);
       const prFiles = await fetchPRFiles(octokit, prInfo.owner, prInfo.repo, prInfo.prNumber);
-      
+
       return {
         valid: true,
         owner: prInfo.owner,

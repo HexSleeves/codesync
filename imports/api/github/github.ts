@@ -49,7 +49,7 @@ export function parseGitHubPRUrl(url: string): GitHubPRInfo | null {
   // github.com/owner/repo/pull/123
   // owner/repo#123
   // owner/repo/pull/123
-  
+
   const fullUrlMatch = url.match(/(?:https?:\/\/)?github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/i);
   if (fullUrlMatch) {
     return {
@@ -58,7 +58,7 @@ export function parseGitHubPRUrl(url: string): GitHubPRInfo | null {
       prNumber: parseInt(fullUrlMatch[3], 10)
     };
   }
-  
+
   // Short format: owner/repo#123
   const shortMatch = url.match(/^([^/]+)\/([^#]+)#(\d+)$/);
   if (shortMatch) {
@@ -68,7 +68,7 @@ export function parseGitHubPRUrl(url: string): GitHubPRInfo | null {
       prNumber: parseInt(shortMatch[3], 10)
     };
   }
-  
+
   // Path format: owner/repo/pull/123
   const pathMatch = url.match(/^([^/]+)\/([^/]+)\/pull\/(\d+)$/);
   if (pathMatch) {
@@ -78,17 +78,17 @@ export function parseGitHubPRUrl(url: string): GitHubPRInfo | null {
       prNumber: parseInt(pathMatch[3], 10)
     };
   }
-  
+
   return null;
 }
 
 /**
  * Get user's GitHub OAuth token from Meteor user services
  */
-export function getGitHubToken(userId: string): string | null {
-  const user = Meteor.users.findOne(userId);
+export async function getGitHubToken(userId: string): Promise<string | null> {
+  const user = await Meteor.users.findOneAsync(userId);
   if (!user) return null;
-  
+
   const services = user.services as any;
   return services?.github?.accessToken || null;
 }
@@ -116,7 +116,7 @@ export async function fetchPRDetails(
     repo,
     pull_number: prNumber
   });
-  
+
   return {
     title: data.title,
     body: data.body,
@@ -148,7 +148,7 @@ export async function fetchPRFiles(
   const files: GitHubPRFile[] = [];
   let page = 1;
   const perPage = 100;
-  
+
   // GitHub API paginates PR files, so we need to fetch all pages
   while (true) {
     const { data } = await octokit.pulls.listFiles({
@@ -158,7 +158,7 @@ export async function fetchPRFiles(
       per_page: perPage,
       page
     });
-    
+
     for (const file of data) {
       files.push({
         filename: file.filename,
@@ -174,11 +174,11 @@ export async function fetchPRFiles(
         contents_url: file.contents_url
       });
     }
-    
+
     if (data.length < perPage) break;
     page++;
   }
-  
+
   return files;
 }
 
@@ -199,7 +199,7 @@ export async function fetchFileContent(
       path,
       ref
     });
-    
+
     if ('content' in data && data.content) {
       // GitHub returns base64 encoded content
       return Buffer.from(data.content, 'base64').toString('utf-8');
@@ -219,28 +219,28 @@ export async function fetchFileContent(
  */
 export function parsePatch(patch: string | undefined): Hunk[] {
   if (!patch) return [];
-  
+
   const hunks: Hunk[] = [];
   const lines = patch.split('\n');
-  
+
   let currentHunk: Hunk | null = null;
   let oldLineNum = 0;
   let newLineNum = 0;
-  
+
   for (const line of lines) {
     // Hunk header: @@ -old_start,old_lines +new_start,new_lines @@
     const hunkMatch = line.match(/^@@ -(\d+),?(\d+)? \+(\d+),?(\d+)? @@/);
-    
+
     if (hunkMatch) {
       if (currentHunk) {
         hunks.push(currentHunk);
       }
-      
+
       const oldStart = parseInt(hunkMatch[1], 10);
       const oldLines = parseInt(hunkMatch[2] || '1', 10);
       const newStart = parseInt(hunkMatch[3], 10);
       const newLines = parseInt(hunkMatch[4] || '1', 10);
-      
+
       currentHunk = {
         oldStart,
         oldLines,
@@ -248,7 +248,7 @@ export function parsePatch(patch: string | undefined): Hunk[] {
         newLines,
         lines: []
       };
-      
+
       oldLineNum = oldStart;
       newLineNum = newStart;
     } else if (currentHunk) {
@@ -256,7 +256,7 @@ export function parsePatch(patch: string | undefined): Hunk[] {
       let content = line;
       let oldLn: number | undefined;
       let newLn: number | undefined;
-      
+
       if (line.startsWith('+')) {
         type = 'add';
         content = line.substring(1);
@@ -277,7 +277,7 @@ export function parsePatch(patch: string | undefined): Hunk[] {
         // Skip other lines (shouldn't happen in patches)
         continue;
       }
-      
+
       currentHunk.lines.push({
         type,
         content,
@@ -286,11 +286,11 @@ export function parsePatch(patch: string | undefined): Hunk[] {
       });
     }
   }
-  
+
   if (currentHunk) {
     hunks.push(currentHunk);
   }
-  
+
   return hunks;
 }
 
@@ -313,7 +313,7 @@ export function applyPatch(baseContent: string | null, hunks: Hunk[]): string {
     }
     return '';
   }
-  
+
   // For modified files, we already fetch the new content directly
   // This function is mainly for fallback reconstruction
   return baseContent;
