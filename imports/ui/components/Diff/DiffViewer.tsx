@@ -29,8 +29,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
 
     // No diff available - show entire file as added
     if (file.isAdded) {
-      const lines = file.content.split('
-');
+      const lines = file.content.split('\n');
       return [{
         oldStart: 0,
         oldLines: 0,
