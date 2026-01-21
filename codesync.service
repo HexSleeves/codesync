@@ -8,7 +8,7 @@ User=exedev
 WorkingDirectory=/home/exedev/codesync
 Environment=METEOR_SETTINGS={}
 Environment=PORT=8000
-Environment=ROOT_URL=http://localhost:8000
+Environment=ROOT_URL=https://noon-disk.exe.xyz:8000
 ExecStart=/home/exedev/.meteor/meteor --port 8000
 Restart=on-failure
 RestartSec=10
