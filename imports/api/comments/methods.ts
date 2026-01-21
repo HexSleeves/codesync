@@ -13,7 +13,7 @@ function extractMentions(text: string): string[] {
 }
 
 Meteor.methods({
-  'comments.add'(data: {
+  async 'comments.add'(data: {
     sessionId: string;
     fileId: string;
     lineNumber: number;
@@ -29,12 +29,12 @@ Meteor.methods({
       throw new Meteor.Error('not-authorized');
     }
     
-    const session = Sessions.findOneAsync(data.sessionId);
-    if (!canAccessSession(session, this.userId)) {
+    const hasAccess = await canAccessSession(data.sessionId, this.userId);
+    if (!hasAccess) {
       throw new Meteor.Error('not-authorized');
     }
     
-    const file = Files.findOneAsync(data.fileId);
+    const file = await Files.findOneAsync(data.fileId);
     if (!file || file.sessionId !== data.sessionId) {
       throw new Meteor.Error('file-not-found');
     }
@@ -53,7 +53,7 @@ Meteor.methods({
     let depth = 0;
     
     if (data.parentId) {
-      const parent = Comments.findOneAsync(data.parentId);
+      const parent = await Comments.findOneAsync(data.parentId);
       if (!parent) {
         throw new Meteor.Error('parent-not-found');
       }
@@ -63,7 +63,7 @@ Meteor.methods({
     
     const commentId = nanoid();
     
-    Comments.insertAsync({
+    await Comments.insertAsync({
       _id: commentId,
       sessionId: data.sessionId,
       fileId: data.fileId,
@@ -84,7 +84,7 @@ Meteor.methods({
     } as Comment);
     
     // Update session stats
-    Sessions.updateAsync(data.sessionId, {
+    await Sessions.updateAsync(data.sessionId, {
       $inc: { 'stats.commentCount': 1 },
       $set: { updatedAt: new Date() }
     });
@@ -92,7 +92,7 @@ Meteor.methods({
     return commentId;
   },
   
-  'comments.update'(commentId: string, text: string) {
+  async 'comments.update'(commentId: string, text: string) {
     check(commentId, String);
     check(text, String);
     
@@ -100,7 +100,7 @@ Meteor.methods({
       throw new Meteor.Error('not-authorized');
     }
     
-    const comment = Comments.findOneAsync(commentId);
+    const comment = await Comments.findOneAsync(commentId);
     if (!comment) {
       throw new Meteor.Error('comment-not-found');
     }
@@ -109,7 +109,7 @@ Meteor.methods({
       throw new Meteor.Error('not-authorized', 'You can only edit your own comments');
     }
     
-    Comments.updateAsync(commentId, {
+    await Comments.updateAsync(commentId, {
       $set: {
         text,
         editedAt: new Date(),
@@ -119,20 +119,20 @@ Meteor.methods({
     });
   },
   
-  'comments.delete'(commentId: string) {
+  async 'comments.delete'(commentId: string) {
     check(commentId, String);
     
     if (!this.userId) {
       throw new Meteor.Error('not-authorized');
     }
     
-    const comment = Comments.findOneAsync(commentId);
+    const comment = await Comments.findOneAsync(commentId);
     if (!comment) {
       throw new Meteor.Error('comment-not-found');
     }
     
     if (comment.author !== this.userId) {
-      const session = Sessions.findOneAsync(comment.sessionId);
+      const session = await Sessions.findOneAsync(comment.sessionId);
       if (session?.createdBy !== this.userId) {
         throw new Meteor.Error('not-authorized');
       }
@@ -140,37 +140,37 @@ Meteor.methods({
     
     // If root comment, delete all replies
     if (comment.depth === 0) {
-      const deleted = Comments.removeAsync({ threadId: comment._id });
-      Sessions.updateAsync(comment.sessionId, {
+      const deleted = await Comments.removeAsync({ threadId: comment._id });
+      await Sessions.updateAsync(comment.sessionId, {
         $inc: { 'stats.commentCount': -deleted }
       });
     } else {
-      Comments.removeAsync(commentId);
-      Sessions.updateAsync(comment.sessionId, {
+      await Comments.removeAsync(commentId);
+      await Sessions.updateAsync(comment.sessionId, {
         $inc: { 'stats.commentCount': -1 }
       });
     }
   },
   
-  'comments.resolve'(commentId: string) {
+  async 'comments.resolve'(commentId: string) {
     check(commentId, String);
     
     if (!this.userId) {
       throw new Meteor.Error('not-authorized');
     }
     
-    const comment = Comments.findOneAsync(commentId);
+    const comment = await Comments.findOneAsync(commentId);
     if (!comment) {
       throw new Meteor.Error('comment-not-found');
     }
     
-    const session = Sessions.findOneAsync(comment.sessionId);
-    if (!canAccessSession(session, this.userId)) {
+    const hasAccess = await canAccessSession(comment.sessionId, this.userId);
+    if (!hasAccess) {
       throw new Meteor.Error('not-authorized');
     }
     
     // Resolve the entire thread
-    Comments.updateAsync(
+    await Comments.updateAsync(
       { threadId: comment.threadId },
       {
         $set: {
@@ -183,25 +183,25 @@ Meteor.methods({
     );
   },
   
-  'comments.unresolve'(commentId: string) {
+  async 'comments.unresolve'(commentId: string) {
     check(commentId, String);
     
     if (!this.userId) {
       throw new Meteor.Error('not-authorized');
     }
     
-    const comment = Comments.findOneAsync(commentId);
+    const comment = await Comments.findOneAsync(commentId);
     if (!comment) {
       throw new Meteor.Error('comment-not-found');
     }
     
-    const session = Sessions.findOneAsync(comment.sessionId);
-    if (!canAccessSession(session, this.userId)) {
+    const hasAccess = await canAccessSession(comment.sessionId, this.userId);
+    if (!hasAccess) {
       throw new Meteor.Error('not-authorized');
     }
     
     // Unresolve the entire thread
-    Comments.updateAsync(
+    await Comments.updateAsync(
       { threadId: comment.threadId },
       {
         $unset: {
@@ -216,29 +216,29 @@ Meteor.methods({
     );
   },
   
-  'comments.togglePin'(commentId: string) {
+  async 'comments.togglePin'(commentId: string) {
     check(commentId, String);
     
     if (!this.userId) {
       throw new Meteor.Error('not-authorized');
     }
     
-    const comment = Comments.findOneAsync(commentId);
+    const comment = await Comments.findOneAsync(commentId);
     if (!comment) {
       throw new Meteor.Error('comment-not-found');
     }
     
-    const session = Sessions.findOneAsync(comment.sessionId);
-    if (!canAccessSession(session, this.userId)) {
+    const hasAccess = await canAccessSession(comment.sessionId, this.userId);
+    if (!hasAccess) {
       throw new Meteor.Error('not-authorized');
     }
     
-    Comments.updateAsync(commentId, {
+    await Comments.updateAsync(commentId, {
       $set: { isPinned: !comment.isPinned }
     });
   },
   
-  'comments.addReaction'(commentId: string, emoji: string) {
+  async 'comments.addReaction'(commentId: string, emoji: string) {
     check(commentId, String);
     check(emoji, String);
     
@@ -246,7 +246,7 @@ Meteor.methods({
       throw new Meteor.Error('not-authorized');
     }
     
-    const comment = Comments.findOneAsync(commentId);
+    const comment = await Comments.findOneAsync(commentId);
     if (!comment) {
       throw new Meteor.Error('comment-not-found');
     }
@@ -256,26 +256,26 @@ Meteor.methods({
     if (existingReaction) {
       if (existingReaction.users.includes(this.userId)) {
         // Remove user from reaction
-        Comments.updateAsync(
+        await Comments.updateAsync(
           { _id: commentId, 'reactions.emoji': emoji },
           { $pull: { 'reactions.$.users': this.userId } }
         );
         
         // Remove reaction if no users left
-        Comments.updateAsync(
+        await Comments.updateAsync(
           { _id: commentId, 'reactions.emoji': emoji, 'reactions.users': { $size: 0 } },
           { $pull: { reactions: { emoji } } }
         );
       } else {
         // Add user to reaction
-        Comments.updateAsync(
+        await Comments.updateAsync(
           { _id: commentId, 'reactions.emoji': emoji },
           { $push: { 'reactions.$.users': this.userId } }
         );
       }
     } else {
       // Create new reaction
-      Comments.updateAsync(commentId, {
+      await Comments.updateAsync(commentId, {
         $push: {
           reactions: {
             emoji,

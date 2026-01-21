@@ -1,8 +1,11 @@
 import { Meteor } from 'meteor/meteor';
+import { check } from 'meteor/check';
 import { Files } from './files';
 import { Sessions } from '../sessions/sessions';
 
 Meteor.publish('session.files', async function(sessionId: string) {
+  check(sessionId, String);
+  
   if (!this.userId) return this.ready();
   
   const session = await Sessions.findOneAsync(sessionId);
@@ -40,6 +43,8 @@ Meteor.publish('session.files', async function(sessionId: string) {
 });
 
 Meteor.publish('file', async function(fileId: string) {
+  check(fileId, String);
+  
   if (!this.userId) return this.ready();
   
   const file = await Files.findOneAsync(fileId);

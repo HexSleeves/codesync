@@ -5,7 +5,7 @@ import { Sessions } from '../sessions/sessions';
 import { canAccessSession } from '../sessions/methods';
 
 Meteor.methods({
-  'cursors.update'(data: {
+  async 'cursors.update'(data: {
     sessionId: string;
     fileId: string;
     line: number;
@@ -20,13 +20,13 @@ Meteor.methods({
     check(data.line, Number);
     check(data.column, Number);
     
-    const session = Sessions.findOneAsync(data.sessionId);
-    if (!canAccessSession(session, this.userId)) {
+    const hasAccess = await canAccessSession(data.sessionId, this.userId);
+    if (!hasAccess) {
       return;
     }
     
     // Upsert cursor position
-    Cursors.upsertAsync(
+    await Cursors.upsertAsync(
       { sessionId: data.sessionId, userId: this.userId },
       {
         $set: {
@@ -45,23 +45,23 @@ Meteor.methods({
     );
   },
   
-  'cursors.setInactive'(sessionId: string) {
+  async 'cursors.setInactive'(sessionId: string) {
     if (!this.userId) return;
     
     check(sessionId, String);
     
-    Cursors.updateAsync(
+    await Cursors.updateAsync(
       { sessionId, userId: this.userId },
       { $set: { isActive: false, updatedAt: new Date() } }
     );
   },
   
-  'cursors.remove'(sessionId: string) {
+  async 'cursors.remove'(sessionId: string) {
     if (!this.userId) return;
     
     check(sessionId, String);
     
-    Cursors.removeAsync({ sessionId, userId: this.userId });
+    await Cursors.removeAsync({ sessionId, userId: this.userId });
   }
 });
 

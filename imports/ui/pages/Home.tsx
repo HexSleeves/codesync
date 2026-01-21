@@ -7,7 +7,7 @@ import { Button } from '../components/UI/Button';
 export const Home: React.FC = () => {
   const navigate = useNavigate();
   const user = useTracker(() => Meteor.user(), []);
-  
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900">
       {/* Navigation */}
@@ -19,7 +19,7 @@ export const Home: React.FC = () => {
             </svg>
             <span className="text-xl font-bold">CodeSync</span>
           </div>
-          
+
           <div className="flex items-center gap-4">
             {user ? (
               <Button onClick={() => navigate('/dashboard')}>
@@ -41,7 +41,7 @@ export const Home: React.FC = () => {
           </div>
         </div>
       </nav>
-      
+
       {/* Hero */}
       <main className="container mx-auto px-6 py-20">
         <div className="text-center max-w-4xl mx-auto">
@@ -50,16 +50,16 @@ export const Home: React.FC = () => {
             <br />
             <span className="text-blue-400">Made Simple</span>
           </h1>
-          
+
           <p className="text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
             Collaborate on code reviews in real-time. See cursors, discuss changes,
             and ship better code together.
           </p>
-          
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
               size="lg"
-              onClick={() => history.push(user ? '/dashboard' : '/login')}
+              onClick={() => navigate(user ? '/dashboard' : '/login')}
             >
               Start Reviewing
             </Button>
@@ -75,7 +75,7 @@ export const Home: React.FC = () => {
             </Button>
           </div>
         </div>
-        
+
         {/* Features */}
         <div className="mt-32 grid md:grid-cols-3 gap-8">
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-white">
@@ -91,7 +91,7 @@ export const Home: React.FC = () => {
               Follow along as they explain code.
             </p>
           </div>
-          
+
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-white">
             <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mb-4">
               <svg className="w-6 h-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -104,7 +104,7 @@ export const Home: React.FC = () => {
               changes through the review process.
             </p>
           </div>
-          
+
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-white">
             <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mb-4">
               <svg className="w-6 h-6 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -119,7 +119,7 @@ export const Home: React.FC = () => {
           </div>
         </div>
       </main>
-      
+
       {/* Footer */}
       <footer className="container mx-auto px-6 py-8 mt-20 border-t border-white/10">
         <div className="text-center text-gray-400 text-sm">

@@ -1,9 +1,12 @@
 import { Meteor } from 'meteor/meteor';
+import { check } from 'meteor/check';
 import { Comments } from './comments';
 import { Files } from '../files/files';
 import { Sessions } from '../sessions/sessions';
 
 Meteor.publish('file.comments', async function(fileId: string) {
+  check(fileId, String);
+  
   if (!this.userId) return this.ready();
   
   const file = await Files.findOneAsync(fileId);
@@ -23,6 +26,8 @@ Meteor.publish('file.comments', async function(fileId: string) {
 });
 
 Meteor.publish('session.comments', async function(sessionId: string) {
+  check(sessionId, String);
+  
   if (!this.userId) return this.ready();
   
   const session = await Sessions.findOneAsync(sessionId);
@@ -39,6 +44,8 @@ Meteor.publish('session.comments', async function(sessionId: string) {
 });
 
 Meteor.publish('comment.thread', async function(threadId: string) {
+  check(threadId, String);
+  
   if (!this.userId) return this.ready();
   
   const comment = await Comments.findOneAsync(threadId);

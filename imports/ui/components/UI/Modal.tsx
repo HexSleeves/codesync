@@ -20,28 +20,28 @@ export const Modal: React.FC<ModalProps> = ({
       onClose();
     }
   }, [onClose]);
-  
+
   useEffect(() => {
     if (isOpen) {
       document.addEventListener('keydown', handleEscape);
       document.body.style.overflow = 'hidden';
     }
-    
+
     return () => {
       document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = '';
     };
   }, [isOpen, handleEscape]);
-  
+
   if (!isOpen) return null;
-  
+
   const sizes = {
     sm: 'max-w-sm',
     md: 'max-w-md',
     lg: 'max-w-lg',
     xl: 'max-w-xl'
   };
-  
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
@@ -50,7 +50,7 @@ export const Modal: React.FC<ModalProps> = ({
           className="fixed inset-0 bg-black/50 transition-opacity"
           onClick={onClose}
         />
-        
+
         {/* Modal */}
         <div className={`relative w-full ${sizes[size]} bg-white dark:bg-gray-800 rounded-xl shadow-xl`}>
           {title && (
@@ -68,7 +68,7 @@ export const Modal: React.FC<ModalProps> = ({
               </button>
             </div>
           )}
-          
+
           <div className="p-6">
             {children}
           </div>

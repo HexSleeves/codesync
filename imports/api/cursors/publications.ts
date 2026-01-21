@@ -1,8 +1,11 @@
 import { Meteor } from 'meteor/meteor';
+import { check } from 'meteor/check';
 import { Cursors } from './cursors';
 import { Sessions } from '../sessions/sessions';
 
 Meteor.publish('session.cursors', async function(sessionId: string) {
+  check(sessionId, String);
+  
   if (!this.userId) return this.ready();
   
   const session = await Sessions.findOneAsync(sessionId);
@@ -15,16 +18,17 @@ Meteor.publish('session.cursors', async function(sessionId: string) {
     return this.ready();
   }
   
-  // Only publish recent cursors
-  const cutoff = new Date(Date.now() - 30000);
-  
+  // Publish all active cursors for the session
+  // The cleanup job in methods.ts handles removing stale cursors
   return Cursors.find({
     sessionId,
-    updatedAt: { $gte: cutoff }
+    isActive: true
   });
 });
 
 Meteor.publish('session.users', async function(sessionId: string) {
+  check(sessionId, String);
+  
   if (!this.userId) return this.ready();
   
   const session = await Sessions.findOneAsync(sessionId);
