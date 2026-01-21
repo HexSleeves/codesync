@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Session } from '../../../api/sessions/sessions';
 import { Button } from '../UI/Button';
 import { Modal } from '../UI/Modal';
@@ -12,7 +12,7 @@ interface TopBarProps {
 }
 
 export const TopBar: React.FC<TopBarProps> = ({ session }) => {
-  const history = useHistory();
+  const navigate = useNavigate();
   const [showSettings, setShowSettings] = useState(false);
   
   const user = useTracker(() => Meteor.user(), []);
@@ -24,7 +24,7 @@ export const TopBar: React.FC<TopBarProps> = ({ session }) => {
   
   const handleLogout = () => {
     Meteor.logout(() => {
-      history.push('/login');
+      navigate('/login');
     });
   };
   
@@ -49,7 +49,7 @@ export const TopBar: React.FC<TopBarProps> = ({ session }) => {
       <div className="flex items-center gap-4">
         {/* Logo */}
         <button
-          onClick={() => history.push('/dashboard')}
+          onClick={() => navigate('/dashboard')}
           className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
         >
           <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
@@ -117,7 +117,7 @@ export const TopBar: React.FC<TopBarProps> = ({ session }) => {
           <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
             <div className="py-1">
               <button
-                onClick={() => history.push('/dashboard')}
+                onClick={() => navigate('/dashboard')}
                 className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 Dashboard

@@ -5,7 +5,7 @@ import { createDiffFromStrings } from '../../utils/diff-parser';
 
 interface DiffViewerProps {
   file: File;
-  mode: 'unified' | 'split';
+  mode: 'unified' | 'split' | 'inline'
   comments: Map<number, Comment[]>;
   onLineClick: (lineNumber: number) => void;
 }
@@ -224,7 +224,7 @@ const DiffLineRow: React.FC<DiffLineRowProps> = ({
 
       {/* Add comment button */}
       <button
-        className="flex-shrink-0 w-8 opacity-0 group-hover:opacity-100 text-gray-500 hover:text-blue-400 transition-opacity"
+        className="shrink-0 w-8 opacity-0 group-hover:opacity-100 text-gray-500 hover:text-blue-400 transition-opacity"
         onClick={() => lineNumber && onLineClick(lineNumber)}
         title="Add comment"
       >

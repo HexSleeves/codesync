@@ -109,7 +109,7 @@ export const CodeView: React.FC<CodeViewProps> = ({
             >
               {/* Line number */}
               <div
-                className="flex-shrink-0 w-14 text-right pr-4 text-gray-500 select-none cursor-pointer hover:text-blue-400 hover:bg-gray-700/50"
+                className="shrink-0 w-14 text-right pr-4 text-gray-500 select-none cursor-pointer hover:text-blue-400 hover:bg-gray-700/50"
                 onClick={() => onLineClick(lineNumber)}
               >
                 <span className="relative">
@@ -136,7 +136,7 @@ export const CodeView: React.FC<CodeViewProps> = ({
 
               {/* Add comment button (shown on hover) */}
               <button
-                className="flex-shrink-0 w-8 opacity-0 group-hover:opacity-100 text-gray-500 hover:text-blue-400 transition-opacity"
+                className="shrink-0 w-8 opacity-0 group-hover:opacity-100 text-gray-500 hover:text-blue-400 transition-opacity"
                 onClick={() => onLineClick(lineNumber)}
                 title="Add comment"
               >

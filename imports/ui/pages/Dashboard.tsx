@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import { useMySessions } from '../hooks/useSession';
@@ -7,30 +7,30 @@ import { Button } from '../components/UI/Button';
 import { Modal } from '../components/UI/Modal';
 
 export const Dashboard: React.FC = () => {
-  const history = useHistory();
+  const navigate = useNavigate();
   const [showNewSession, setShowNewSession] = useState(false);
   const { sessions, isLoading } = useMySessions();
-  
+
   const user = useTracker(() => Meteor.user(), []);
   const profile = user?.profile as any;
   const services = user?.services as any;
   const userName = profile?.name || services?.github?.username || user?.emails?.[0]?.address || 'Anonymous';
-  
+
   const handleLogout = () => {
-    Meteor.logout(() => history.push('/'));
+    Meteor.logout(() => navigate('/'));
   };
-  
+
   const formatDate = (date: Date) => {
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const days = Math.floor(diff / 86400000);
-    
+
     if (days === 0) return 'Today';
     if (days === 1) return 'Yesterday';
     if (days < 7) return `${days} days ago`;
     return date.toLocaleDateString();
   };
-  
+
   const statusColors = {
     draft: 'bg-gray-500',
     in_review: 'bg-blue-500',
@@ -38,7 +38,7 @@ export const Dashboard: React.FC = () => {
     changes_requested: 'bg-orange-500',
     merged: 'bg-purple-500'
   };
-  
+
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
       {/* Header */}
@@ -51,7 +51,7 @@ export const Dashboard: React.FC = () => {
               </svg>
               <span className="text-xl font-bold">CodeSync</span>
             </div>
-            
+
             <div className="flex items-center gap-4">
               <span className="text-gray-600 dark:text-gray-300">{userName}</span>
               <button
@@ -64,7 +64,7 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
       </header>
-      
+
       {/* Main content */}
       <main className="container mx-auto px-6 py-8">
         <div className="flex items-center justify-between mb-8">
@@ -78,7 +78,7 @@ export const Dashboard: React.FC = () => {
             New Session
           </Button>
         </div>
-        
+
         {isLoading ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3].map(i => (
@@ -119,13 +119,13 @@ export const Dashboard: React.FC = () => {
                     {session.status.replace('_', ' ')}
                   </span>
                 </div>
-                
+
                 {session.description && (
                   <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-2">
                     {session.description}
                   </p>
                 )}
-                
+
                 <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
                   <div className="flex items-center gap-4">
                     <span className="flex items-center gap-1">
@@ -143,7 +143,7 @@ export const Dashboard: React.FC = () => {
                   </div>
                   <span>{formatDate(session.updatedAt)}</span>
                 </div>
-                
+
                 {session.source.type === 'github' && (
                   <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
                     <span className="text-xs text-gray-400 flex items-center gap-1">
@@ -159,7 +159,7 @@ export const Dashboard: React.FC = () => {
           </div>
         )}
       </main>
-      
+
       {/* New Session Modal */}
       <Modal
         isOpen={showNewSession}
@@ -178,7 +178,7 @@ interface NewSessionFormProps {
 }
 
 const NewSessionForm: React.FC<NewSessionFormProps> = ({ onClose }) => {
-  const history = useHistory();
+  const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [sourceType, setSourceType] = useState<'manual' | 'github'>('manual');
@@ -186,12 +186,12 @@ const NewSessionForm: React.FC<NewSessionFormProps> = ({ onClose }) => {
   const [isPublic, setIsPublic] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-    
+
     Meteor.call(
       'sessions.create',
       {
@@ -214,7 +214,7 @@ const NewSessionForm: React.FC<NewSessionFormProps> = ({ onClose }) => {
       }
     );
   };
-  
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
@@ -229,7 +229,7 @@ const NewSessionForm: React.FC<NewSessionFormProps> = ({ onClose }) => {
           className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
         />
       </div>
-      
+
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Description (optional)
@@ -242,7 +242,7 @@ const NewSessionForm: React.FC<NewSessionFormProps> = ({ onClose }) => {
           className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
         />
       </div>
-      
+
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
           Source
@@ -260,7 +260,7 @@ const NewSessionForm: React.FC<NewSessionFormProps> = ({ onClose }) => {
             <div className="font-medium text-gray-900 dark:text-white">Upload Files</div>
             <div className="text-sm text-gray-500">Drag and drop or paste code</div>
           </button>
-          
+
           <button
             type="button"
             onClick={() => setSourceType('github')}
@@ -280,7 +280,7 @@ const NewSessionForm: React.FC<NewSessionFormProps> = ({ onClose }) => {
           </button>
         </div>
       </div>
-      
+
       {sourceType === 'github' && (
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -298,7 +298,7 @@ const NewSessionForm: React.FC<NewSessionFormProps> = ({ onClose }) => {
           </p>
         </div>
       )}
-      
+
       <div className="flex items-center gap-2">
         <input
           type="checkbox"
@@ -311,13 +311,13 @@ const NewSessionForm: React.FC<NewSessionFormProps> = ({ onClose }) => {
           Make this session public
         </label>
       </div>
-      
+
       {error && (
         <div className="p-3 bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-800 rounded-lg text-red-700 dark:text-red-400 text-sm">
           {error}
         </div>
       )}
-      
+
       <div className="flex justify-end gap-3 pt-4">
         <Button variant="secondary" type="button" onClick={onClose}>
           Cancel

@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Meteor } from 'meteor/meteor';
 import { Accounts } from 'meteor/accounts-base';
 import { Button } from '../components/UI/Button';
 
 export const Login: React.FC = () => {
-  const history = useHistory();
+  const navigate = useNavigate();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -30,7 +30,7 @@ export const Login: React.FC = () => {
           if (err) {
             setError(err.message);
           } else {
-            history.push('/dashboard');
+            navigate('/dashboard');
           }
         }
       );
@@ -40,7 +40,7 @@ export const Login: React.FC = () => {
         if (err) {
           setError(err.message);
         } else {
-          history.push('/dashboard');
+          navigate('/dashboard');
         }
       });
     }
@@ -57,7 +57,7 @@ export const Login: React.FC = () => {
         if (err) {
           setError(err.message);
         } else {
-          history.push('/dashboard');
+          navigate('/dashboard');
         }
       }
     );
@@ -171,7 +171,7 @@ export const Login: React.FC = () => {
         </p>
         
         <button
-          onClick={() => history.push('/')}
+          onClick={() => navigate('/')}
           className="block mx-auto mt-4 text-gray-500 hover:text-gray-400 text-sm"
         >
           ← Back to home

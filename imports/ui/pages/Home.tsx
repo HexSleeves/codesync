@@ -1,11 +1,11 @@
 import React from 'react';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import { Button } from '../components/UI/Button';
 
 export const Home: React.FC = () => {
-  const history = useHistory();
+  const navigate = useNavigate();
   const user = useTracker(() => Meteor.user(), []);
   
   return (
@@ -22,18 +22,18 @@ export const Home: React.FC = () => {
           
           <div className="flex items-center gap-4">
             {user ? (
-              <Button onClick={() => history.push('/dashboard')}>
+              <Button onClick={() => navigate('/dashboard')}>
                 Dashboard
               </Button>
             ) : (
               <>
                 <button
-                  onClick={() => history.push('/login')}
+                  onClick={() => navigate('/login')}
                   className="text-gray-300 hover:text-white"
                 >
                   Sign in
                 </button>
-                <Button onClick={() => history.push('/login')}>
+                <Button onClick={() => navigate('/login')}>
                   Get Started
                 </Button>
               </>

@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { useParams, useHistory } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Meteor } from 'meteor/meteor';
 import { useSession } from '../hooks/useSession';
 import { useFiles, useFile } from '../hooks/useFileContent';
@@ -16,7 +16,7 @@ import { Button } from '../components/UI/Button';
 
 export const SessionPage: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'code' | 'diff'>('diff');
@@ -88,7 +88,7 @@ export const SessionPage: React.FC = () => {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-white mb-4">Session Not Found</h1>
           <p className="text-gray-400 mb-6">This session doesn't exist or you don't have access.</p>
-          <Button onClick={() => history.push('/dashboard')}>Go to Dashboard</Button>
+          <Button onClick={() => navigate('/dashboard')}>Go to Dashboard</Button>
         </div>
       </div>
     );
@@ -105,7 +105,7 @@ export const SessionPage: React.FC = () => {
       {/* Main content */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left sidebar - File tree */}
-        <aside className="w-64 flex-shrink-0 border-r border-gray-700 bg-gray-800 flex flex-col">
+        <aside className="w-64 shrink-0 border-r border-gray-700 bg-gray-800 flex flex-col">
           <FileTree
             files={files}
             selectedFileId={selectedFileId}
@@ -136,7 +136,7 @@ export const SessionPage: React.FC = () => {
           {selectedFile ? (
             <>
               {/* File header */}
-              <div className="flex items-center justify-between px-4 py-2 border-b border-gray-700 bg-gray-800 flex-shrink-0">
+              <div className="flex items-center justify-between px-4 py-2 border-b border-gray-700 bg-gray-800 shrink-0">
                 <div className="flex items-center gap-3 min-w-0">
                   <h2 className="font-mono text-sm font-medium text-gray-200 truncate">
                     {selectedFile.path}
@@ -236,7 +236,7 @@ export const SessionPage: React.FC = () => {
 
         {/* Right sidebar - Users & Chat */}
         {showRightSidebar && (
-          <aside className="w-80 flex-shrink-0 border-l border-gray-700 bg-gray-800 flex flex-col">
+          <aside className="w-80 shrink-0 border-l border-gray-700 bg-gray-800 flex flex-col">
             <UserList sessionId={sessionId!} />
             <ChatPanel sessionId={sessionId!} />
           </aside>
