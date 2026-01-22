@@ -54,27 +54,38 @@ Accounts.onCreateUser((options, user) => {
 Meteor.startup(async () => {
   console.log('CodeSync server started');
 
-  // Create indexes
+  // Create indexes with error handling (may fail on restart race conditions)
+  const createIndexSafe = async (collection: any, index: any) => {
+    try {
+      await collection.rawCollection().createIndex(index);
+    } catch (err: any) {
+      // Ignore "already exists" and topology errors on startup
+      if (!err.message?.includes('already exists') && !err.message?.includes('Topology')) {
+        console.warn('Index creation warning:', err.message);
+      }
+    }
+  };
+
   // Sessions indexes
-  await Sessions.rawCollection().createIndex({ createdBy: 1, createdAt: -1 });
-  await Sessions.rawCollection().createIndex({ allowedUsers: 1 });
-  await Sessions.rawCollection().createIndex({ shareToken: 1 });
+  await createIndexSafe(Sessions, { createdBy: 1, createdAt: -1 });
+  await createIndexSafe(Sessions, { allowedUsers: 1 });
+  await createIndexSafe(Sessions, { shareToken: 1 });
 
   // Files indexes
-  await Files.rawCollection().createIndex({ sessionId: 1, path: 1 });
-  await Files.rawCollection().createIndex({ sessionId: 1, isReviewed: 1 });
+  await createIndexSafe(Files, { sessionId: 1, path: 1 });
+  await createIndexSafe(Files, { sessionId: 1, isReviewed: 1 });
 
   // Comments indexes
-  await Comments.rawCollection().createIndex({ fileId: 1, lineNumber: 1 });
-  await Comments.rawCollection().createIndex({ threadId: 1, depth: 1 });
-  await Comments.rawCollection().createIndex({ sessionId: 1, isResolved: 1 });
+  await createIndexSafe(Comments, { fileId: 1, lineNumber: 1 });
+  await createIndexSafe(Comments, { threadId: 1, depth: 1 });
+  await createIndexSafe(Comments, { sessionId: 1, isResolved: 1 });
 
   // Cursors indexes
-  await Cursors.rawCollection().createIndex({ sessionId: 1, userId: 1 });
-  await Cursors.rawCollection().createIndex({ sessionId: 1, updatedAt: -1 });
+  await createIndexSafe(Cursors, { sessionId: 1, userId: 1 });
+  await createIndexSafe(Cursors, { sessionId: 1, updatedAt: -1 });
 
   // Chat indexes
-  await ChatMessages.rawCollection().createIndex({ sessionId: 1, createdAt: -1 });
+  await createIndexSafe(ChatMessages, { sessionId: 1, createdAt: -1 });
 });
 
 ServiceConfiguration.configurations.upsertAsync(
