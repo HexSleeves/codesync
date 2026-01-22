@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { check, Match } from 'meteor/check';
+import { check } from 'meteor/check';
 import { Comments, Comment } from './comments';
 import { Files } from '../files/files';
 import { Sessions } from '../sessions/collection';

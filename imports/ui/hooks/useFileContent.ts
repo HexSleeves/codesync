@@ -1,6 +1,6 @@
 import { useTracker } from 'meteor/react-meteor-data';
 import { Meteor } from 'meteor/meteor';
-import { Files, File } from '../../api/files/files';
+import { Files } from '../../api/files/files';
 
 export function useFiles(sessionId: string | undefined) {
   return useTracker(() => {

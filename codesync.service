@@ -1,15 +1,16 @@
 [Unit]
-Description=CodeSync - Real-time Code Review Application
+Description=CodeSync - Real-Time Code Review
 After=network.target
 
 [Service]
 Type=simple
 User=exedev
 WorkingDirectory=/home/exedev/codesync
-Environment=METEOR_SETTINGS={}
-Environment=PORT=8000
 Environment=ROOT_URL=https://noon-disk.exe.xyz:8000
-ExecStart=/home/exedev/.meteor/meteor --port 8000
+Environment=PORT=3001
+Environment=MONGO_URL=mongodb://127.0.0.1:27017/codesync
+Environment=NODE_ENV=production
+ExecStart=/home/exedev/.meteor/meteor run --port 3001 --production
 Restart=on-failure
 RestartSec=10
 

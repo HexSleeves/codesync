@@ -34,10 +34,6 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ sessionId }) => {
     }
   };
   
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-  
   return (
     <div className="flex flex-col flex-1 min-h-0">
       <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">

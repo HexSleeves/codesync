@@ -1,6 +1,6 @@
 import { useTracker } from 'meteor/react-meteor-data';
 import { Meteor } from 'meteor/meteor';
-import { Cursors, Cursor, Selection, Viewport } from '../../api/cursors/cursors';
+import { Cursors, Selection, Viewport } from '../../api/cursors/cursors';
 import { useEffect, useRef, useCallback } from 'react';
 
 export function useCursors(sessionId: string | undefined, fileId: string | null) {

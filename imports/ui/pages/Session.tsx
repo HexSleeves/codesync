@@ -32,7 +32,7 @@ export const SessionPage: React.FC = () => {
   const { session, isLoading: sessionLoading } = useSession(sessionId);
   const { files, isLoading: filesLoading } = useFiles(sessionId);
   const { file: selectedFile, isLoading: fileLoading } = useFile(selectedFileId);
-  const { commentsByLine, isLoading: commentsLoading } = useCommentsByLine(selectedFileId);
+  const { commentsByLine } = useCommentsByLine(selectedFileId);
   const { cursors, updateCursor } = useCursors(sessionId, selectedFileId);
 
   // Keyboard shortcuts

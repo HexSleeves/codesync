@@ -1,6 +1,6 @@
 import { useTracker } from 'meteor/react-meteor-data';
 import { Meteor } from 'meteor/meteor';
-import { ChatMessages, ChatMessage } from '../../api/chat/chat';
+import { ChatMessages } from '../../api/chat/chat';
 import { useCallback } from 'react';
 
 export function useChat(sessionId: string | undefined, limit = 100) {
