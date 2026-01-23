@@ -5,13 +5,15 @@ interface CommentInputProps {
   onSubmit: (text: string) => void;
   onCancel?: () => void;
   autoFocus?: boolean;
+  loading?: boolean;
 }
 
 export const CommentInput: React.FC<CommentInputProps> = ({
   placeholder = 'Write a comment...',
   onSubmit,
   onCancel,
-  autoFocus = false
+  autoFocus = false,
+  loading = false
 }) => {
   const [text, setText] = useState('');
   const [isFocused, setIsFocused] = useState(false);
@@ -90,10 +92,10 @@ export const CommentInput: React.FC<CommentInputProps> = ({
             )}
             <button
               onClick={handleSubmit}
-              disabled={!text.trim()}
+              disabled={!text.trim() || loading}
               className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Comment
+              {loading ? 'Posting...' : 'Comment'}
             </button>
           </div>
         </div>

@@ -4,6 +4,7 @@ import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import { ToastProvider } from './components/common/Toast';
 import { PageLoader } from './components/common/LoadingSpinner';
+import { ErrorBoundary, PageErrorBoundary } from './components/common/ErrorBoundary';
 import { Home } from './pages/Home';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
@@ -30,38 +31,46 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
 export const App: React.FC = () => {
   return (
-    <ToastProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/session/:sessionId"
-            element={
-              <ProtectedRoute>
-                <SessionPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/invite/:token"
-            element={
-              <ProtectedRoute>
-                <InvitePage />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
-    </ToastProvider>
+    <PageErrorBoundary>
+      <ToastProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <ErrorBoundary>
+                    <Dashboard />
+                  </ErrorBoundary>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/session/:sessionId"
+              element={
+                <ProtectedRoute>
+                  <ErrorBoundary>
+                    <SessionPage />
+                  </ErrorBoundary>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/invite/:token"
+              element={
+                <ProtectedRoute>
+                  <ErrorBoundary>
+                    <InvitePage />
+                  </ErrorBoundary>
+                </ProtectedRoute>
+              }
+            />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </ToastProvider>
+    </PageErrorBoundary>
   );
 };
