@@ -1,8 +1,8 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { Meteor } from 'meteor/meteor';
-import { App } from '/imports/ui/App';
-import '/imports/startup/client';
+import { App } from '../imports/ui/App';
+import '../imports/startup/client/index';
 import './main.css';
 
 Meteor.startup(() => {
