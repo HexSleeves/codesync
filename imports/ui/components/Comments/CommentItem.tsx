@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import { Comment } from '../../../api/comments/comments';
+import type { MeteorUser, UserProfile, UserServices, MeteorError } from '../../../types';
 import { Avatar } from '../common/Avatar';
 import { ReactionPicker } from './ReactionPicker';
 
@@ -23,18 +24,18 @@ export const CommentItem: React.FC<CommentItemProps> = ({
   const [showReactions, setShowReactions] = useState(false);
   
   const author = useTracker(() => {
-    return Meteor.users.findOne(comment.author);
+    return Meteor.users.findOne(comment.author) as MeteorUser | undefined;
   }, [comment.author]);
   
   const currentUserId = useTracker(() => Meteor.userId(), []);
   const isAuthor = currentUserId === comment.author;
   
-  const profile = author?.profile as any;
-  const services = author?.services as any;
+  const profile = author?.profile as UserProfile | undefined;
+  const services = author?.services as UserServices | undefined;
   const authorName = profile?.name || services?.github?.username || author?.emails?.[0]?.address || 'Anonymous';
   
   const handleSaveEdit = () => {
-    Meteor.call('comments.update', comment._id, editText, (error: any) => {
+    Meteor.call('comments.update', comment._id, editText, (error: MeteorError | null) => {
       if (!error) {
         setIsEditing(false);
       }

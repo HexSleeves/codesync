@@ -1,6 +1,7 @@
 import { useTracker } from 'meteor/react-meteor-data';
 import { Meteor } from 'meteor/meteor';
 import { Cursors } from '../../api/cursors/cursors';
+import type { MeteorUser, UserProfile, UserServices } from '../../types';
 
 export interface UserPresence {
   _id: string;
@@ -23,10 +24,10 @@ export function usePresence(sessionId: string | undefined) {
     const cursors = Cursors.find({ sessionId }).fetch();
     const cursorMap = new Map(cursors.map(c => [c.userId, c]));
     
-    const users: UserPresence[] = Meteor.users.find({}).fetch().map(user => {
+    const users: UserPresence[] = (Meteor.users.find({}).fetch() as MeteorUser[]).map(user => {
       const cursor = cursorMap.get(user._id);
-      const profile = user.profile as any;
-      const services = user.services as any;
+      const profile = user.profile as UserProfile | undefined;
+      const services = user.services as UserServices | undefined;
       
       return {
         _id: user._id,

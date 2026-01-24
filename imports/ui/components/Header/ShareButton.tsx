@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Meteor } from 'meteor/meteor';
 import { Session } from '../../../api/sessions/collection';
+import type { MeteorError, SessionInviteResult } from '../../../types';
 import { Button } from '../common/Button';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
@@ -31,10 +32,12 @@ export const ShareButton: React.FC<ShareButtonProps> = ({ session }) => {
     if (!inviteEmail.trim()) return;
     
     setInviteLoading(true);
-    Meteor.call('sessions.inviteByEmail', session._id, inviteEmail.trim(), (err: any, result: any) => {
+    Meteor.call('sessions.inviteByEmail', session._id, inviteEmail.trim(), (err: MeteorError | null, result?: SessionInviteResult) => {
       setInviteLoading(false);
       if (err) {
         showToast(err.reason || 'Failed to send invite', 'error');
+      } else if (!result) {
+        showToast('Unknown error', 'error');
       } else if (result.status === 'added') {
         showToast('User added to session!', 'success');
         setInviteEmail('');
@@ -42,7 +45,7 @@ export const ShareButton: React.FC<ShareButtonProps> = ({ session }) => {
         showToast('User has already been invited', 'info');
       } else {
         showToast('Invite sent! Share this link with them:', 'success');
-        copyToClipboard(result.inviteUrl);
+        copyToClipboard(result.inviteUrl ?? '');
         setInviteEmail('');
       }
     });

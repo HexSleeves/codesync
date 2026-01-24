@@ -2,6 +2,9 @@
 import { Meteor } from 'meteor/meteor';
 import { Accounts } from 'meteor/accounts-base';
 import { ServiceConfiguration } from 'meteor/service-configuration';
+import { Mongo } from 'meteor/mongo';
+
+import type { MeteorUser, UserServices, UserProfile } from '../../types';
 
 // Import collections and methods
 import { Sessions } from '../../api/sessions/collection';
@@ -26,8 +29,7 @@ import '../../api/chat/methods';
 import '../../api/chat/publications';
 
 // GitHub integration
-import '../../api/github/github';
-import '../../api/github/methods';
+import '../api/github';
 
 // Configure accounts
 Accounts.config({
@@ -36,32 +38,38 @@ Accounts.config({
 
 // On user creation, set profile defaults
 Accounts.onCreateUser((options, user) => {
+  const meteorUser = user as MeteorUser;
+  const services = meteorUser.services as UserServices | undefined;
+
   // Default profile
-  user.profile = options.profile || {};
+  meteorUser.profile = (options.profile || {}) as UserProfile;
 
   // If logging in with GitHub, extract profile info
-  if ((user.services as any)?.github) {
-    (user.profile as any).name = (user.services as any).github.username;
-    // Store GitHub avatar URL
-    if ((user.services as any).github.avatar_url) {
-      (user.profile as any).avatar = (user.services as any).github.avatar_url;
+  if (services?.github) {
+    meteorUser.profile.name = services.github.username;
+    if (services.github.avatar_url) {
+      meteorUser.profile.avatar = services.github.avatar_url;
     }
   }
 
-  return user;
+  return meteorUser;
 });
 
 Meteor.startup(async () => {
   console.log('CodeSync server started');
 
   // Create indexes with error handling (may fail on restart race conditions)
-  const createIndexSafe = async (collection: any, index: any) => {
+  const createIndexSafe = async <T extends { _id?: string }>(
+    collection: Mongo.Collection<T>,
+    index: Record<string, 1 | -1>
+  ) => {
     try {
       await collection.rawCollection().createIndex(index);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as Error;
       // Ignore "already exists" and topology errors on startup
-      if (!err.message?.includes('already exists') && !err.message?.includes('Topology')) {
-        console.warn('Index creation warning:', err.message);
+      if (!error.message?.includes('already exists') && !error.message?.includes('Topology')) {
+        console.warn('Index creation warning:', error.message);
       }
     }
   };
@@ -88,13 +96,31 @@ Meteor.startup(async () => {
   await createIndexSafe(ChatMessages, { sessionId: 1, createdAt: -1 });
 });
 
-ServiceConfiguration.configurations.upsertAsync(
-  { service: 'github' },
-  {
-    $set: {
-      loginStyle: 'popup',
-      clientId: 'Ov23li8HongvGIUS6cgX',
-      secret: '6abeb4e2a46727740b7293d4f6f7dc9d8bb3a522',
-    },
-  }
-);
+// Configure GitHub OAuth from environment variables
+const githubClientId = process.env.GITHUB_CLIENT_ID;
+const githubClientSecret = process.env.GITHUB_CLIENT_SECRET;
+
+console.log('GitHub OAuth config check:', {
+  hasClientId: !!githubClientId,
+  hasClientSecret: !!githubClientSecret,
+  clientIdPrefix: githubClientId?.substring(0, 8)
+});
+
+if (githubClientId && githubClientSecret) {
+  ServiceConfiguration.configurations.upsertAsync(
+    { service: 'github' },
+    {
+      $set: {
+        loginStyle: 'popup',
+        clientId: githubClientId,
+        secret: githubClientSecret,
+      },
+    }
+  ).then(() => {
+    console.log('GitHub OAuth configured successfully');
+  }).catch((err: unknown) => {
+    console.error('GitHub OAuth config error:', err);
+  });
+} else {
+  console.warn('GitHub OAuth not configured: GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET environment variables are required');
+}

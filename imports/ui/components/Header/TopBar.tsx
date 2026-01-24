@@ -3,6 +3,7 @@ import { useTracker } from "meteor/react-meteor-data";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { Session } from "../../../api/sessions/collection";
+import type { MeteorUser, UserProfile, UserServices, MeteorError } from "../../../types";
 import { Button } from "../common/Button";
 import { Modal } from "../common/Modal";
 import { useToast } from "../common/Toast";
@@ -23,9 +24,9 @@ export const TopBar: React.FC<TopBarProps> = ({ session }) => {
 	>(null);
 	const { showToast } = useToast();
 
-	const user = useTracker(() => Meteor.user(), []);
-	const profile = user?.profile as any;
-	const services = user?.services as any;
+	const user = useTracker(() => Meteor.user() as MeteorUser | null, []);
+	const profile = user?.profile as UserProfile | undefined;
+	const services = user?.services as UserServices | undefined;
 	const userName =
 		profile?.name ||
 		services?.github?.username ||
@@ -49,7 +50,7 @@ export const TopBar: React.FC<TopBarProps> = ({ session }) => {
 	};
 
 	const handleStartReview = () => {
-		Meteor.call("sessions.startReview", session._id, (err: any) => {
+		Meteor.call("sessions.startReview", session._id, (err: MeteorError | null) => {
 			if (err) {
 				showToast(err.reason || "Failed to start review", "error");
 			} else {
@@ -59,7 +60,7 @@ export const TopBar: React.FC<TopBarProps> = ({ session }) => {
 	};
 
 	const handleSubmitReview = (status: "approved" | "changes_requested") => {
-		Meteor.call("sessions.submitReview", session._id, status, (err: any) => {
+		Meteor.call("sessions.submitReview", session._id, status, (err: MeteorError | null) => {
 			if (err) {
 				showToast(err.reason || "Failed to submit review", "error");
 			} else {
@@ -73,7 +74,7 @@ export const TopBar: React.FC<TopBarProps> = ({ session }) => {
 	};
 
 	const handleMerge = () => {
-		Meteor.call("sessions.merge", session._id, (err: any) => {
+		Meteor.call("sessions.merge", session._id, (err: MeteorError | null) => {
 			if (err) {
 				showToast(err.reason || "Failed to merge", "error");
 			} else {

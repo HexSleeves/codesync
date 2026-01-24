@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
+import type { MeteorUser, UserProfile, UserServices } from '../../types';
 import { useMySessions } from '../hooks/useSession';
 import { Button } from '../components/common/Button';
 import { Modal } from '../components/common/Modal';
@@ -13,9 +14,9 @@ export const Dashboard: React.FC = () => {
   const [showNewSession, setShowNewSession] = useState(false);
   const { sessions, isLoading } = useMySessions();
 
-  const user = useTracker(() => Meteor.user(), []);
-  const profile = user?.profile as any;
-  const services = user?.services as any;
+  const user = useTracker(() => Meteor.user() as MeteorUser | null, []);
+  const profile = user?.profile as UserProfile | undefined;
+  const services = user?.services as UserServices | undefined;
   const userName = profile?.name || services?.github?.username || user?.emails?.[0]?.address || 'Anonymous';
 
   const handleLogout = () => {

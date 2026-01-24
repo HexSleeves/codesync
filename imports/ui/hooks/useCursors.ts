@@ -4,7 +4,7 @@ import { Cursors, Selection, Viewport } from '../../api/cursors/cursors';
 import { useEffect, useRef, useCallback } from 'react';
 
 export function useCursors(sessionId: string | undefined, fileId: string | null) {
-  const throttleRef = useRef<ReturnType<typeof setTimeout>>();
+  const throttleRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   
   // Subscribe to cursors
   const { cursors, isLoading } = useTracker(() => {
@@ -14,11 +14,12 @@ export function useCursors(sessionId: string | undefined, fileId: string | null)
     
     const handle = Meteor.subscribe('session.cursors', sessionId);
     
+    const currentUserId = Meteor.userId();
     return {
       cursors: Cursors.find({
         sessionId,
-        fileId: fileId || undefined,
-        userId: { $ne: Meteor.userId() }
+        ...(fileId ? { fileId } : {}),
+        ...(currentUserId ? { userId: { $ne: currentUserId } } : {})
       }).fetch(),
       isLoading: !handle.ready()
     };

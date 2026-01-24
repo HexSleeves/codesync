@@ -2,6 +2,7 @@ import React from 'react';
 import { useTracker } from 'meteor/react-meteor-data';
 import { Meteor } from 'meteor/meteor';
 import { Cursor } from '../../../api/cursors/cursors';
+import type { MeteorUser, UserProfile, UserServices } from '../../../types';
 
 const CURSOR_COLORS = [
   '#3b82f6', // blue
@@ -28,14 +29,14 @@ export const CursorOverlay: React.FC<CursorOverlayProps> = ({
   // Get user info for cursors
   const users = useTracker(() => {
     const userIds = cursors.map(c => c.userId);
-    return Meteor.users.find({ _id: { $in: userIds }}).fetch();
+    return Meteor.users.find({ _id: { $in: userIds }}).fetch() as MeteorUser[];
   }, [cursors]);
   
   const getUserName = (userId: string): string => {
     const user = users.find(u => u._id === userId);
     if (!user) return 'Anonymous';
-    const profile = user.profile as any;
-    const services = user.services as any;
+    const profile = user.profile as UserProfile | undefined;
+    const services = user.services as UserServices | undefined;
     return profile?.name || services?.github?.username || user.emails?.[0]?.address || 'Anonymous';
   };
   
@@ -123,7 +124,7 @@ const SelectionHighlight: React.FC<SelectionHighlightProps> = ({
   }
   
   // Multi-line selection - render line by line
-  const highlights: JSX.Element[] = [];
+  const highlights: React.ReactElement[] = [];
   
   for (let line = startLine; line <= endLine; line++) {
     const isFirstLine = line === startLine;

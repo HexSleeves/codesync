@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Meteor } from 'meteor/meteor';
 import { Comment } from '../../../api/comments/comments';
+import type { MeteorError } from '../../../types';
 import { useThreadComments } from '../../hooks/useComments';
 import { CommentItem } from './CommentItem';
 import { CommentInput } from './CommentInput';
@@ -29,7 +30,7 @@ export const CommentThread: React.FC<CommentThreadProps> = ({
       lineNumber,
       text,
       parentId
-    }, (error: any) => {
+    }, (error: MeteorError | null) => {
       if (error) {
         console.error('Error adding comment:', error);
       } else {

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Meteor } from 'meteor/meteor';
 import { Button } from '../components/common/Button';
+import type { MeteorError } from '../../types';
 
 export const InvitePage: React.FC = () => {
   const { token } = useParams<{ token: string }>();
@@ -18,13 +19,13 @@ export const InvitePage: React.FC = () => {
     }
 
     setStatus('accepting');
-    Meteor.call('sessions.acceptInvite', token, (err: any, result: string) => {
+    Meteor.call('sessions.acceptInvite', token, (err: MeteorError | null, result?: string) => {
       if (err) {
         setStatus('error');
         setError(err.reason || err.message || 'Failed to accept invite');
       } else {
         setStatus('success');
-        setSessionId(result);
+        setSessionId(result ?? null);
         // Auto-redirect after 2 seconds
         setTimeout(() => {
           navigate(`/session/${result}`);

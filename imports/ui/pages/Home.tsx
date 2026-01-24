@@ -4,6 +4,7 @@ import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import { Button } from '../components/common/Button';
 
+
 export const Home: React.FC = () => {
   const navigate = useNavigate();
   const user = useTracker(() => Meteor.user(), []);
@@ -72,9 +73,9 @@ export const Home: React.FC = () => {
                   navigate('/dashboard');
                 } else {
                   // Login with GitHub
-                  (Meteor as any).loginWithGithub(
+                  Meteor.loginWithGithub(
                     { requestPermissions: ['user:email', 'repo'] },
-                    (err: any) => {
+                    (err) => {
                       if (!err) {
                         navigate('/dashboard');
                       }

@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
-import type { Hunk, DiffLine } from '../../../api/files/files';
+import type { Hunk } from '../../../api/files/files';
 import type { Comment } from '../../../api/comments/comments';
+import type { DiffLineWithHeader } from '../../../types';
 
 export interface SplitDiffProps {
   hunks: Hunk[];
@@ -11,13 +12,13 @@ export interface SplitDiffProps {
 export const SplitDiff: React.FC<SplitDiffProps> = ({ hunks, comments, onLineClick }) => {
   // Build paired lines for side-by-side view
   const pairedLines = useMemo(() => {
-    const pairs: Array<{ left: DiffLine | null; right: DiffLine | null }> = [];
+    const pairs: Array<{ left: DiffLineWithHeader | null; right: DiffLineWithHeader | null }> = [];
 
     for (const hunk of hunks) {
       // Add hunk header as a special pair
       pairs.push({
-        left: { type: 'context', content: `@@ -${hunk.oldStart},${hunk.oldLines}`, isHunkHeader: true } as any,
-        right: { type: 'context', content: `+${hunk.newStart},${hunk.newLines} @@`, isHunkHeader: true } as any
+        left: { type: 'context', content: `@@ -${hunk.oldStart},${hunk.oldLines}`, isHunkHeader: true },
+        right: { type: 'context', content: `+${hunk.newStart},${hunk.newLines} @@`, isHunkHeader: true }
       });
 
       let i = 0;
@@ -80,7 +81,7 @@ export const SplitDiff: React.FC<SplitDiffProps> = ({ hunks, comments, onLineCli
 };
 
 interface SplitDiffLineProps {
-  line: DiffLine | null;
+  line: DiffLineWithHeader | null;
   side: 'old' | 'new';
   comments: Map<number, Comment[]>;
   onLineClick: (lineNumber: number, side?: 'old' | 'new') => void;
@@ -91,7 +92,7 @@ const SplitDiffLine: React.FC<SplitDiffLineProps> = ({ line, side, comments, onL
     return <div className="flex h-5 bg-gray-800/50" />;
   }
 
-  const isHunkHeader = (line as any).isHunkHeader;
+  const isHunkHeader = line.isHunkHeader;
   if (isHunkHeader) {
     return (
       <div className="flex bg-blue-900/50 px-2 py-1 text-blue-300 text-xs">

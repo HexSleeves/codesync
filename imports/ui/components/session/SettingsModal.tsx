@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Meteor } from 'meteor/meteor';
-import type { Session } from '../../../api/sessions/collection';
+import type { Session, SessionSettings } from '../../../api/sessions/collection';
+import type { MeteorError } from '../../../types';
 import { Button } from '../common/Button';
 
 export interface SettingsModalProps {
@@ -32,7 +33,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           diffMode,
         },
       },
-      (error: any) => {
+      (error: MeteorError | null) => {
         setSaving(false);
         if (!error) {
           onClose();
@@ -73,7 +74,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         </label>
         <select
           value={diffMode}
-          onChange={(e) => setDiffMode(e.target.value as any)}
+          onChange={(e) => setDiffMode(e.target.value as SessionSettings['diffMode'])}
           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
         >
           <option value="unified">Unified</option>

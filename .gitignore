@@ -5,3 +5,5 @@ _build
 */build-assets
 */build-chunks
 .rsdoctor
+
+.env

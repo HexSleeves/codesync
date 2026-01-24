@@ -2,6 +2,16 @@ import { Octokit } from '@octokit/rest';
 import { Hunk } from '../files/files';
 import { GitHubPRData, GitHubPRFile } from './types';
 
+// Type guard for errors with HTTP status
+function isErrorWithStatus(error: unknown): error is { status: number } {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'status' in error &&
+    typeof (error as { status: unknown }).status === 'number'
+  );
+}
+
 /**
  * Fetch PR details from GitHub
  */
@@ -62,7 +72,7 @@ export async function fetchPRFiles(
     for (const file of data) {
       files.push({
         filename: file.filename,
-        status: file.status as GitHubPRFile['status'],
+        status: file.status ,
         additions: file.additions,
         deletions: file.deletions,
         changes: file.changes,
@@ -105,9 +115,9 @@ export async function fetchFileContent(
       return Buffer.from(data.content, 'base64').toString('utf-8');
     }
     return null;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // File doesn't exist at this ref (might be a new file)
-    if (error.status === 404) {
+    if (isErrorWithStatus(error) && error.status === 404) {
       return null;
     }
     throw error;
