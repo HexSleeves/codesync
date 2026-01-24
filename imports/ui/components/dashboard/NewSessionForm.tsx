@@ -217,7 +217,10 @@ export const NewSessionForm: React.FC<NewSessionFormProps> = ({ onClose }) => {
                   type="button"
                   onClick={() => {
                     Meteor.loginWithGithub(
-                      { requestPermissions: ["user:email", "repo"] },
+                      { 
+                        requestPermissions: ["user:email", "repo"],
+                        loginStyle: 'redirect'
+                      },
                       (err) => {
                         if (!err) {
                           // Refresh connection status

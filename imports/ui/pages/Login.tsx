@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Meteor } from 'meteor/meteor';
 import { Accounts } from 'meteor/accounts-base';
+import { useTracker } from 'meteor/react-meteor-data';
 import { Button } from '../components/common/Button';
 
 export const Login: React.FC = () => {
@@ -12,6 +13,18 @@ export const Login: React.FC = () => {
   const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  // Check if user is already logged in (handles OAuth redirect return)
+  const { user, isLoggingIn } = useTracker(() => ({
+    user: Meteor.user(),
+    isLoggingIn: Meteor.loggingIn()
+  }), []);
+  
+  useEffect(() => {
+    if (user && !isLoggingIn) {
+      navigate('/dashboard');
+    }
+  }, [user, isLoggingIn, navigate]);
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,7 +64,10 @@ export const Login: React.FC = () => {
     setLoading(true);
     
     Meteor.loginWithGithub(
-      { requestPermissions: ['user:email', 'repo'] },
+      { 
+        requestPermissions: ['user:email', 'repo'],
+        loginStyle: 'redirect'
+      },
       (err) => {
         setLoading(false);
         if (err) {
@@ -62,6 +78,18 @@ export const Login: React.FC = () => {
       }
     );
   };
+  
+  // Show loading while checking auth state after OAuth redirect
+  if (isLoggingIn) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-400">Signing in...</p>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">

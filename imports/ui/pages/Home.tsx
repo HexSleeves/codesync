@@ -74,7 +74,10 @@ export const Home: React.FC = () => {
                 } else {
                   // Login with GitHub
                   Meteor.loginWithGithub(
-                    { requestPermissions: ['user:email', 'repo'] },
+                    { 
+                      requestPermissions: ['user:email', 'repo'],
+                      loginStyle: 'redirect'
+                    },
                     (err) => {
                       if (!err) {
                         navigate('/dashboard');

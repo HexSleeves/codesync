@@ -1,45 +1,45 @@
 // Server-side startup
-import { Meteor } from 'meteor/meteor';
-import { Accounts } from 'meteor/accounts-base';
-import { ServiceConfiguration } from 'meteor/service-configuration';
-import { Mongo } from 'meteor/mongo';
+import { Meteor } from "meteor/meteor";
+import { Accounts } from "meteor/accounts-base";
+import { ServiceConfiguration } from "meteor/service-configuration";
+import { Mongo } from "meteor/mongo";
 
-import type { MeteorUser, UserServices, UserProfile } from '../../types';
+import type { MeteorUser, UserProfile } from "../../types";
 
 // Import collections and methods
-import { Sessions } from '../../api/sessions/collection';
-import '../../api/sessions/invites';
-import '../../api/sessions/methods/index';
-import '../../api/sessions/publications';
+import { Sessions } from "../../api/sessions/collection";
+import "../../api/sessions/invites";
+import "../../api/sessions/methods/index";
+import "../../api/sessions/publications";
 
-import { Files } from '../../api/files/files';
-import '../../api/files/methods';
-import '../../api/files/publications';
+import { Files } from "../../api/files/files";
+import "../../api/files/methods";
+import "../../api/files/publications";
 
-import { Comments } from '../../api/comments/comments';
-import '../../api/comments/methods';
-import '../../api/comments/publications';
+import { Comments } from "../../api/comments/comments";
+import "../../api/comments/methods";
+import "../../api/comments/publications";
 
-import { Cursors } from '../../api/cursors/cursors';
-import '../../api/cursors/methods';
-import '../../api/cursors/publications';
+import { Cursors } from "../../api/cursors/cursors";
+import "../../api/cursors/methods";
+import "../../api/cursors/publications";
 
-import { ChatMessages } from '../../api/chat/chat';
-import '../../api/chat/methods';
-import '../../api/chat/publications';
+import { ChatMessages } from "../../api/chat/chat";
+import "../../api/chat/methods";
+import "../../api/chat/publications";
 
 // GitHub integration
-import '../../api/github';
+import "../../api/github";
 
 // Configure accounts
 Accounts.config({
-  sendVerificationEmail: false
+  sendVerificationEmail: false,
 });
 
 // On user creation, set profile defaults
 Accounts.onCreateUser((options, user) => {
   const meteorUser = user as MeteorUser;
-  const services = meteorUser.services as UserServices | undefined;
+  const services = meteorUser.services;
 
   // Default profile
   meteorUser.profile = (options.profile || {}) as UserProfile;
@@ -56,20 +56,23 @@ Accounts.onCreateUser((options, user) => {
 });
 
 Meteor.startup(async () => {
-  console.log('CodeSync server started');
+  console.log("CodeSync server started");
 
   // Create indexes with error handling (may fail on restart race conditions)
   const createIndexSafe = async <T extends { _id?: string }>(
     collection: Mongo.Collection<T>,
-    index: Record<string, 1 | -1>
+    index: Record<string, 1 | -1>,
   ) => {
     try {
       await collection.rawCollection().createIndex(index);
     } catch (err: unknown) {
       const error = err as Error;
       // Ignore "already exists" and topology errors on startup
-      if (!error.message?.includes('already exists') && !error.message?.includes('Topology')) {
-        console.warn('Index creation warning:', error.message);
+      if (
+        !error.message?.includes("already exists") &&
+        !error.message?.includes("Topology")
+      ) {
+        console.warn("Index creation warning:", error.message);
       }
     }
   };
@@ -100,27 +103,32 @@ Meteor.startup(async () => {
 const githubClientId = process.env.GITHUB_CLIENT_ID;
 const githubClientSecret = process.env.GITHUB_CLIENT_SECRET;
 
-console.log('GitHub OAuth config check:', {
+console.log("GitHub OAuth config check:", {
   hasClientId: !!githubClientId,
   hasClientSecret: !!githubClientSecret,
-  clientIdPrefix: githubClientId?.substring(0, 8)
+  clientIdPrefix: githubClientId?.substring(0, 8),
 });
 
 if (githubClientId && githubClientSecret) {
-  ServiceConfiguration.configurations.upsertAsync(
-    { service: 'github' },
-    {
-      $set: {
-        loginStyle: 'popup',
-        clientId: githubClientId,
-        secret: githubClientSecret,
+  ServiceConfiguration.configurations
+    .upsertAsync(
+      { service: "github" },
+      {
+        $set: {
+          loginStyle: "redirect",
+          clientId: githubClientId,
+          secret: githubClientSecret,
+        },
       },
-    }
-  ).then(() => {
-    console.log('GitHub OAuth configured successfully');
-  }).catch((err: unknown) => {
-    console.error('GitHub OAuth config error:', err);
-  });
+    )
+    .then(() => {
+      console.log("GitHub OAuth configured successfully");
+    })
+    .catch((err: unknown) => {
+      console.error("GitHub OAuth config error:", err);
+    });
 } else {
-  console.warn('GitHub OAuth not configured: GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET environment variables are required');
+  console.warn(
+    "GitHub OAuth not configured: GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET environment variables are required",
+  );
 }
