@@ -1,6 +1,9 @@
 {
   "name": "codesync",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "start": "meteor run",
     "dev": "meteor run",
