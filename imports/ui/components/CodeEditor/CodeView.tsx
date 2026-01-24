@@ -95,7 +95,7 @@ export const CodeView: React.FC<CodeViewProps> = ({
       {/* Cursor overlay */}
       <CursorOverlay cursors={cursors} lineHeight={20} charWidth={8} />
 
-      <div ref={codeRef} className="font-mono text-[13px] leading-tight">
+      <div ref={codeRef} className="font-mono text-[13px]">
         {lines.map((line, index) => {
           const lineNumber = index + 1;
           const lineComments = comments.get(lineNumber);
@@ -105,7 +105,8 @@ export const CodeView: React.FC<CodeViewProps> = ({
           return (
             <div
               key={index}
-              className="flex group hover:bg-gray-800/50 h-[20px] leading-[20px]"
+              className="flex group hover:bg-gray-800/50"
+              style={{ height: '20px', lineHeight: '20px' }}
             >
               {/* Line number */}
               <div
@@ -128,9 +129,10 @@ export const CodeView: React.FC<CodeViewProps> = ({
               </div>
 
               {/* Code line */}
-              <code className={`language-${prismLanguage} flex-1 whitespace-pre overflow-x-auto`}>
-                {line || ' '}
-              </code>
+              <pre 
+                className="flex-1 overflow-x-auto bg-transparent"
+                style={{ margin: 0, padding: 0, whiteSpace: 'pre', lineHeight: '20px' }}
+              ><code className={`language-${prismLanguage}`}>{line || ' '}</code></pre>
 
               {/* Add comment button (shown on hover) */}
               <button
