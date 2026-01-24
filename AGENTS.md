@@ -460,21 +460,24 @@ export const chatMessages = pgTable('chat_messages', {
 
 ### Phase 5: Migration Steps (Execution Order)
 
-1. **Week 1: Setup**
-   - [ ] Create monorepo structure with Turborepo/pnpm workspaces
-   - [ ] Setup PostgreSQL + Drizzle ORM
-   - [ ] Create basic Hono API skeleton
-   - [ ] Setup Bun for development
+1. **Week 1: Setup** ✅ COMPLETE
+   - [x] Create monorepo structure with pnpm workspaces
+   - [x] Setup PostgreSQL + Drizzle ORM
+   - [x] Create basic Hono API skeleton
+   - [x] Setup Bun for development
 
-2. **Week 2: Auth & Core API**
-   - [ ] Implement JWT auth (login, register, OAuth GitHub)
-   - [ ] Migrate sessions CRUD
-   - [ ] Migrate files CRUD
-   - [ ] Setup Zod validation schemas
+2. **Week 2: Auth & Core API** ✅ COMPLETE
+   - [x] Implement JWT auth (login, register) 
+   - [ ] OAuth GitHub (pending)
+   - [x] Migrate sessions CRUD
+   - [x] Migrate files CRUD
+   - [x] Migrate comments CRUD
+   - [x] Migrate chat messages
+   - [x] Setup Zod validation schemas
 
-3. **Week 3: Real-time & Advanced Features**
-   - [ ] Implement WebSocket for cursors
-   - [ ] Implement WebSocket for chat
+3. **Week 3: Real-time & Advanced Features** 🟡 IN PROGRESS
+   - [x] Implement WebSocket for cursors (basic handler)
+   - [ ] Implement WebSocket for chat (broadcast)
    - [ ] Implement WebSocket for presence
    - [ ] Redis pub/sub for scaling
 
