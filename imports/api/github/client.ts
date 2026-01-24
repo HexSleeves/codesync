@@ -18,6 +18,6 @@ export async function getGitHubToken(userId: string): Promise<string | null> {
  */
 export function createOctokit(token: string): Octokit {
   return new Octokit({
-    auth: token
+    auth: token,
   });
 }

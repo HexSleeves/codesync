@@ -41,7 +41,13 @@ export interface File {
 export const Files = new Mongo.Collection<File>('files');
 
 Files.deny({
-  insert() { return true; },
-  update() { return true; },
-  remove() { return true; }
+  insert() {
+    return true;
+  },
+  update() {
+    return true;
+  },
+  remove() {
+    return true;
+  },
 });

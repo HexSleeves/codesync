@@ -14,7 +14,7 @@ Meteor.methods({
       throw new Meteor.Error('not-authorized');
     }
 
-    if (!await canEditSession(sessionId, this.userId)) {
+    if (!(await canEditSession(sessionId, this.userId))) {
       throw new Meteor.Error('not-authorized');
     }
 
@@ -24,7 +24,7 @@ Meteor.methods({
     }
 
     await Sessions.updateAsync(sessionId, {
-      $addToSet: { allowedUsers: user._id }
+      $addToSet: { allowedUsers: user._id },
     });
   },
 
@@ -41,7 +41,7 @@ Meteor.methods({
       throw new Meteor.Error('session-not-found');
     }
 
-    if (!await canEditSession(sessionId, this.userId)) {
+    if (!(await canEditSession(sessionId, this.userId))) {
       throw new Meteor.Error('not-authorized');
     }
 
@@ -50,7 +50,7 @@ Meteor.methods({
     if (existingUser) {
       // Just add them directly
       await Sessions.updateAsync(sessionId, {
-        $addToSet: { allowedUsers: existingUser._id }
+        $addToSet: { allowedUsers: existingUser._id },
       });
       return { status: 'added', userId: existingUser._id };
     }
@@ -59,7 +59,7 @@ Meteor.methods({
     const existingInvite = await SessionInvites.findOneAsync({
       sessionId,
       email,
-      acceptedAt: { $exists: false }
+      acceptedAt: { $exists: false },
     });
 
     if (existingInvite) {
@@ -74,7 +74,7 @@ Meteor.methods({
       email,
       invitedBy: this.userId,
       invitedAt: new Date(),
-      token: inviteToken
+      token: inviteToken,
     });
 
     // In production, you would send an email here
@@ -93,7 +93,7 @@ Meteor.methods({
 
     const invite = await SessionInvites.findOneAsync({
       token: inviteToken,
-      acceptedAt: { $exists: false }
+      acceptedAt: { $exists: false },
     });
 
     if (!invite) {
@@ -102,15 +102,15 @@ Meteor.methods({
 
     // Add user to session
     await Sessions.updateAsync(invite.sessionId, {
-      $addToSet: { allowedUsers: this.userId }
+      $addToSet: { allowedUsers: this.userId },
     });
 
     // Mark invite as accepted
     await SessionInvites.updateAsync(invite._id, {
       $set: {
         acceptedAt: new Date(),
-        acceptedBy: this.userId
-      }
+        acceptedBy: this.userId,
+      },
     });
 
     return invite.sessionId;
@@ -129,7 +129,7 @@ Meteor.methods({
     }
 
     await Sessions.updateAsync(session._id, {
-      $addToSet: { allowedUsers: this.userId }
+      $addToSet: { allowedUsers: this.userId },
     });
 
     return session._id;
@@ -142,13 +142,13 @@ Meteor.methods({
       throw new Meteor.Error('not-authorized');
     }
 
-    if (!await canEditSession(sessionId, this.userId)) {
+    if (!(await canEditSession(sessionId, this.userId))) {
       throw new Meteor.Error('not-authorized');
     }
 
     return SessionInvites.find({
       sessionId,
-      acceptedAt: { $exists: false }
+      acceptedAt: { $exists: false },
     }).fetchAsync();
   },
 
@@ -164,10 +164,10 @@ Meteor.methods({
       throw new Meteor.Error('invite-not-found');
     }
 
-    if (!await canEditSession(invite.sessionId, this.userId)) {
+    if (!(await canEditSession(invite.sessionId, this.userId))) {
       throw new Meteor.Error('not-authorized');
     }
 
     await SessionInvites.removeAsync(inviteId);
-  }
+  },
 });

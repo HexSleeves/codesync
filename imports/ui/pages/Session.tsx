@@ -36,52 +36,58 @@ export const SessionPage: React.FC = () => {
   const { cursors, updateCursor } = useCursors(sessionId, selectedFileId);
 
   // Keyboard shortcuts
-  const shortcuts = useMemo(() => [
-    {
-      key: '?',
-      shift: true,
-      description: 'Show keyboard shortcuts',
-      action: () => setShowKeyboardHelp(true)
-    },
-    {
-      key: 'Escape',
-      description: 'Close panel',
-      action: () => {
-        if (showKeyboardHelp) setShowKeyboardHelp(false);
-        else if (commentLine !== null) setCommentLine(null);
-      }
-    },
-    {
-      key: 'd',
-      description: 'Toggle diff mode',
-      action: () => setDiffMode(m => m === 'unified' ? 'split' : 'unified')
-    },
-    {
-      key: 'b',
-      description: 'Toggle sidebar',
-      action: () => setShowRightSidebar(s => !s)
-    },
-    {
-      key: 'r',
-      description: 'Mark file as reviewed',
-      action: () => {
-        if (selectedFileId) {
-          const file = files.find(f => f._id === selectedFileId);
-          if (file) {
-            Meteor.call(file.isReviewed ? 'files.unmarkReviewed' : 'files.markReviewed', selectedFileId);
+  const shortcuts = useMemo(
+    () => [
+      {
+        key: '?',
+        shift: true,
+        description: 'Show keyboard shortcuts',
+        action: () => setShowKeyboardHelp(true),
+      },
+      {
+        key: 'Escape',
+        description: 'Close panel',
+        action: () => {
+          if (showKeyboardHelp) setShowKeyboardHelp(false);
+          else if (commentLine !== null) setCommentLine(null);
+        },
+      },
+      {
+        key: 'd',
+        description: 'Toggle diff mode',
+        action: () => setDiffMode(m => (m === 'unified' ? 'split' : 'unified')),
+      },
+      {
+        key: 'b',
+        description: 'Toggle sidebar',
+        action: () => setShowRightSidebar(s => !s),
+      },
+      {
+        key: 'r',
+        description: 'Mark file as reviewed',
+        action: () => {
+          if (selectedFileId) {
+            const file = files.find(f => f._id === selectedFileId);
+            if (file) {
+              Meteor.call(
+                file.isReviewed ? 'files.unmarkReviewed' : 'files.markReviewed',
+                selectedFileId
+              );
+            }
           }
-        }
-      }
-    },
-    {
-      key: 'c',
-      description: 'Focus chat',
-      action: () => {
-        const chatInput = document.querySelector<HTMLInputElement>('[data-chat-input]');
-        chatInput?.focus();
-      }
-    },
-  ], [showKeyboardHelp, commentLine, selectedFileId, files]);
+        },
+      },
+      {
+        key: 'c',
+        description: 'Focus chat',
+        action: () => {
+          const chatInput = document.querySelector<HTMLInputElement>('[data-chat-input]');
+          chatInput?.focus();
+        },
+      },
+    ],
+    [showKeyboardHelp, commentLine, selectedFileId, files]
+  );
 
   useKeyboardShortcuts(shortcuts);
 
@@ -94,38 +100,44 @@ export const SessionPage: React.FC = () => {
   }, []);
 
   // Handle cursor movement
-  const handleCursorMove = useCallback((line: number, column: number) => {
-    updateCursor(line, column);
-  }, [updateCursor]);
+  const handleCursorMove = useCallback(
+    (line: number, column: number) => {
+      updateCursor(line, column);
+    },
+    [updateCursor]
+  );
 
   // File upload handler
-  const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const uploadedFiles = e.target.files;
-    if (!uploadedFiles || !sessionId) return;
+  const handleFileUpload = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const uploadedFiles = e.target.files;
+      if (!uploadedFiles || !sessionId) return;
 
-    Array.from(uploadedFiles).forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const content = event.target?.result as string;
-        const extension = file.name.split('.').pop() || '';
+      Array.from(uploadedFiles).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = event => {
+          const content = event.target?.result as string;
+          const extension = file.name.split('.').pop() || '';
 
-        Meteor.call('files.add', sessionId, {
-          path: file.name,
-          name: file.name,
-          extension,
-          size: file.size,
-          content,
-          encoding: 'utf-8',
-          language: extension,
-          isDeleted: false,
-          isAdded: true,
-          isModified: false,
-          isRenamed: false
-        });
-      };
-      reader.readAsText(file);
-    });
-  }, [sessionId]);
+          Meteor.call('files.add', sessionId, {
+            path: file.name,
+            name: file.name,
+            extension,
+            size: file.size,
+            content,
+            encoding: 'utf-8',
+            language: extension,
+            isDeleted: false,
+            isAdded: true,
+            isModified: false,
+            isRenamed: false,
+          });
+        };
+        reader.readAsText(file);
+      });
+    },
+    [sessionId]
+  );
 
   // Loading state
   if (sessionLoading || filesLoading) {
@@ -153,7 +165,7 @@ export const SessionPage: React.FC = () => {
   }
 
   // Get root comments for the selected line
-  const lineComments = commentLine ? (commentsByLine.get(commentLine) || []) : [];
+  const lineComments = commentLine ? commentsByLine.get(commentLine) || [] : [];
 
   return (
     <div className="flex flex-col h-screen bg-gray-900">
@@ -174,16 +186,21 @@ export const SessionPage: React.FC = () => {
           {session.source.type === 'manual' && (
             <div className="p-4 border-t border-gray-700">
               <label className="flex items-center justify-center gap-2 px-4 py-2 border border-dashed border-gray-600 rounded-lg cursor-pointer hover:border-gray-500 hover:bg-gray-700/50 transition-colors">
-                <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                <svg
+                  className="w-5 h-5 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                  />
                 </svg>
                 <span className="text-sm text-gray-400">Upload files</span>
-                <input
-                  type="file"
-                  multiple
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
+                <input type="file" multiple onChange={handleFileUpload} className="hidden" />
               </label>
             </div>
           )}
@@ -202,8 +219,18 @@ export const SessionPage: React.FC = () => {
 
                   {selectedFile.isReviewed && (
                     <span className="flex items-center gap-1 px-2 py-0.5 bg-green-900/50 text-green-400 rounded text-xs">
-                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      <svg
+                        className="w-3 h-3"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
                       </svg>
                       Reviewed
                     </span>
@@ -288,7 +315,12 @@ export const SessionPage: React.FC = () => {
                     title="Keyboard shortcuts (Shift+?)"
                   >
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -321,8 +353,18 @@ export const SessionPage: React.FC = () => {
           ) : (
             <div className="flex items-center justify-center h-full text-gray-500">
               <div className="text-center">
-                <svg className="w-16 h-16 mx-auto mb-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                <svg
+                  className="w-16 h-16 mx-auto mb-4 text-gray-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
                 </svg>
                 <p className="text-lg">Select a file to review</p>
                 <p className="text-sm mt-2">Choose a file from the sidebar to start reviewing</p>
@@ -345,7 +387,12 @@ export const SessionPage: React.FC = () => {
           className="absolute right-0 top-1/2 -translate-y-1/2 p-1 bg-gray-700 hover:bg-gray-600 rounded-l-lg text-gray-400 z-10"
           style={{ right: showRightSidebar ? '320px' : '0' }}
         >
-          <svg className={`w-5 h-5 transition-transform ${showRightSidebar ? '' : 'rotate-180'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg
+            className={`w-5 h-5 transition-transform ${showRightSidebar ? '' : 'rotate-180'}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </button>

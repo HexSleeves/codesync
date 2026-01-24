@@ -41,19 +41,16 @@ interface UnifiedDiffLineProps {
 
 const UnifiedDiffLine: React.FC<UnifiedDiffLineProps> = ({ line, comments, onLineClick }) => {
   const bgColor =
-    line.type === 'add' ? 'bg-green-900/30' :
-    line.type === 'remove' ? 'bg-red-900/30' :
-    '';
+    line.type === 'add' ? 'bg-green-900/30' : line.type === 'remove' ? 'bg-red-900/30' : '';
 
   const textColor =
-    line.type === 'add' ? 'text-green-300' :
-    line.type === 'remove' ? 'text-red-300' :
-    'text-gray-300';
+    line.type === 'add'
+      ? 'text-green-300'
+      : line.type === 'remove'
+        ? 'text-red-300'
+        : 'text-gray-300';
 
-  const prefix =
-    line.type === 'add' ? '+' :
-    line.type === 'remove' ? '-' :
-    ' ';
+  const prefix = line.type === 'add' ? '+' : line.type === 'remove' ? '-' : ' ';
 
   const lineNumber = line.newLineNumber || line.oldLineNumber || 0;
   const lineComments = comments.get(lineNumber);
@@ -87,7 +84,9 @@ const UnifiedDiffLine: React.FC<UnifiedDiffLineProps> = ({ line, comments, onLin
       {/* Add comment button */}
       <button
         className="shrink-0 w-8 opacity-0 group-hover:opacity-100 text-gray-500 hover:text-blue-400 transition-opacity"
-        onClick={() => lineNumber && onLineClick(lineNumber, line.type === 'remove' ? 'old' : 'new')}
+        onClick={() =>
+          lineNumber && onLineClick(lineNumber, line.type === 'remove' ? 'old' : 'new')
+        }
         title="Add comment"
       >
         <svg className="w-4 h-4 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">

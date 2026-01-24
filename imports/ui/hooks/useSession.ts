@@ -7,12 +7,12 @@ export function useSession(sessionId: string | undefined) {
     if (!sessionId) {
       return { session: null, isLoading: false };
     }
-    
+
     const handle = Meteor.subscribe('session', sessionId);
-    
+
     return {
       session: Sessions.findOne(sessionId) || null,
-      isLoading: !handle.ready()
+      isLoading: !handle.ready(),
     };
   }, [sessionId]);
 }
@@ -20,10 +20,10 @@ export function useSession(sessionId: string | undefined) {
 export function useMySessions() {
   return useTracker(() => {
     const handle = Meteor.subscribe('sessions.mine');
-    
+
     return {
-      sessions: Sessions.find({}, { sort: { updatedAt: -1 }}).fetch(),
-      isLoading: !handle.ready()
+      sessions: Sessions.find({}, { sort: { updatedAt: -1 } }).fetch(),
+      isLoading: !handle.ready(),
     };
   }, []);
 }

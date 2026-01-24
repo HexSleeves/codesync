@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Meteor } from "meteor/meteor";
-import { Button } from "../common/Button";
-import type { GitHubConnectionStatus, GitHubPRValidationResult, MeteorError } from "../../../types";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Meteor } from 'meteor/meteor';
+import { Button } from '../common/Button';
+import type { GitHubConnectionStatus, GitHubPRValidationResult, MeteorError } from '../../../types';
 
 export interface NewSessionFormProps {
   onClose: () => void;
@@ -10,13 +10,13 @@ export interface NewSessionFormProps {
 
 export const NewSessionForm: React.FC<NewSessionFormProps> = ({ onClose }) => {
   const navigate = useNavigate();
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [sourceType, setSourceType] = useState<"manual" | "github">("manual");
-  const [githubUrl, setGithubUrl] = useState("");
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [sourceType, setSourceType] = useState<'manual' | 'github'>('manual');
+  const [githubUrl, setGithubUrl] = useState('');
   const [isPublic, setIsPublic] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [githubStatus, setGithubStatus] = useState<{
     connected: boolean;
     username: string | null;
@@ -30,16 +30,19 @@ export const NewSessionForm: React.FC<NewSessionFormProps> = ({ onClose }) => {
 
   // Check GitHub connection status on mount
   useEffect(() => {
-    Meteor.call("github.checkConnection", (err: MeteorError | undefined, result?: GitHubConnectionStatus) => {
-      if (!err && result) {
-        setGithubStatus(result);
+    Meteor.call(
+      'github.checkConnection',
+      (err: MeteorError | undefined, result?: GitHubConnectionStatus) => {
+        if (!err && result) {
+          setGithubStatus(result);
+        }
       }
-    });
+    );
   }, []);
 
   // Validate PR URL when it changes (debounced)
   useEffect(() => {
-    if (sourceType !== "github" || !githubUrl) {
+    if (sourceType !== 'github' || !githubUrl) {
       setPrInfo(null);
       return;
     }
@@ -47,10 +50,10 @@ export const NewSessionForm: React.FC<NewSessionFormProps> = ({ onClose }) => {
     const timer = setTimeout(() => {
       setValidatingPR(true);
       setPrInfo(null);
-      setError("");
+      setError('');
 
       Meteor.call(
-        "github.validatePRUrl",
+        'github.validatePRUrl',
         githubUrl,
         (err: MeteorError | undefined, result?: GitHubPRValidationResult) => {
           setValidatingPR(false);
@@ -63,7 +66,7 @@ export const NewSessionForm: React.FC<NewSessionFormProps> = ({ onClose }) => {
               author: result.author,
             });
           }
-        },
+        }
       );
     }, 500);
 
@@ -72,13 +75,13 @@ export const NewSessionForm: React.FC<NewSessionFormProps> = ({ onClose }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setError('');
     setLoading(true);
 
     // If GitHub source with a URL, use the GitHub import method
-    if (sourceType === "github" && githubUrl) {
+    if (sourceType === 'github' && githubUrl) {
       Meteor.call(
-        "github.importPR",
+        'github.importPR',
         githubUrl,
         { isPublic },
         (err: MeteorError | undefined, sessionId?: string) => {
@@ -89,18 +92,18 @@ export const NewSessionForm: React.FC<NewSessionFormProps> = ({ onClose }) => {
             onClose();
             navigate(`/session/${sessionId}`);
           }
-        },
+        }
       );
     } else {
       // Manual session creation
       Meteor.call(
-        "sessions.create",
+        'sessions.create',
         {
-          title: title || "Untitled Session",
+          title: title || 'Untitled Session',
           description,
           source: {
             type: sourceType,
-            url: sourceType === "github" ? githubUrl : undefined,
+            url: sourceType === 'github' ? githubUrl : undefined,
           },
           isPublic,
         },
@@ -112,7 +115,7 @@ export const NewSessionForm: React.FC<NewSessionFormProps> = ({ onClose }) => {
             onClose();
             navigate(`/session/${sessionId}`);
           }
-        },
+        }
       );
     }
   };
@@ -126,7 +129,7 @@ export const NewSessionForm: React.FC<NewSessionFormProps> = ({ onClose }) => {
         <input
           type="text"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={e => setTitle(e.target.value)}
           placeholder="e.g., Feature X Code Review"
           className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
         />
@@ -138,7 +141,7 @@ export const NewSessionForm: React.FC<NewSessionFormProps> = ({ onClose }) => {
         </label>
         <textarea
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={e => setDescription(e.target.value)}
           rows={3}
           placeholder="What are you reviewing?"
           className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
@@ -152,28 +155,24 @@ export const NewSessionForm: React.FC<NewSessionFormProps> = ({ onClose }) => {
         <div className="grid grid-cols-2 gap-4">
           <button
             type="button"
-            onClick={() => setSourceType("manual")}
+            onClick={() => setSourceType('manual')}
             className={`p-4 border rounded-lg text-left transition-colors ${
-              sourceType === "manual"
-                ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                : "border-gray-300 dark:border-gray-600 hover:border-gray-400"
+              sourceType === 'manual'
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
             }`}
           >
-            <div className="font-medium text-gray-900 dark:text-white">
-              Upload Files
-            </div>
-            <div className="text-sm text-gray-500">
-              Drag and drop or paste code
-            </div>
+            <div className="font-medium text-gray-900 dark:text-white">Upload Files</div>
+            <div className="text-sm text-gray-500">Drag and drop or paste code</div>
           </button>
 
           <button
             type="button"
-            onClick={() => setSourceType("github")}
+            onClick={() => setSourceType('github')}
             className={`p-4 border rounded-lg text-left transition-colors ${
-              sourceType === "github"
-                ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                : "border-gray-300 dark:border-gray-600 hover:border-gray-400"
+              sourceType === 'github'
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
             }`}
           >
             <div className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
@@ -182,26 +181,19 @@ export const NewSessionForm: React.FC<NewSessionFormProps> = ({ onClose }) => {
               </svg>
               GitHub PR
             </div>
-            <div className="text-sm text-gray-500">
-              Import from pull request
-            </div>
+            <div className="text-sm text-gray-500">Import from pull request</div>
           </button>
         </div>
       </div>
 
-      {sourceType === "github" && (
+      {sourceType === 'github' && (
         <div className="space-y-4">
           {/* GitHub Connection Status */}
           {githubStatus && !githubStatus.connected && (
             <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-800 rounded-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-yellow-700 dark:text-yellow-400">
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -209,38 +201,32 @@ export const NewSessionForm: React.FC<NewSessionFormProps> = ({ onClose }) => {
                       d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                     />
                   </svg>
-                  <span className="text-sm font-medium">
-                    GitHub not connected
-                  </span>
+                  <span className="text-sm font-medium">GitHub not connected</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => {
                     Meteor.loginWithGithub(
-                      { 
-                        requestPermissions: ["user:email", "repo"],
-                        loginStyle: 'redirect'
+                      {
+                        requestPermissions: ['user:email', 'repo'],
+                        loginStyle: 'redirect',
                       },
-                      (err) => {
+                      err => {
                         if (!err) {
                           // Refresh connection status
                           Meteor.call(
-                            "github.checkConnection",
+                            'github.checkConnection',
                             (e: MeteorError | undefined, result?: GitHubConnectionStatus) => {
                               if (!e && result) setGithubStatus(result);
-                            },
+                            }
                           );
                         }
-                      },
+                      }
                     );
                   }}
                   className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-white text-sm rounded-lg transition-colors"
                 >
-                  <svg
-                    className="w-4 h-4"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
                   </svg>
                   Connect GitHub
@@ -257,8 +243,7 @@ export const NewSessionForm: React.FC<NewSessionFormProps> = ({ onClose }) => {
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
               </svg>
-              Connected as{" "}
-              <span className="font-medium">@{githubStatus.username}</span>
+              Connected as <span className="font-medium">@{githubStatus.username}</span>
             </div>
           )}
 
@@ -270,7 +255,7 @@ export const NewSessionForm: React.FC<NewSessionFormProps> = ({ onClose }) => {
               <input
                 type="url"
                 value={githubUrl}
-                onChange={(e) => setGithubUrl(e.target.value)}
+                onChange={e => setGithubUrl(e.target.value)}
                 placeholder="https://github.com/owner/repo/pull/123"
                 disabled={!githubStatus?.connected}
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -340,13 +325,10 @@ export const NewSessionForm: React.FC<NewSessionFormProps> = ({ onClose }) => {
           type="checkbox"
           id="isPublic"
           checked={isPublic}
-          onChange={(e) => setIsPublic(e.target.checked)}
+          onChange={e => setIsPublic(e.target.checked)}
           className="w-4 h-4 text-blue-600 rounded"
         />
-        <label
-          htmlFor="isPublic"
-          className="text-sm text-gray-700 dark:text-gray-300"
-        >
+        <label htmlFor="isPublic" className="text-sm text-gray-700 dark:text-gray-300">
           Make this session public
         </label>
       </div>

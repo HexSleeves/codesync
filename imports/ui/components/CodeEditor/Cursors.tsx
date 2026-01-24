@@ -2,7 +2,7 @@ import React from 'react';
 import { useTracker } from 'meteor/react-meteor-data';
 import { Meteor } from 'meteor/meteor';
 import { Cursor } from '../../../api/cursors/cursors';
-import type { MeteorUser, UserProfile, UserServices } from '../../../types';
+import type { MeteorUser } from '../../../types';
 
 const CURSOR_COLORS = [
   '#3b82f6', // blue
@@ -21,25 +21,21 @@ interface CursorOverlayProps {
   charWidth: number;
 }
 
-export const CursorOverlay: React.FC<CursorOverlayProps> = ({
-  cursors,
-  lineHeight,
-  charWidth
-}) => {
+export const CursorOverlay: React.FC<CursorOverlayProps> = ({ cursors, lineHeight, charWidth }) => {
   // Get user info for cursors
   const users = useTracker(() => {
     const userIds = cursors.map(c => c.userId);
-    return Meteor.users.find({ _id: { $in: userIds }}).fetch() as MeteorUser[];
+    return Meteor.users.find({ _id: { $in: userIds } }).fetch() as MeteorUser[];
   }, [cursors]);
-  
+
   const getUserName = (userId: string): string => {
     const user = users.find(u => u._id === userId);
     if (!user) return 'Anonymous';
-    const profile = user.profile as UserProfile | undefined;
-    const services = user.services as UserServices | undefined;
+    const profile = user.profile;
+    const services = user.services;
     return profile?.name || services?.github?.username || user.emails?.[0]?.address || 'Anonymous';
   };
-  
+
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden">
       {cursors.map((cursor, index) => {
@@ -47,7 +43,7 @@ export const CursorOverlay: React.FC<CursorOverlayProps> = ({
         const top = (cursor.line - 1) * lineHeight;
         const left = cursor.column * charWidth + 56; // Account for line numbers (14 * 4 = 56px)
         const userName = getUserName(cursor.userId);
-        
+
         return (
           <div key={cursor.userId}>
             {/* Cursor line */}
@@ -58,22 +54,22 @@ export const CursorOverlay: React.FC<CursorOverlayProps> = ({
                 left: `${left}px`,
                 height: `${lineHeight}px`,
                 backgroundColor: color,
-                animation: 'blink 1s infinite'
+                animation: 'blink 1s infinite',
               }}
             />
-            
+
             {/* User label */}
             <div
               className="absolute px-2 py-0.5 rounded text-xs text-white font-medium whitespace-nowrap transition-all duration-100"
               style={{
                 top: `${top - 20}px`,
                 left: `${left}px`,
-                backgroundColor: color
+                backgroundColor: color,
               }}
             >
               {userName}
             </div>
-            
+
             {/* Selection highlight */}
             {cursor.selection && (
               <SelectionHighlight
@@ -101,12 +97,12 @@ const SelectionHighlight: React.FC<SelectionHighlightProps> = ({
   selection,
   color,
   lineHeight,
-  charWidth
+  charWidth,
 }) => {
   if (!selection) return null;
-  
+
   const { startLine, startColumn, endLine, endColumn } = selection;
-  
+
   // Single line selection
   if (startLine === endLine) {
     return (
@@ -117,22 +113,22 @@ const SelectionHighlight: React.FC<SelectionHighlightProps> = ({
           left: `${startColumn * charWidth + 56}px`,
           width: `${(endColumn - startColumn) * charWidth}px`,
           height: `${lineHeight}px`,
-          backgroundColor: color
+          backgroundColor: color,
         }}
       />
     );
   }
-  
+
   // Multi-line selection - render line by line
   const highlights: React.ReactElement[] = [];
-  
+
   for (let line = startLine; line <= endLine; line++) {
     const isFirstLine = line === startLine;
     const isLastLine = line === endLine;
-    
+
     const colStart = isFirstLine ? startColumn : 0;
     const colEnd = isLastLine ? endColumn : 200; // Assume max 200 chars per line
-    
+
     highlights.push(
       <div
         key={line}
@@ -142,11 +138,11 @@ const SelectionHighlight: React.FC<SelectionHighlightProps> = ({
           left: `${colStart * charWidth + 56}px`,
           width: `${(colEnd - colStart) * charWidth}px`,
           height: `${lineHeight}px`,
-          backgroundColor: color
+          backgroundColor: color,
         }}
       />
     );
   }
-  
+
   return <>{highlights}</>;
 };

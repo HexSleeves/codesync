@@ -7,28 +7,37 @@ interface KeyboardShortcutsModalProps {
 }
 
 const shortcuts = [
-  { category: 'Navigation', items: [
-    { keys: ['j', '↓'], description: 'Next file' },
-    { keys: ['k', '↑'], description: 'Previous file' },
-    { keys: ['/'], description: 'Search files' },
-    { keys: ['n'], description: 'Next comment' },
-    { keys: ['p'], description: 'Previous comment' },
-  ]},
-  { category: 'Actions', items: [
-    { keys: ['r'], description: 'Mark file as reviewed' },
-    { keys: ['d'], description: 'Toggle diff mode (unified/split)' },
-    { keys: ['c'], description: 'Focus chat input' },
-    { keys: ['b'], description: 'Toggle right sidebar' },
-  ]},
-  { category: 'General', items: [
-    { keys: ['?'], description: 'Show this help' },
-    { keys: ['Esc'], description: 'Close modal/panel' },
-  ]},
+  {
+    category: 'Navigation',
+    items: [
+      { keys: ['j', '↓'], description: 'Next file' },
+      { keys: ['k', '↑'], description: 'Previous file' },
+      { keys: ['/'], description: 'Search files' },
+      { keys: ['n'], description: 'Next comment' },
+      { keys: ['p'], description: 'Previous comment' },
+    ],
+  },
+  {
+    category: 'Actions',
+    items: [
+      { keys: ['r'], description: 'Mark file as reviewed' },
+      { keys: ['d'], description: 'Toggle diff mode (unified/split)' },
+      { keys: ['c'], description: 'Focus chat input' },
+      { keys: ['b'], description: 'Toggle right sidebar' },
+    ],
+  },
+  {
+    category: 'General',
+    items: [
+      { keys: ['?'], description: 'Show this help' },
+      { keys: ['Esc'], description: 'Close modal/panel' },
+    ],
+  },
 ];
 
 export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
   isOpen,
-  onClose
+  onClose,
 }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Keyboard Shortcuts" size="md">

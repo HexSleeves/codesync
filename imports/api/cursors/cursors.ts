@@ -29,7 +29,13 @@ export interface Cursor {
 export const Cursors = new Mongo.Collection<Cursor>('cursors');
 
 Cursors.deny({
-  insert() { return true; },
-  update() { return true; },
-  remove() { return true; }
+  insert() {
+    return true;
+  },
+  update() {
+    return true;
+  },
+  remove() {
+    return true;
+  },
 });

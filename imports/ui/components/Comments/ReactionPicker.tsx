@@ -7,23 +7,20 @@ interface ReactionPickerProps {
   onClose: () => void;
 }
 
-export const ReactionPicker: React.FC<ReactionPickerProps> = ({
-  onSelect,
-  onClose
-}) => {
+export const ReactionPicker: React.FC<ReactionPickerProps> = ({ onSelect, onClose }) => {
   const ref = useRef<HTMLDivElement>(null);
-  
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
         onClose();
       }
     };
-    
+
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [onClose]);
-  
+
   return (
     <div
       ref={ref}

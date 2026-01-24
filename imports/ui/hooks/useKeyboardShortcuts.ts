@@ -10,30 +10,33 @@ export interface KeyboardShortcut {
 }
 
 export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    // Ignore if typing in an input
-    if (
-      e.target instanceof HTMLInputElement ||
-      e.target instanceof HTMLTextAreaElement ||
-      (e.target as HTMLElement).isContentEditable
-    ) {
-      // Allow Escape to work even in inputs
-      if (e.key !== 'Escape') return;
-    }
-
-    for (const shortcut of shortcuts) {
-      const keyMatch = e.key.toLowerCase() === shortcut.key.toLowerCase();
-      const ctrlMatch = !!shortcut.ctrl === (e.ctrlKey || e.metaKey);
-      const shiftMatch = !!shortcut.shift === e.shiftKey;
-      const altMatch = !!shortcut.alt === e.altKey;
-
-      if (keyMatch && ctrlMatch && shiftMatch && altMatch) {
-        e.preventDefault();
-        shortcut.action();
-        return;
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      // Ignore if typing in an input
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        (e.target as HTMLElement).isContentEditable
+      ) {
+        // Allow Escape to work even in inputs
+        if (e.key !== 'Escape') return;
       }
-    }
-  }, [shortcuts]);
+
+      for (const shortcut of shortcuts) {
+        const keyMatch = e.key.toLowerCase() === shortcut.key.toLowerCase();
+        const ctrlMatch = !!shortcut.ctrl === (e.ctrlKey || e.metaKey);
+        const shiftMatch = !!shortcut.shift === e.shiftKey;
+        const altMatch = !!shortcut.alt === e.altKey;
+
+        if (keyMatch && ctrlMatch && shiftMatch && altMatch) {
+          e.preventDefault();
+          shortcut.action();
+          return;
+        }
+      }
+    },
+    [shortcuts]
+  );
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);

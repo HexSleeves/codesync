@@ -48,7 +48,12 @@ export const UserList: React.FC<UserListProps> = ({ sessionId }) => {
         )}
 
         {inactiveUsers.map(user => (
-          <UserItem key={user._id} user={user} fileName={getFileName(user.currentFileId)} inactive />
+          <UserItem
+            key={user._id}
+            user={user}
+            fileName={getFileName(user.currentFileId)}
+            inactive
+          />
         ))}
       </div>
     </div>
@@ -63,7 +68,9 @@ interface UserItemProps {
 
 const UserItem: React.FC<UserItemProps> = ({ user, fileName, inactive }) => {
   return (
-    <div className={`flex items-center gap-3 p-2 rounded-lg ${inactive ? 'opacity-50' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}>
+    <div
+      className={`flex items-center gap-3 p-2 rounded-lg ${inactive ? 'opacity-50' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+    >
       <div className="relative">
         <Avatar name={user.name} src={user.avatar} size="sm" />
         {!inactive && (

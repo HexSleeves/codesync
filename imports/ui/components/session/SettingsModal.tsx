@@ -9,10 +9,7 @@ export interface SettingsModalProps {
   onClose: () => void;
 }
 
-export const SettingsModal: React.FC<SettingsModalProps> = ({
-  session,
-  onClose,
-}) => {
+export const SettingsModal: React.FC<SettingsModalProps> = ({ session, onClose }) => {
   const [title, setTitle] = useState(session.title);
   const [description, setDescription] = useState(session.description || '');
   const [isPublic, setIsPublic] = useState(session.isPublic);
@@ -38,7 +35,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         if (!error) {
           onClose();
         }
-      },
+      }
     );
   };
 
@@ -51,7 +48,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         <input
           type="text"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={e => setTitle(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
         />
       </div>
@@ -62,7 +59,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         </label>
         <textarea
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={e => setDescription(e.target.value)}
           rows={3}
           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
         />
@@ -74,7 +71,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         </label>
         <select
           value={diffMode}
-          onChange={(e) => setDiffMode(e.target.value as SessionSettings['diffMode'])}
+          onChange={e => setDiffMode(e.target.value as SessionSettings['diffMode'])}
           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
         >
           <option value="unified">Unified</option>
@@ -87,13 +84,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           type="checkbox"
           id="isPublic"
           checked={isPublic}
-          onChange={(e) => setIsPublic(e.target.checked)}
+          onChange={e => setIsPublic(e.target.checked)}
           className="w-4 h-4 text-blue-600 rounded"
         />
-        <label
-          htmlFor="isPublic"
-          className="text-sm text-gray-700 dark:text-gray-300"
-        >
+        <label htmlFor="isPublic" className="text-sm text-gray-700 dark:text-gray-300">
           Make this session public
         </label>
       </div>

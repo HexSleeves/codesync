@@ -17,8 +17,16 @@ export const SplitDiff: React.FC<SplitDiffProps> = ({ hunks, comments, onLineCli
     for (const hunk of hunks) {
       // Add hunk header as a special pair
       pairs.push({
-        left: { type: 'context', content: `@@ -${hunk.oldStart},${hunk.oldLines}`, isHunkHeader: true },
-        right: { type: 'context', content: `+${hunk.newStart},${hunk.newLines} @@`, isHunkHeader: true }
+        left: {
+          type: 'context',
+          content: `@@ -${hunk.oldStart},${hunk.oldLines}`,
+          isHunkHeader: true,
+        },
+        right: {
+          type: 'context',
+          content: `+${hunk.newStart},${hunk.newLines} @@`,
+          isHunkHeader: true,
+        },
       });
 
       let i = 0;
@@ -95,21 +103,19 @@ const SplitDiffLine: React.FC<SplitDiffLineProps> = ({ line, side, comments, onL
   const isHunkHeader = line.isHunkHeader;
   if (isHunkHeader) {
     return (
-      <div className="flex bg-blue-900/50 px-2 py-1 text-blue-300 text-xs">
-        {line.content}
-      </div>
+      <div className="flex bg-blue-900/50 px-2 py-1 text-blue-300 text-xs">{line.content}</div>
     );
   }
 
   const bgColor =
-    line.type === 'add' ? 'bg-green-900/30' :
-    line.type === 'remove' ? 'bg-red-900/30' :
-    '';
+    line.type === 'add' ? 'bg-green-900/30' : line.type === 'remove' ? 'bg-red-900/30' : '';
 
   const textColor =
-    line.type === 'add' ? 'text-green-300' :
-    line.type === 'remove' ? 'text-red-300' :
-    'text-gray-300';
+    line.type === 'add'
+      ? 'text-green-300'
+      : line.type === 'remove'
+        ? 'text-red-300'
+        : 'text-gray-300';
 
   const lineNumber = side === 'old' ? line.oldLineNumber : line.newLineNumber;
   const lineComments = lineNumber ? comments.get(lineNumber) : undefined;
@@ -129,7 +135,9 @@ const SplitDiffLine: React.FC<SplitDiffLineProps> = ({ line, side, comments, onL
       </span>
 
       {/* Content */}
-      <span className={`flex-1 whitespace-pre px-2 ${textColor} overflow-hidden`}>{line.content}</span>
+      <span className={`flex-1 whitespace-pre px-2 ${textColor} overflow-hidden`}>
+        {line.content}
+      </span>
 
       {/* Add comment button */}
       <button

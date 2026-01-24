@@ -17,23 +17,24 @@ export const CommentItem: React.FC<CommentItemProps> = ({
   comment,
   onReply,
   onResolve,
-  compact = false
+  compact = false,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(comment.text);
   const [showReactions, setShowReactions] = useState(false);
-  
+
   const author = useTracker(() => {
     return Meteor.users.findOne(comment.author) as MeteorUser | undefined;
   }, [comment.author]);
-  
+
   const currentUserId = useTracker(() => Meteor.userId(), []);
   const isAuthor = currentUserId === comment.author;
-  
+
   const profile = author?.profile as UserProfile | undefined;
   const services = author?.services as UserServices | undefined;
-  const authorName = profile?.name || services?.github?.username || author?.emails?.[0]?.address || 'Anonymous';
-  
+  const authorName =
+    profile?.name || services?.github?.username || author?.emails?.[0]?.address || 'Anonymous';
+
   const handleSaveEdit = () => {
     Meteor.call('comments.update', comment._id, editText, (error: MeteorError | null) => {
       if (!error) {
@@ -41,58 +42,57 @@ export const CommentItem: React.FC<CommentItemProps> = ({
       }
     });
   };
-  
+
   const handleDelete = () => {
     if (confirm('Are you sure you want to delete this comment?')) {
       Meteor.call('comments.delete', comment._id);
     }
   };
-  
+
   const handleReaction = (emoji: string) => {
     Meteor.call('comments.addReaction', comment._id, emoji);
     setShowReactions(false);
   };
-  
+
   const formatDate = (date: Date) => {
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
-    
+
     if (minutes < 1) return 'just now';
     if (minutes < 60) return `${minutes}m ago`;
     if (hours < 24) return `${hours}h ago`;
     if (days < 7) return `${days}d ago`;
     return date.toLocaleDateString();
   };
-  
+
   return (
     <div className={`group ${comment.isResolved ? 'opacity-60' : ''}`}>
       <div className="flex gap-3">
         <Avatar name={authorName} size={compact ? 'sm' : 'md'} />
-        
+
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="font-medium text-gray-900 dark:text-white text-sm">
-              {authorName}
-            </span>
-            <span className="text-xs text-gray-500">
-              {formatDate(comment.createdAt)}
-            </span>
-            {comment.editedAt && (
-              <span className="text-xs text-gray-400">(edited)</span>
-            )}
+            <span className="font-medium text-gray-900 dark:text-white text-sm">{authorName}</span>
+            <span className="text-xs text-gray-500">{formatDate(comment.createdAt)}</span>
+            {comment.editedAt && <span className="text-xs text-gray-400">(edited)</span>}
             {comment.isResolved && (
               <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300">
                 <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
                 Resolved
               </span>
             )}
           </div>
-          
+
           {isEditing ? (
             <div className="mt-2">
               <textarea
@@ -124,7 +124,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
               {comment.text}
             </p>
           )}
-          
+
           {/* Reactions */}
           {comment.reactions.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-2">
@@ -139,12 +139,14 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                   } hover:bg-gray-200 dark:hover:bg-gray-600`}
                 >
                   <span>{reaction.emoji}</span>
-                  <span className="ml-1 text-gray-600 dark:text-gray-300">{reaction.users.length}</span>
+                  <span className="ml-1 text-gray-600 dark:text-gray-300">
+                    {reaction.users.length}
+                  </span>
                 </button>
               ))}
             </div>
           )}
-          
+
           {/* Actions */}
           {!compact && !isEditing && (
             <div className="flex items-center gap-3 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -156,7 +158,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                   Reply
                 </button>
               )}
-              
+
               <div className="relative">
                 <button
                   onClick={() => setShowReactions(!showReactions)}
@@ -171,7 +173,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                   />
                 )}
               </div>
-              
+
               {onResolve && (
                 <button
                   onClick={onResolve}
@@ -180,7 +182,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                   {comment.isResolved ? 'Unresolve' : 'Resolve'}
                 </button>
               )}
-              
+
               {isAuthor && (
                 <>
                   <button

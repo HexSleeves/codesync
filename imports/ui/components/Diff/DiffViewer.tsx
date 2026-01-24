@@ -12,12 +12,7 @@ interface DiffViewerProps {
   onLineClick: (lineNumber: number, side?: 'old' | 'new') => void;
 }
 
-export const DiffViewer: React.FC<DiffViewerProps> = ({
-  file,
-  mode,
-  comments,
-  onLineClick
-}) => {
+export const DiffViewer: React.FC<DiffViewerProps> = ({ file, mode, comments, onLineClick }) => {
   // Generate hunks if not already present
   const hunks = useMemo(() => {
     if (file.hunks && file.hunks.length > 0) {
@@ -32,17 +27,19 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
     // No diff available - show entire file as added
     if (file.isAdded) {
       const lines = file.content.split('\n');
-      return [{
-        oldStart: 0,
-        oldLines: 0,
-        newStart: 1,
-        newLines: lines.length,
-        lines: lines.map((content, index) => ({
-          type: 'add' as const,
-          content,
-          newLineNumber: index + 1
-        }))
-      }];
+      return [
+        {
+          oldStart: 0,
+          oldLines: 0,
+          newStart: 1,
+          newLines: lines.length,
+          lines: lines.map((content, index) => ({
+            type: 'add' as const,
+            content,
+            newLineNumber: index + 1,
+          })),
+        },
+      ];
     }
 
     return [];

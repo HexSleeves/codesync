@@ -13,17 +13,17 @@ Meteor.methods({
     viewport: Viewport;
   }) {
     if (!this.userId) return;
-    
+
     check(data.sessionId, String);
     check(data.fileId, String);
     check(data.line, Number);
     check(data.column, Number);
-    
+
     const hasAccess = await canAccessSession(data.sessionId, this.userId);
     if (!hasAccess) {
       return;
     }
-    
+
     // Upsert cursor position
     await Cursors.upsertAsync(
       { sessionId: data.sessionId, userId: this.userId },
@@ -38,30 +38,30 @@ Meteor.methods({
           viewport: data.viewport,
           isActive: true,
           lastActivity: new Date(),
-          updatedAt: new Date()
-        }
+          updatedAt: new Date(),
+        },
       }
     );
   },
-  
+
   async 'cursors.setInactive'(sessionId: string) {
     if (!this.userId) return;
-    
+
     check(sessionId, String);
-    
+
     await Cursors.updateAsync(
       { sessionId, userId: this.userId },
       { $set: { isActive: false, updatedAt: new Date() } }
     );
   },
-  
+
   async 'cursors.remove'(sessionId: string) {
     if (!this.userId) return;
-    
+
     check(sessionId, String);
-    
+
     await Cursors.removeAsync({ sessionId, userId: this.userId });
-  }
+  },
 });
 
 // Clean up old cursors periodically (server-side)

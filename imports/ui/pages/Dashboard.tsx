@@ -17,7 +17,8 @@ export const Dashboard: React.FC = () => {
   const user = useTracker(() => Meteor.user() as MeteorUser | null, []);
   const profile = user?.profile as UserProfile | undefined;
   const services = user?.services as UserServices | undefined;
-  const userName = profile?.name || services?.github?.username || user?.emails?.[0]?.address || 'Anonymous';
+  const userName =
+    profile?.name || services?.github?.username || user?.emails?.[0]?.address || 'Anonymous';
 
   const handleLogout = () => {
     Meteor.logout(() => navigate('/'));
@@ -31,7 +32,7 @@ export const Dashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-blue-600">
               <svg className="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
               </svg>
               <span className="text-xl font-bold">CodeSync</span>
             </div>
@@ -52,12 +53,15 @@ export const Dashboard: React.FC = () => {
       {/* Main content */}
       <main className="container mx-auto px-6 py-8">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Your Sessions
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Your Sessions</h1>
           <Button onClick={() => setShowNewSession(true)}>
             <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
             </svg>
             New Session
           </Button>
@@ -74,8 +78,18 @@ export const Dashboard: React.FC = () => {
           </div>
         ) : sessions.length === 0 ? (
           <div className="text-center py-12">
-            <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            <svg
+              className="w-16 h-16 mx-auto text-gray-400 mb-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
             </svg>
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
               No sessions yet
@@ -83,9 +97,7 @@ export const Dashboard: React.FC = () => {
             <p className="text-gray-500 mb-6">
               Create your first code review session to get started.
             </p>
-            <Button onClick={() => setShowNewSession(true)}>
-              Create Session
-            </Button>
+            <Button onClick={() => setShowNewSession(true)}>Create Session</Button>
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

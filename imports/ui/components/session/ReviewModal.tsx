@@ -7,11 +7,7 @@ export interface ReviewModalProps {
   onCancel: () => void;
 }
 
-export const ReviewModal: React.FC<ReviewModalProps> = ({
-  action,
-  onSubmit,
-  onCancel,
-}) => {
+export const ReviewModal: React.FC<ReviewModalProps> = ({ action, onSubmit, onCancel }) => {
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -34,12 +30,10 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
         </label>
         <textarea
           value={comment}
-          onChange={(e) => setComment(e.target.value)}
+          onChange={e => setComment(e.target.value)}
           rows={3}
           placeholder={
-            action === 'approve'
-              ? 'LGTM! \uD83C\uDF89'
-              : 'Please address the following...'
+            action === 'approve' ? 'LGTM! \uD83C\uDF89' : 'Please address the following...'
           }
           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
         />

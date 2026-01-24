@@ -14,34 +14,32 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ sessionId }) => {
   const [inputText, setInputText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const currentUserId = useTracker(() => Meteor.userId(), []);
-  
+
   // Scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
-  
+
   const handleSend = () => {
     if (inputText.trim()) {
       sendMessage(inputText.trim());
       setInputText('');
     }
   };
-  
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
   };
-  
+
   return (
     <div className="flex flex-col flex-1 min-h-0">
       <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-          Chat
-        </h3>
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Chat</h3>
       </div>
-      
+
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {isLoading ? (
@@ -61,7 +59,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ sessionId }) => {
         )}
         <div ref={messagesEndRef} />
       </div>
-      
+
       {/* Input */}
       <div className="p-4 border-t border-gray-200 dark:border-gray-700">
         <div className="flex gap-2">
@@ -80,7 +78,12 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ sessionId }) => {
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+              />
             </svg>
           </button>
         </div>
@@ -98,19 +101,15 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ message, isOwn }) => 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
-  
+
   if (message.type === 'system') {
-    return (
-      <div className="text-center text-xs text-gray-500 py-2">
-        {message.message}
-      </div>
-    );
+    return <div className="text-center text-xs text-gray-500 py-2">{message.message}</div>;
   }
-  
+
   return (
     <div className={`flex gap-3 ${isOwn ? 'flex-row-reverse' : ''}`}>
       <Avatar name={message.userName} src={message.userAvatar} size="sm" />
-      
+
       <div className={`max-w-[70%] ${isOwn ? 'text-right' : ''}`}>
         <div className="flex items-center gap-2 mb-1">
           {!isOwn && (
@@ -118,14 +117,10 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ message, isOwn }) => 
               {message.userName}
             </span>
           )}
-          <span className="text-xs text-gray-500">
-            {formatTime(message.createdAt)}
-          </span>
-          {message.editedAt && (
-            <span className="text-xs text-gray-400">(edited)</span>
-          )}
+          <span className="text-xs text-gray-500">{formatTime(message.createdAt)}</span>
+          {message.editedAt && <span className="text-xs text-gray-400">(edited)</span>}
         </div>
-        
+
         <div
           className={`inline-block px-3 py-2 rounded-lg text-sm ${
             isOwn
@@ -141,7 +136,7 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ message, isOwn }) => 
             <p className="whitespace-pre-wrap">{message.message}</p>
           )}
         </div>
-        
+
         {/* Reactions */}
         {message.reactions.length > 0 && (
           <div className="flex gap-1 mt-1">

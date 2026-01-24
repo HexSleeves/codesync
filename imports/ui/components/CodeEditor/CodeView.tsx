@@ -33,7 +33,7 @@ export const CodeView: React.FC<CodeViewProps> = ({
   comments,
   cursors,
   onLineClick,
-  onCursorMove
+  onCursorMove,
 }) => {
   const codeRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -43,21 +43,21 @@ export const CodeView: React.FC<CodeViewProps> = ({
   // Map language names to Prism language identifiers
   const prismLanguage = useMemo(() => {
     const map: Record<string, string> = {
-      'javascript': 'javascript',
-      'typescript': 'typescript',
-      'python': 'python',
-      'java': 'java',
-      'go': 'go',
-      'rust': 'rust',
-      'bash': 'bash',
-      'json': 'json',
-      'yaml': 'yaml',
-      'markdown': 'markdown',
-      'css': 'css',
-      'scss': 'scss',
-      'sql': 'sql',
-      'html': 'markup',
-      'xml': 'markup'
+      javascript: 'javascript',
+      typescript: 'typescript',
+      python: 'python',
+      java: 'java',
+      go: 'go',
+      rust: 'rust',
+      bash: 'bash',
+      json: 'json',
+      yaml: 'yaml',
+      markdown: 'markdown',
+      css: 'css',
+      scss: 'scss',
+      sql: 'sql',
+      html: 'markup',
+      xml: 'markup',
     };
     return map[file.language] || 'plaintext';
   }, [file.language]);
@@ -129,10 +129,12 @@ export const CodeView: React.FC<CodeViewProps> = ({
               </div>
 
               {/* Code line */}
-              <pre 
+              <pre
                 className="flex-1 overflow-x-auto bg-transparent"
                 style={{ margin: 0, padding: 0, whiteSpace: 'pre', lineHeight: '20px' }}
-              ><code className={`language-${prismLanguage}`}>{line || ' '}</code></pre>
+              >
+                <code className={`language-${prismLanguage}`}>{line || ' '}</code>
+              </pre>
 
               {/* Add comment button (shown on hover) */}
               <button
@@ -140,8 +142,18 @@ export const CodeView: React.FC<CodeViewProps> = ({
                 onClick={() => onLineClick(lineNumber)}
                 title="Add comment"
               >
-                <svg className="w-4 h-4 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                <svg
+                  className="w-4 h-4 mx-auto"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v16m8-8H4"
+                  />
                 </svg>
               </button>
             </div>

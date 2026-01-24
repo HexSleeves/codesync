@@ -24,7 +24,7 @@ export async function fetchPRDetails(
   const { data } = await octokit.pulls.get({
     owner,
     repo,
-    pull_number: prNumber
+    pull_number: prNumber,
   });
 
   return {
@@ -32,17 +32,17 @@ export async function fetchPRDetails(
     body: data.body,
     head: {
       ref: data.head.ref,
-      sha: data.head.sha
+      sha: data.head.sha,
     },
     base: {
       ref: data.base.ref,
-      sha: data.base.sha
+      sha: data.base.sha,
     },
     user: {
-      login: data.user?.login || 'unknown'
+      login: data.user?.login || 'unknown',
     },
     html_url: data.html_url,
-    state: data.state
+    state: data.state,
   };
 }
 
@@ -66,13 +66,13 @@ export async function fetchPRFiles(
       repo,
       pull_number: prNumber,
       per_page: perPage,
-      page
+      page,
     });
 
     for (const file of data) {
       files.push({
         filename: file.filename,
-        status: file.status ,
+        status: file.status,
         additions: file.additions,
         deletions: file.deletions,
         changes: file.changes,
@@ -81,7 +81,7 @@ export async function fetchPRFiles(
         sha: file.sha || '',
         blob_url: file.blob_url,
         raw_url: file.raw_url,
-        contents_url: file.contents_url
+        contents_url: file.contents_url,
       });
     }
 
@@ -107,7 +107,7 @@ export async function fetchFileContent(
       owner,
       repo,
       path,
-      ref
+      ref,
     });
 
     if ('content' in data && data.content) {

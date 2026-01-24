@@ -39,7 +39,13 @@ export interface Comment {
 export const Comments = new Mongo.Collection<Comment>('comments');
 
 Comments.deny({
-  insert() { return true; },
-  update() { return true; },
-  remove() { return true; }
+  insert() {
+    return true;
+  },
+  update() {
+    return true;
+  },
+  remove() {
+    return true;
+  },
 });

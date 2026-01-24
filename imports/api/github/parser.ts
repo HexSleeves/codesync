@@ -16,7 +16,7 @@ export function parseGitHubPRUrl(url: string): GitHubPRInfo | null {
     return {
       owner: fullUrlMatch[1],
       repo: fullUrlMatch[2],
-      prNumber: parseInt(fullUrlMatch[3], 10)
+      prNumber: parseInt(fullUrlMatch[3], 10),
     };
   }
 
@@ -26,7 +26,7 @@ export function parseGitHubPRUrl(url: string): GitHubPRInfo | null {
     return {
       owner: shortMatch[1],
       repo: shortMatch[2],
-      prNumber: parseInt(shortMatch[3], 10)
+      prNumber: parseInt(shortMatch[3], 10),
     };
   }
 
@@ -36,7 +36,7 @@ export function parseGitHubPRUrl(url: string): GitHubPRInfo | null {
     return {
       owner: pathMatch[1],
       repo: pathMatch[2],
-      prNumber: parseInt(pathMatch[3], 10)
+      prNumber: parseInt(pathMatch[3], 10),
     };
   }
 
@@ -75,7 +75,7 @@ export function parsePatch(patch: string | undefined): Hunk[] {
         oldLines,
         newStart,
         newLines,
-        lines: []
+        lines: [],
       };
 
       oldLineNum = oldStart;
@@ -111,7 +111,7 @@ export function parsePatch(patch: string | undefined): Hunk[] {
         type,
         content,
         oldLineNumber: oldLn,
-        newLineNumber: newLn
+        newLineNumber: newLn,
       });
     }
   }

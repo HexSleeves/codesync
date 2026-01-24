@@ -49,7 +49,13 @@ export const Sessions = new Mongo.Collection<Session>('sessions');
 
 // Deny all client-side modifications - use methods only
 Sessions.deny({
-  insert() { return true; },
-  update() { return true; },
-  remove() { return true; }
+  insert() {
+    return true;
+  },
+  update() {
+    return true;
+  },
+  remove() {
+    return true;
+  },
 });

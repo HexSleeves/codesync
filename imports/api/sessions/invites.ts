@@ -14,7 +14,13 @@ export interface SessionInvite {
 export const SessionInvites = new Mongo.Collection<SessionInvite>('session_invites');
 
 SessionInvites.deny({
-  insert() { return true; },
-  update() { return true; },
-  remove() { return true; }
+  insert() {
+    return true;
+  },
+  update() {
+    return true;
+  },
+  remove() {
+    return true;
+  },
 });

@@ -26,7 +26,13 @@ export interface ChatMessage {
 export const ChatMessages = new Mongo.Collection<ChatMessage>('chatMessages');
 
 ChatMessages.deny({
-  insert() { return true; },
-  update() { return true; },
-  remove() { return true; }
+  insert() {
+    return true;
+  },
+  update() {
+    return true;
+  },
+  remove() {
+    return true;
+  },
 });

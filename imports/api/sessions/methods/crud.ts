@@ -37,34 +37,37 @@ Meteor.methods({
         diffMode: 'unified',
         theme: 'dark',
         showWhitespace: false,
-        tabSize: 2
+        tabSize: 2,
       },
       stats: {
         fileCount: 0,
         commentCount: 0,
-        activeUsers: 1
-      }
+        activeUsers: 1,
+      },
     } as Session);
 
     return sessionId;
   },
 
-  async 'sessions.update'(sessionId: string, updates: Partial<Pick<Session, 'title' | 'description' | 'isPublic' | 'settings'>>) {
+  async 'sessions.update'(
+    sessionId: string,
+    updates: Partial<Pick<Session, 'title' | 'description' | 'isPublic' | 'settings'>>
+  ) {
     check(sessionId, String);
 
     if (!this.userId) {
       throw new Meteor.Error('not-authorized');
     }
 
-    if (!await canEditSession(sessionId, this.userId)) {
+    if (!(await canEditSession(sessionId, this.userId))) {
       throw new Meteor.Error('not-authorized');
     }
 
     await Sessions.updateAsync(sessionId, {
       $set: {
         ...updates,
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     });
   },
 
@@ -75,10 +78,10 @@ Meteor.methods({
       throw new Meteor.Error('not-authorized');
     }
 
-    if (!await canEditSession(sessionId, this.userId)) {
+    if (!(await canEditSession(sessionId, this.userId))) {
       throw new Meteor.Error('not-authorized');
     }
 
     await Sessions.removeAsync(sessionId);
-  }
+  },
 });

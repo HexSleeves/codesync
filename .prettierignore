@@ -1,0 +1,8 @@
+node_modules
+.meteor
+_build
+dist
+*.min.js
+packages
+bun.lock
+package-lock.json

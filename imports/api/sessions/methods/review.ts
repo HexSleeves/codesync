@@ -27,8 +27,8 @@ Meteor.methods({
       {
         $set: {
           'reviewers.$.status': status,
-          'reviewers.$.reviewedAt': new Date()
-        }
+          'reviewers.$.reviewedAt': new Date(),
+        },
       }
     );
 
@@ -38,7 +38,7 @@ Meteor.methods({
       if (allReviewed) {
         const allApproved = updatedSession.reviewers.every(r => r.status === 'approved');
         await Sessions.updateAsync(sessionId, {
-          $set: { status: allApproved ? 'approved' : 'changes_requested' }
+          $set: { status: allApproved ? 'approved' : 'changes_requested' },
         });
       }
     }
@@ -51,7 +51,7 @@ Meteor.methods({
       throw new Meteor.Error('not-authorized');
     }
 
-    if (!await canEditSession(sessionId, this.userId)) {
+    if (!(await canEditSession(sessionId, this.userId))) {
       throw new Meteor.Error('not-authorized');
     }
 
@@ -67,8 +67,8 @@ Meteor.methods({
     await Sessions.updateAsync(sessionId, {
       $set: {
         status: 'in_review',
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     });
   },
 
@@ -80,7 +80,7 @@ Meteor.methods({
       throw new Meteor.Error('not-authorized');
     }
 
-    if (!await canEditSession(sessionId, this.userId)) {
+    if (!(await canEditSession(sessionId, this.userId))) {
       throw new Meteor.Error('not-authorized');
     }
 
@@ -100,9 +100,9 @@ Meteor.methods({
         reviewers: {
           userId: user._id,
           status: 'pending',
-          reviewedAt: undefined
-        }
-      }
+          reviewedAt: undefined,
+        },
+      },
     });
   },
 
@@ -114,12 +114,12 @@ Meteor.methods({
       throw new Meteor.Error('not-authorized');
     }
 
-    if (!await canEditSession(sessionId, this.userId)) {
+    if (!(await canEditSession(sessionId, this.userId))) {
       throw new Meteor.Error('not-authorized');
     }
 
     await Sessions.updateAsync(sessionId, {
-      $pull: { reviewers: { userId } }
+      $pull: { reviewers: { userId } },
     });
   },
 
@@ -130,7 +130,7 @@ Meteor.methods({
       throw new Meteor.Error('not-authorized');
     }
 
-    if (!await canEditSession(sessionId, this.userId)) {
+    if (!(await canEditSession(sessionId, this.userId))) {
       throw new Meteor.Error('not-authorized');
     }
 
@@ -146,8 +146,8 @@ Meteor.methods({
     await Sessions.updateAsync(sessionId, {
       $set: {
         status: 'merged',
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     });
   },
 
@@ -158,7 +158,7 @@ Meteor.methods({
       throw new Meteor.Error('not-authorized');
     }
 
-    if (!await canEditSession(sessionId, this.userId)) {
+    if (!(await canEditSession(sessionId, this.userId))) {
       throw new Meteor.Error('not-authorized');
     }
 
@@ -175,15 +175,15 @@ Meteor.methods({
     const resetReviewers = session.reviewers.map(r => ({
       ...r,
       status: 'pending' as const,
-      reviewedAt: undefined
+      reviewedAt: undefined,
     }));
 
     await Sessions.updateAsync(sessionId, {
       $set: {
         status: 'in_review',
         reviewers: resetReviewers,
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     });
-  }
+  },
 });

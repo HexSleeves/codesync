@@ -1,14 +1,14 @@
-import { Meteor } from "meteor/meteor";
-import { check } from "meteor/check";
-import { ChatMessages, ChatMessage, CodeSnippet } from "./chat";
-import { Sessions } from "../sessions/collection";
-import { canAccessSession } from "../sessions/methods";
-import { nanoid } from "nanoid";
+import { Meteor } from 'meteor/meteor';
+import { check } from 'meteor/check';
+import { ChatMessages, ChatMessage, CodeSnippet } from './chat';
+import { Sessions } from '../sessions/collection';
+import { canAccessSession } from '../sessions/methods';
+import { nanoid } from 'nanoid';
 
 function extractMentions(text: string): string[] {
   const regex = /@(\w+)/g;
   const matches = text.match(regex);
-  return matches ? matches.map((m) => m.substring(1)) : [];
+  return matches ? matches.map(m => m.substring(1)) : [];
 }
 
 interface UserServices {
@@ -24,21 +24,17 @@ interface UserProfile {
 }
 
 Meteor.methods({
-  async "chat.send"(data: {
-    sessionId: string;
-    message: string;
-    code?: CodeSnippet;
-  }) {
+  async 'chat.send'(data: { sessionId: string; message: string; code?: CodeSnippet }) {
     check(data.sessionId, String);
     check(data.message, String);
 
     if (!this.userId) {
-      throw new Meteor.Error("not-authorized");
+      throw new Meteor.Error('not-authorized');
     }
 
     const hasAccess = await canAccessSession(data.sessionId, this.userId);
     if (!hasAccess) {
-      throw new Meteor.Error("not-authorized");
+      throw new Meteor.Error('not-authorized');
     }
 
     const user = await Meteor.users.findOneAsync(this.userId);
@@ -51,14 +47,10 @@ Meteor.methods({
       _id: nanoid(),
       sessionId: data.sessionId,
       userId: this.userId,
-      userName:
-        profile?.name ||
-        githubUsername ||
-        user?.emails?.[0]?.address ||
-        "Anonymous",
+      userName: profile?.name || githubUsername || user?.emails?.[0]?.address || 'Anonymous',
       userAvatar: profile?.avatar || githubAvatar,
       message: data.message,
-      type: data.code ? "code_snippet" : "text",
+      type: data.code ? 'code_snippet' : 'text',
       code: data.code,
       mentions: extractMentions(data.message),
       reactions: [],
@@ -68,21 +60,21 @@ Meteor.methods({
     return messageId;
   },
 
-  async "chat.edit"(messageId: string, message: string) {
+  async 'chat.edit'(messageId: string, message: string) {
     check(messageId, String);
     check(message, String);
 
     if (!this.userId) {
-      throw new Meteor.Error("not-authorized");
+      throw new Meteor.Error('not-authorized');
     }
 
     const chatMessage = await ChatMessages.findOneAsync(messageId);
     if (!chatMessage) {
-      throw new Meteor.Error("message-not-found");
+      throw new Meteor.Error('message-not-found');
     }
 
     if (chatMessage.userId !== this.userId) {
-      throw new Meteor.Error("not-authorized");
+      throw new Meteor.Error('not-authorized');
     }
 
     await ChatMessages.updateAsync(messageId, {
@@ -94,22 +86,22 @@ Meteor.methods({
     });
   },
 
-  async "chat.delete"(messageId: string) {
+  async 'chat.delete'(messageId: string) {
     check(messageId, String);
 
     if (!this.userId) {
-      throw new Meteor.Error("not-authorized");
+      throw new Meteor.Error('not-authorized');
     }
 
     const chatMessage = await ChatMessages.findOneAsync(messageId);
     if (!chatMessage) {
-      throw new Meteor.Error("message-not-found");
+      throw new Meteor.Error('message-not-found');
     }
 
     if (chatMessage.userId !== this.userId) {
       const session = await Sessions.findOneAsync(chatMessage.sessionId);
       if (session?.createdBy !== this.userId) {
-        throw new Meteor.Error("not-authorized");
+        throw new Meteor.Error('not-authorized');
       }
     }
 
@@ -118,45 +110,43 @@ Meteor.methods({
     });
   },
 
-  async "chat.addReaction"(messageId: string, emoji: string) {
+  async 'chat.addReaction'(messageId: string, emoji: string) {
     check(messageId, String);
     check(emoji, String);
 
     if (!this.userId) {
-      throw new Meteor.Error("not-authorized");
+      throw new Meteor.Error('not-authorized');
     }
 
     const chatMessage = await ChatMessages.findOneAsync(messageId);
     if (!chatMessage) {
-      throw new Meteor.Error("message-not-found");
+      throw new Meteor.Error('message-not-found');
     }
 
-    const existingReaction = chatMessage.reactions.find(
-      (r) => r.emoji === emoji,
-    );
+    const existingReaction = chatMessage.reactions.find(r => r.emoji === emoji);
 
     if (existingReaction) {
       if (existingReaction.users.includes(this.userId)) {
         // Remove user from reaction
         await ChatMessages.updateAsync(
-          { _id: messageId, "reactions.emoji": emoji },
-          { $pull: { "reactions.$.users": this.userId } },
+          { _id: messageId, 'reactions.emoji': emoji },
+          { $pull: { 'reactions.$.users': this.userId } }
         );
 
         // Remove empty reactions
         await ChatMessages.updateAsync(
           {
             _id: messageId,
-            "reactions.emoji": emoji,
-            "reactions.users": { $size: 0 },
+            'reactions.emoji': emoji,
+            'reactions.users': { $size: 0 },
           },
-          { $pull: { reactions: { emoji } } },
+          { $pull: { reactions: { emoji } } }
         );
       } else {
         // Add user to existing reaction
         await ChatMessages.updateAsync(
-          { _id: messageId, "reactions.emoji": emoji },
-          { $push: { "reactions.$.users": this.userId } },
+          { _id: messageId, 'reactions.emoji': emoji },
+          { $push: { 'reactions.$.users': this.userId } }
         );
       }
     } else {
@@ -172,7 +162,7 @@ Meteor.methods({
     }
   },
 
-  async "chat.sendSystemMessage"(sessionId: string, message: string) {
+  async 'chat.sendSystemMessage'(sessionId: string, message: string) {
     check(sessionId, String);
     check(message, String);
 
@@ -181,10 +171,10 @@ Meteor.methods({
       await ChatMessages.insertAsync({
         _id: nanoid(),
         sessionId,
-        userId: "system",
-        userName: "System",
+        userId: 'system',
+        userName: 'System',
         message,
-        type: "system",
+        type: 'system',
         mentions: [],
         reactions: [],
         createdAt: new Date(),

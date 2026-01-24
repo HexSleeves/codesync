@@ -7,12 +7,12 @@ export function useFiles(sessionId: string | undefined) {
     if (!sessionId) {
       return { files: [], isLoading: false };
     }
-    
+
     const handle = Meteor.subscribe('session.files', sessionId);
-    
+
     return {
-      files: Files.find({ sessionId }, { sort: { path: 1 }}).fetch(),
-      isLoading: !handle.ready()
+      files: Files.find({ sessionId }, { sort: { path: 1 } }).fetch(),
+      isLoading: !handle.ready(),
     };
   }, [sessionId]);
 }
@@ -22,12 +22,12 @@ export function useFile(fileId: string | null) {
     if (!fileId) {
       return { file: null, isLoading: false };
     }
-    
+
     const handle = Meteor.subscribe('file', fileId);
-    
+
     return {
       file: Files.findOne(fileId) || null,
-      isLoading: !handle.ready()
+      isLoading: !handle.ready(),
     };
   }, [fileId]);
 }

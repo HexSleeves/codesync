@@ -13,10 +13,13 @@ import { InvitePage } from './pages/Invite';
 
 // Protected route wrapper
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, isLoading } = useTracker(() => ({
-    user: Meteor.user(),
-    isLoading: Meteor.loggingIn()
-  }), []);
+  const { user, isLoading } = useTracker(
+    () => ({
+      user: Meteor.user(),
+      isLoading: Meteor.loggingIn(),
+    }),
+    []
+  );
 
   if (isLoading) {
     return <PageLoader />;
