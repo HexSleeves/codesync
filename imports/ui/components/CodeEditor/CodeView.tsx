@@ -75,7 +75,7 @@ export const CodeView: React.FC<CodeViewProps> = ({
 
     const rect = containerRef.current.getBoundingClientRect();
     const y = e.clientY - rect.top + containerRef.current.scrollTop;
-    const lineHeight = 24; // Approximate line height
+    const lineHeight = 20; // Approximate line height
     const line = Math.floor(y / lineHeight) + 1;
 
     // Approximate column based on monospace font
@@ -93,9 +93,9 @@ export const CodeView: React.FC<CodeViewProps> = ({
       onMouseMove={handleMouseMove}
     >
       {/* Cursor overlay */}
-      <CursorOverlay cursors={cursors} lineHeight={24} charWidth={8} />
+      <CursorOverlay cursors={cursors} lineHeight={20} charWidth={8} />
 
-      <div ref={codeRef} className="font-mono text-[13px] leading-5">
+      <div ref={codeRef} className="font-mono text-[13px] leading-tight">
         {lines.map((line, index) => {
           const lineNumber = index + 1;
           const lineComments = comments.get(lineNumber);
@@ -105,7 +105,7 @@ export const CodeView: React.FC<CodeViewProps> = ({
           return (
             <div
               key={index}
-              className="flex group hover:bg-gray-800/50"
+              className="flex group hover:bg-gray-800/50 h-[20px] leading-[20px]"
             >
               {/* Line number */}
               <div
@@ -128,11 +128,9 @@ export const CodeView: React.FC<CodeViewProps> = ({
               </div>
 
               {/* Code line */}
-              <pre className="flex-1 m-0 p-0 bg-transparent overflow-x-auto">
-                <code className={`language-${prismLanguage}`}>
-                  {line || ' '}
-                </code>
-              </pre>
+              <code className={`language-${prismLanguage} flex-1 whitespace-pre overflow-x-auto`}>
+                {line || ' '}
+              </code>
 
               {/* Add comment button (shown on hover) */}
               <button
