@@ -29,7 +29,7 @@ import '../../api/chat/methods';
 import '../../api/chat/publications';
 
 // GitHub integration
-import '../api/github';
+import '../../api/github';
 
 // Configure accounts
 Accounts.config({
