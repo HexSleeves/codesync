@@ -2,18 +2,57 @@
  * Dashboard page - list and create sessions
  */
 
-import { useState } from 'hono/jsx';
+import { useState, useEffect } from 'hono/jsx';
 import { navigate, Link } from '../router';
 import { useAuth } from '../hooks/useAuth';
 import { useSessions } from '../hooks/useSession';
+import { useGitHub } from '../hooks/useGitHub';
 import { apiClient } from '../api/client';
 import type { Session } from '@codesync/shared';
 
 export function DashboardPage() {
   const { user, logout } = useAuth();
   const { sessions, loading, createSession, deleteSession, refetch } = useSessions();
+  const { connected: githubConnected, username: githubUsername, connect: connectGitHub, disconnect: disconnectGitHub, refresh: refreshGitHub } = useGitHub();
   const [showNewForm, setShowNewForm] = useState(false);
   const [showImportForm, setShowImportForm] = useState(false);
+  const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  // Handle OAuth callback query params
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const githubConnectedParam = params.get('github_connected');
+    const githubError = params.get('github_error');
+
+    if (githubConnectedParam === 'true') {
+      setNotification({ type: 'success', message: 'GitHub account connected successfully!' });
+      refreshGitHub();
+      // Clean URL
+      window.history.replaceState({}, '', '/dashboard');
+    } else if (githubError) {
+      const errorMessages: Record<string, string> = {
+        missing_params: 'OAuth callback missing parameters',
+        invalid_state: 'Invalid OAuth state - please try again',
+        session_expired: 'Session expired - please login and try again',
+        token_error: 'Failed to get access token from GitHub',
+        server_error: 'Server error during GitHub connection',
+      };
+      setNotification({
+        type: 'error',
+        message: errorMessages[githubError] || `GitHub error: ${githubError}`,
+      });
+      // Clean URL
+      window.history.replaceState({}, '', '/dashboard');
+    }
+  }, [refreshGitHub]);
+
+  // Auto-dismiss notifications
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => setNotification(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
 
   const handleLogout = async () => {
     await logout();
@@ -29,6 +68,31 @@ export function DashboardPage() {
             CodeSync
           </Link>
           <div className="flex items-center gap-4">
+            {githubConnected ? (
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                </svg>
+                <span className="text-green-400 text-sm">@{githubUsername}</span>
+                <button
+                  onClick={disconnectGitHub}
+                  className="text-gray-500 hover:text-red-400 text-xs"
+                  title="Disconnect GitHub"
+                >
+                  ✕
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={connectGitHub}
+                className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg text-sm transition-colors"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                </svg>
+                Connect GitHub
+              </button>
+            )}
             <span className="text-gray-400">{user?.email}</span>
             <button
               onClick={handleLogout}
@@ -41,6 +105,24 @@ export function DashboardPage() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-8">
+        {/* Notification banner */}
+        {notification && (
+          <div
+            className={`mb-6 p-4 rounded-lg flex items-center justify-between ${
+              notification.type === 'success'
+                ? 'bg-green-900/30 border border-green-800 text-green-400'
+                : 'bg-red-900/30 border border-red-800 text-red-400'
+            }`}
+          >
+            <span>{notification.message}</span>
+            <button
+              onClick={() => setNotification(null)}
+              className="text-current opacity-70 hover:opacity-100"
+            >
+              ✕
+            </button>
+          </div>
+        )}
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-2xl font-bold text-white">Your Sessions</h1>
           <div className="flex gap-3">
@@ -81,6 +163,8 @@ export function DashboardPage() {
               await refetch();
               navigate(`/session/${sessionId}`);
             }}
+            githubConnected={githubConnected}
+            onConnectGitHub={connectGitHub}
           />
         )}
 
@@ -273,9 +357,13 @@ interface PRValidation {
 function ImportPRForm({
   onClose,
   onImport,
+  githubConnected,
+  onConnectGitHub,
 }: {
   onClose: () => void;
   onImport: (sessionId: string) => Promise<void>;
+  githubConnected: boolean;
+  onConnectGitHub: () => void;
 }) {
   const [prUrl, setPrUrl] = useState('');
   const [loading, setLoading] = useState(false);
@@ -397,6 +485,17 @@ function ImportPRForm({
                   <p className="text-xs mt-2 text-gray-500">
                     PR: {validation.prInfo?.owner}/{validation.prInfo?.repo}#{validation.prInfo?.prNumber}
                   </p>
+                  {!githubConnected && (
+                    <button
+                      onClick={onConnectGitHub}
+                      className="mt-3 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg text-sm flex items-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                      </svg>
+                      Connect GitHub Account
+                    </button>
+                  )}
                 </div>
               ) : validation.prData ? (
                 <div>

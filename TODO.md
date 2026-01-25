@@ -85,10 +85,16 @@ codesync/
 
 ### Backend
 
-1. **GitHub Integration** (HIGH PRIORITY) - ✅ PARTIAL
+1. **GitHub Integration** (HIGH PRIORITY) - ✅ COMPLETE
    - [x] `/api/github/import` - Import PR files
    - [x] `/api/github/validate` - Validate PR URL
-   - [ ] GitHub OAuth flow (needed for actual imports)
+   - [x] GitHub OAuth flow (`/api/github/authorize`, `/api/github/callback`)
+   - [x] GitHub status endpoint (`/api/github/status`)
+   - [x] GitHub disconnect endpoint (`/api/github/disconnect`)
+   - [x] Frontend: Connect GitHub button in header
+   - [x] Frontend: Connect button in import modal
+   - [x] OAuth callback handling with notifications
+   - **Setup**: Set GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET in .env (see .env.example)
    - Reference: `imports/api/github/methods.ts`
 
 2. **WebSocket Real-time** (MEDIUM PRIORITY)

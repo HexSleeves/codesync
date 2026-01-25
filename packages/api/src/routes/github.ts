@@ -1,18 +1,26 @@
 /**
  * GitHub API routes
- * Handles GitHub PR import and validation
+ * Handles GitHub OAuth, PR import and validation
  */
 
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
+import { setCookie, getCookie } from 'hono/cookie';
 import { Octokit } from '@octokit/rest';
 import { nanoid } from 'nanoid';
 import { eq } from 'drizzle-orm';
+import { z } from 'zod';
 import { importPRSchema, validatePRUrlSchema, type DiffHunk, type DiffLine } from '@codesync/shared';
-import { authMiddleware } from '../middleware/auth';
+import { authMiddleware, generateToken, type AuthVariables } from '../middleware/auth';
 import { db } from '../db/client';
 import { users, sessions, files, sessionParticipants } from '../db/schema';
 import { parseGitHubPRUrl, parsePatch, type GitHubPRInfo } from '../utils/github-parser';
+
+// GitHub OAuth configuration
+const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID || '';
+const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET || '';
+const GITHUB_REDIRECT_URI = process.env.GITHUB_REDIRECT_URI || 'http://localhost:8001/api/github/callback';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
 // Language detection map
 const languageMap: Record<string, string> = {
@@ -266,14 +274,183 @@ async function processPRFile(
 /**
  * GitHub routes
  */
-export const githubRoutes = new Hono()
-  .use('*', authMiddleware)
+export const githubRoutes = new Hono<{ Variables: AuthVariables }>()
+  /**
+   * GET /api/github/authorize
+   * Redirect to GitHub OAuth authorization page
+   */
+  .get('/authorize', authMiddleware, async (c) => {
+    if (!GITHUB_CLIENT_ID) {
+      return c.json({ error: 'GitHub OAuth not configured' }, 500);
+    }
+
+    const userId = c.get('userId');
+    
+    // Generate state parameter for CSRF protection
+    const state = nanoid(32);
+    
+    // Store state in cookie for verification
+    setCookie(c, 'github_oauth_state', state, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Lax',
+      maxAge: 60 * 10, // 10 minutes
+      path: '/',
+    });
+
+    // Store user ID to link after callback
+    setCookie(c, 'github_oauth_user', userId, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Lax',
+      maxAge: 60 * 10,
+      path: '/',
+    });
+
+    const params = new URLSearchParams({
+      client_id: GITHUB_CLIENT_ID,
+      redirect_uri: GITHUB_REDIRECT_URI,
+      scope: 'repo read:user user:email',
+      state,
+    });
+
+    const authUrl = `https://github.com/login/oauth/authorize?${params}`;
+    
+    return c.redirect(authUrl);
+  })
+
+  /**
+   * GET /api/github/callback
+   * Handle GitHub OAuth callback
+   */
+  .get('/callback', async (c) => {
+    const code = c.req.query('code');
+    const state = c.req.query('state');
+    const error = c.req.query('error');
+    const errorDescription = c.req.query('error_description');
+
+    // Check for OAuth errors
+    if (error) {
+      console.error('GitHub OAuth error:', error, errorDescription);
+      return c.redirect(`${FRONTEND_URL}/dashboard?github_error=${encodeURIComponent(errorDescription || error)}`);
+    }
+
+    if (!code || !state) {
+      return c.redirect(`${FRONTEND_URL}/dashboard?github_error=missing_params`);
+    }
+
+    // Verify state
+    const storedState = getCookie(c, 'github_oauth_state');
+    const userId = getCookie(c, 'github_oauth_user');
+
+    if (!storedState || state !== storedState) {
+      return c.redirect(`${FRONTEND_URL}/dashboard?github_error=invalid_state`);
+    }
+
+    if (!userId) {
+      return c.redirect(`${FRONTEND_URL}/dashboard?github_error=session_expired`);
+    }
+
+    try {
+      // Exchange code for access token
+      const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          client_id: GITHUB_CLIENT_ID,
+          client_secret: GITHUB_CLIENT_SECRET,
+          code,
+          redirect_uri: GITHUB_REDIRECT_URI,
+        }),
+      });
+
+      const tokenData = await tokenResponse.json() as {
+        access_token?: string;
+        error?: string;
+        error_description?: string;
+      };
+
+      if (tokenData.error || !tokenData.access_token) {
+        console.error('GitHub token exchange error:', tokenData.error);
+        return c.redirect(`${FRONTEND_URL}/dashboard?github_error=${encodeURIComponent(tokenData.error_description || tokenData.error || 'token_error')}`);
+      }
+
+      const accessToken = tokenData.access_token;
+
+      // Get GitHub user info
+      const octokit = new Octokit({ auth: accessToken });
+      const { data: githubUser } = await octokit.users.getAuthenticated();
+
+      // Update user with GitHub info
+      await db
+        .update(users)
+        .set({
+          githubId: String(githubUser.id),
+          githubUsername: githubUser.login,
+          githubAccessToken: accessToken,
+        })
+        .where(eq(users.id, userId));
+
+      // Clear OAuth cookies
+      setCookie(c, 'github_oauth_state', '', { maxAge: 0, path: '/' });
+      setCookie(c, 'github_oauth_user', '', { maxAge: 0, path: '/' });
+
+      // Redirect to dashboard with success
+      return c.redirect(`${FRONTEND_URL}/dashboard?github_connected=true`);
+    } catch (err) {
+      console.error('GitHub OAuth callback error:', err);
+      return c.redirect(`${FRONTEND_URL}/dashboard?github_error=server_error`);
+    }
+  })
+
+  /**
+   * POST /api/github/disconnect
+   * Disconnect GitHub account
+   */
+  .post('/disconnect', authMiddleware, async (c) => {
+    const userId = c.get('userId');
+
+    await db
+      .update(users)
+      .set({
+        githubId: null,
+        githubUsername: null,
+        githubAccessToken: null,
+      })
+      .where(eq(users.id, userId));
+
+    return c.json({ success: true, message: 'GitHub account disconnected' });
+  })
+
+  /**
+   * GET /api/github/status
+   * Get GitHub connection status
+   */
+  .get('/status', authMiddleware, async (c) => {
+    const userId = c.get('userId');
+
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+      columns: {
+        githubId: true,
+        githubUsername: true,
+      },
+    });
+
+    return c.json({
+      connected: !!user?.githubId,
+      username: user?.githubUsername || null,
+    });
+  })
 
   /**
    * POST /api/github/validate
    * Validate a GitHub PR URL and return PR info
    */
-  .post('/validate', zValidator('json', validatePRUrlSchema), async (c) => {
+  .post('/validate', authMiddleware, zValidator('json', validatePRUrlSchema), async (c) => {
     const { prUrl } = c.req.valid('json');
 
     const prInfo = parseGitHubPRUrl(prUrl);
@@ -350,7 +527,7 @@ export const githubRoutes = new Hono()
    * POST /api/github/import
    * Import a GitHub PR into a new review session
    */
-  .post('/import', zValidator('json', importPRSchema), async (c) => {
+  .post('/import', authMiddleware, zValidator('json', importPRSchema), async (c) => {
     const { prUrl } = c.req.valid('json');
     const userId = c.get('userId');
 
