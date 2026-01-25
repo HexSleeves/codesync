@@ -15,12 +15,12 @@ export function useRouter() {
     const handleNavigation = () => {
       setPath(window.location.pathname);
     };
-    
+
     // Listen for browser back/forward
     window.addEventListener('popstate', handleNavigation);
     // Listen for programmatic navigation
     window.addEventListener(NAVIGATE_EVENT, handleNavigation);
-    
+
     return () => {
       window.removeEventListener('popstate', handleNavigation);
       window.removeEventListener(NAVIGATE_EVENT, handleNavigation);
@@ -30,19 +30,19 @@ export function useRouter() {
   // Parse path params
   useEffect(() => {
     const newParams: Record<string, string> = {};
-    
+
     // Match /session/:id
     const sessionMatch = path.match(/^\/session\/([^/]+)/);
     if (sessionMatch) {
       newParams.sessionId = sessionMatch[1];
     }
-    
+
     // Match /invite/:token
     const inviteMatch = path.match(/^\/invite\/([^/]+)/);
     if (inviteMatch) {
       newParams.token = inviteMatch[1];
     }
-    
+
     setParams(newParams);
   }, [path]);
 
@@ -67,7 +67,7 @@ export function Link({ href, children, className, class: cls }: {
   };
 
   return (
-    <a href={href} onClick={handleClick} class={className || cls || ''}>
+    <a href={href} onClick={handleClick} className={className || cls || ''}>
       {children}
     </a>
   );

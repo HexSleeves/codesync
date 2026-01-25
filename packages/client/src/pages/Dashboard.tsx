@@ -19,18 +19,18 @@ export function DashboardPage() {
   };
 
   return (
-    <div class="min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-gray-900">
       {/* Header */}
-      <header class="border-b border-gray-800">
-        <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" class="text-xl font-bold text-white">
+      <header className="border-b border-gray-800">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+          <Link href="/" className="text-xl font-bold text-white">
             CodeSync
           </Link>
-          <div class="flex items-center gap-4">
-            <span class="text-gray-400">{user?.email}</span>
+          <div className="flex items-center gap-4">
+            <span className="text-gray-400">{user?.email}</span>
             <button
               onClick={handleLogout}
-              class="px-4 py-2 text-gray-300 hover:text-white transition-colors"
+              className="px-4 py-2 text-gray-300 hover:text-white transition-colors"
             >
               Sign Out
             </button>
@@ -38,12 +38,12 @@ export function DashboardPage() {
         </div>
       </header>
 
-      <main class="max-w-6xl mx-auto px-4 py-8">
-        <div class="flex items-center justify-between mb-8">
-          <h1 class="text-2xl font-bold text-white">Your Sessions</h1>
+      <main className="max-w-6xl mx-auto px-4 py-8">
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-2xl font-bold text-white">Your Sessions</h1>
           <button
             onClick={() => setShowNewForm(true)}
-            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
           >
             + New Session
           </button>
@@ -61,21 +61,21 @@ export function DashboardPage() {
         )}
 
         {loading ? (
-          <div class="flex justify-center py-12">
-            <div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          <div className="flex justify-center py-12">
+            <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
           </div>
         ) : sessions.length === 0 ? (
-          <div class="text-center py-12">
-            <p class="text-gray-400 mb-4">No sessions yet</p>
+          <div className="text-center py-12">
+            <p className="text-gray-400 mb-4">No sessions yet</p>
             <button
               onClick={() => setShowNewForm(true)}
-              class="text-blue-400 hover:text-blue-300"
+              className="text-blue-400 hover:text-blue-300"
             >
               Create your first session
             </button>
           </div>
         ) : (
-          <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {sessions.map((session) => (
               <SessionCard
                 key={session.id}
@@ -99,35 +99,35 @@ function SessionCard({ session, onDelete }: { session: Session; onDelete: () => 
   };
 
   return (
-    <div class="bg-gray-800 rounded-lg p-4 hover:bg-gray-750 transition-colors">
-      <div class="flex items-start justify-between mb-2">
+    <div className="bg-gray-800 rounded-lg p-4 hover:bg-gray-750 transition-colors">
+      <div className="flex items-start justify-between mb-2">
         <Link
           href={`/session/${session.id}`}
-          class="text-lg font-medium text-white hover:text-blue-400"
+          className="text-lg font-medium text-white hover:text-blue-400"
         >
           {session.title}
         </Link>
         <span
-          class={`px-2 py-0.5 text-xs font-medium rounded ${statusColors[session.status]} text-white`}
+          className={`px-2 py-0.5 text-xs font-medium rounded ${statusColors[session.status]} text-white`}
         >
           {session.status.replace('_', ' ')}
         </span>
       </div>
-      
+
       {session.description && (
-        <p class="text-gray-400 text-sm mb-3 line-clamp-2">
+        <p className="text-gray-400 text-sm mb-3 line-clamp-2">
           {session.description}
         </p>
       )}
 
-      <div class="flex items-center justify-between text-sm text-gray-500">
+      <div className="flex items-center justify-between text-sm text-gray-500">
         <span>{new Date(session.createdAt).toLocaleDateString()}</span>
         <button
           onClick={(e) => {
             e.preventDefault();
             if (confirm('Delete this session?')) onDelete();
           }}
-          class="text-red-400 hover:text-red-300"
+          className="text-red-400 hover:text-red-300"
         >
           Delete
         </button>
@@ -161,62 +161,62 @@ function NewSessionForm({
   };
 
   return (
-    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md">
-        <h2 class="text-xl font-semibold text-white mb-4">New Session</h2>
-        
-        <form onSubmit={handleSubmit} class="space-y-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md">
+        <h2 className="text-xl font-semibold text-white mb-4">New Session</h2>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
               Title
             </label>
             <input
               type="text"
               value={title}
               onInput={(e) => setTitle((e.target as HTMLInputElement).value)}
-              class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Session title"
               required
             />
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
               Description (optional)
             </label>
             <textarea
               value={description}
               onInput={(e) => setDescription((e.target as HTMLTextAreaElement).value)}
-              class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 h-24 resize-none"
+              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 h-24 resize-none"
               placeholder="What are you reviewing?"
             />
           </div>
 
-          <div class="flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <input
               type="checkbox"
               id="isPublic"
               checked={isPublic}
               onChange={(e) => setIsPublic((e.target as HTMLInputElement).checked)}
-              class="w-4 h-4"
+              className="w-4 h-4"
             />
-            <label for="isPublic" class="text-gray-300 text-sm">
+            <label for="isPublic" className="text-gray-300 text-sm">
               Make this session public
             </label>
           </div>
 
-          <div class="flex gap-3 justify-end">
+          <div className="flex gap-3 justify-end">
             <button
               type="button"
               onClick={onClose}
-              class="px-4 py-2 text-gray-300 hover:text-white transition-colors"
+              className="px-4 py-2 text-gray-300 hover:text-white transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading || !title}
-              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
             >
               {loading ? 'Creating...' : 'Create Session'}
             </button>
