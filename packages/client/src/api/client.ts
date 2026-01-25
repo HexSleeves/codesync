@@ -38,6 +38,9 @@ export async function fetchWithAuth(url: string, options: RequestInit = {}): Pro
   return fetch(url, { ...options, headers, credentials: 'include' });
 }
 
+// API client for raw fetch calls (useful for endpoints not using apiCall)
+export const apiClient = fetchWithAuth;
+
 // Generic API call helper
 export async function apiCall<T>(
   method: 'GET' | 'POST' | 'PATCH' | 'DELETE',

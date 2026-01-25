@@ -2,12 +2,13 @@
  * Session page - the main code review interface
  */
 
-import { useState, useEffect } from 'hono/jsx';
+import { useState, useEffect, useMemo } from 'hono/jsx';
 import { navigate, Link } from '../router';
 import { useAuth } from '../hooks/useAuth';
 import { useSession } from '../hooks/useSession';
 import { useComments } from '../hooks/useComments';
-import type { File } from '@codesync/shared';
+import { DiffViewer } from '../components/Diff';
+import type { File, Comment } from '@codesync/shared';
 
 interface SessionPageProps {
   sessionId: string;
@@ -18,9 +19,20 @@ export function SessionPage({ sessionId }: SessionPageProps) {
   const { session, files, loading, error, markFileReviewed } = useSession(sessionId);
   const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'code' | 'diff'>('diff');
+  const [diffMode, setDiffMode] = useState<'unified' | 'split'>('unified');
+  const [activeCommentLine, setActiveCommentLine] = useState<number | null>(null);
 
   const selectedFile = files.find((f) => f.id === selectedFileId) || null;
   const { comments, commentsByLine, addComment, resolveComment } = useComments(selectedFileId);
+
+  // Convert commentsByLine to Map for DiffViewer
+  const commentsMap = useMemo(() => {
+    const map = new Map<number, Comment[]>();
+    for (const [line, comms] of Object.entries(commentsByLine)) {
+      map.set(parseInt(line, 10), comms as Comment[]);
+    }
+    return map;
+  }, [commentsByLine]);
 
   // Select first file by default
   useEffect(() => {
@@ -137,18 +149,54 @@ export function SessionPage({ sessionId }: SessionPageProps) {
                     <option value="diff">Diff View</option>
                     <option value="code">Code View</option>
                   </select>
+                  {viewMode === 'diff' && (
+                    <select
+                      value={diffMode}
+                      onChange={(e) => setDiffMode((e.target as HTMLSelectElement).value as 'unified' | 'split')}
+                      className="px-3 py-1 bg-gray-700 border border-gray-600 rounded text-sm text-white"
+                    >
+                      <option value="unified">Unified</option>
+                      <option value="split">Split</option>
+                    </select>
+                  )}
                 </div>
               </div>
 
               {/* Code content */}
               <div className="flex-1 overflow-auto">
-                <CodeViewer
-                  file={selectedFile}
-                  viewMode={viewMode}
-                  commentsByLine={commentsByLine}
-                  onAddComment={addComment}
-                  onResolveComment={resolveComment}
-                />
+                {viewMode === 'diff' ? (
+                  <div className="flex flex-col h-full">
+                    <DiffViewer
+                      file={selectedFile}
+                      mode={diffMode}
+                      comments={commentsMap}
+                      onLineClick={(lineNumber, side) => {
+                        setActiveCommentLine(lineNumber);
+                      }}
+                    />
+                    {/* Inline comment form */}
+                    {activeCommentLine !== null && (
+                      <InlineCommentForm
+                        lineNumber={activeCommentLine}
+                        onSubmit={async (text) => {
+                          await addComment(text, activeCommentLine);
+                          setActiveCommentLine(null);
+                        }}
+                        onCancel={() => setActiveCommentLine(null)}
+                        existingComments={(commentsByLine[activeCommentLine] || []) as Comment[]}
+                        onResolveComment={resolveComment}
+                      />
+                    )}
+                  </div>
+                ) : (
+                  <CodeViewer
+                    file={selectedFile}
+                    viewMode={viewMode}
+                    commentsByLine={commentsByLine}
+                    onAddComment={addComment}
+                    onResolveComment={resolveComment}
+                  />
+                )}
               </div>
             </>
           ) : (
@@ -332,6 +380,96 @@ function CodeViewer({
           })}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+function InlineCommentForm({
+  lineNumber,
+  onSubmit,
+  onCancel,
+  existingComments,
+  onResolveComment,
+}: {
+  lineNumber: number;
+  onSubmit: (text: string) => Promise<void>;
+  onCancel: () => void;
+  existingComments: Comment[];
+  onResolveComment: (id: string, resolved: boolean) => Promise<void>;
+}) {
+  const [text, setText] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e: Event) => {
+    e.preventDefault();
+    if (!text.trim()) return;
+    setSubmitting(true);
+    try {
+      await onSubmit(text);
+      setText('');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed bottom-0 left-64 right-0 bg-gray-800 border-t border-gray-700 shadow-lg p-4 z-10">
+      <div className="max-w-3xl mx-auto">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-sm text-gray-400">Comment on line {lineNumber}</span>
+          <button
+            onClick={onCancel}
+            className="text-gray-500 hover:text-white text-sm"
+          >
+            ✕ Close
+          </button>
+        </div>
+
+        {/* Show existing comments */}
+        {existingComments.length > 0 && (
+          <div className="mb-3 space-y-2">
+            {existingComments.map((comment) => (
+              <div
+                key={comment.id}
+                className={`p-2 rounded ${comment.isResolved ? 'bg-gray-700/50' : 'bg-gray-700'}`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-gray-400">
+                    {comment.author?.name || 'Unknown'}
+                  </span>
+                  <button
+                    onClick={() => onResolveComment(comment.id, !comment.isResolved)}
+                    className="text-xs text-blue-400 hover:text-blue-300"
+                  >
+                    {comment.isResolved ? 'Unresolve' : 'Resolve'}
+                  </button>
+                </div>
+                <p className={`text-sm ${comment.isResolved ? 'text-gray-500' : 'text-gray-200'}`}>
+                  {comment.text}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="flex gap-3">
+          <input
+            type="text"
+            value={text}
+            onInput={(e) => setText((e.target as HTMLInputElement).value)}
+            className="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded text-white"
+            placeholder="Add a comment..."
+            autoFocus
+          />
+          <button
+            type="submit"
+            disabled={!text.trim() || submitting}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 text-white rounded"
+          >
+            {submitting ? 'Adding...' : 'Add Comment'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

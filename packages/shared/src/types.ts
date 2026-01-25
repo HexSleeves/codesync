@@ -57,12 +57,19 @@ export interface File {
   createdAt: Date;
 }
 
+export interface DiffLine {
+  type: 'add' | 'remove' | 'context';
+  content: string;
+  oldLineNumber?: number;
+  newLineNumber?: number;
+}
+
 export interface DiffHunk {
   oldStart: number;
   oldLines: number;
   newStart: number;
   newLines: number;
-  content: string;
+  lines: DiffLine[];
 }
 
 export interface Comment {

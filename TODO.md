@@ -19,6 +19,7 @@ cd packages/client && bun run dev
 ```
 
 ### Tech Stack (New)
+
 - **Runtime**: Bun 1.3.6
 - **Backend**: Hono 4.11.5 + Drizzle ORM 0.45.1 + PostgreSQL 16
 - **Frontend**: Hono JSX-DOM + Vite 7.3.1 + Tailwind CSS 3
@@ -26,6 +27,7 @@ cd packages/client && bun run dev
 - **Auth**: JWT tokens stored in localStorage
 
 ### Project Structure
+
 ```
 codesync/
 ├── packages/
@@ -51,6 +53,7 @@ codesync/
 ## ✅ COMPLETED
 
 ### Backend (packages/api)
+
 - [x] Hono server with hot reload
 - [x] PostgreSQL + Drizzle ORM schema (users, sessions, files, comments, chat_messages, session_participants)
 - [x] JWT authentication middleware
@@ -58,6 +61,7 @@ codesync/
 - [x] Zod validation with @hono/zod-validator
 
 ### Frontend (packages/client)
+
 - [x] Hono JSX-DOM setup with Vite
 - [x] Client-side routing (useRouter, navigate, Link)
 - [x] Global auth store (singleton pattern)
@@ -70,6 +74,7 @@ codesync/
 - [x] Mark file as reviewed
 
 ### Auth Flow
+
 - [x] Login → stores JWT in localStorage → redirects to /dashboard
 - [x] Logout → clears token → redirects to /login
 - [x] Auth state shared via singleton store (not per-component)
@@ -79,10 +84,11 @@ codesync/
 ## ❌ NOT MIGRATED
 
 ### Backend
-1. **GitHub Integration** (HIGH PRIORITY)
-   - [ ] `/api/github/import` - Import PR files
-   - [ ] `/api/github/validate` - Validate PR URL
-   - [ ] GitHub OAuth flow
+
+1. **GitHub Integration** (HIGH PRIORITY) - ✅ PARTIAL
+   - [x] `/api/github/import` - Import PR files
+   - [x] `/api/github/validate` - Validate PR URL
+   - [ ] GitHub OAuth flow (needed for actual imports)
    - Reference: `imports/api/github/methods.ts`
 
 2. **WebSocket Real-time** (MEDIUM PRIORITY)
@@ -92,10 +98,11 @@ codesync/
    - Handler exists at `packages/api/src/ws/cursors.ts` but no broadcast logic
 
 ### Frontend
-1. **Diff Viewer** (HIGH PRIORITY)
-   - [ ] Unified diff view
-   - [ ] Split diff view
-   - [ ] Syntax highlighting with Prism.js
+
+1. **Diff Viewer** (HIGH PRIORITY) - ✅ COMPLETE
+   - [x] Unified diff view
+   - [x] Split diff view
+   - [ ] Syntax highlighting with Prism.js (optional enhancement)
    - Reference: `imports/ui/components/Diff/`
 
 2. **Chat Panel** (MEDIUM PRIORITY)
@@ -120,6 +127,7 @@ codesync/
 ## KNOWN ISSUES
 
 1. **Memory**: Heavy processes (SonarLint, tsserver) consume RAM. Kill if needed:
+
    ```bash
    pkill -f "sonarlint" && pkill -f "tsserver"
    ```
@@ -142,6 +150,7 @@ Password: password123
 ## REFERENCE FILES
 
 ### Old Meteor Code (for reference when migrating)
+
 - `imports/api/github/methods.ts` - GitHub PR import logic
 - `imports/api/github/parser.ts` - PR URL parsing
 - `imports/api/github/fetcher.ts` - GitHub API calls
@@ -152,6 +161,7 @@ Password: password123
 - `imports/ui/components/CodeEditor/Cursors.tsx` - Cursor rendering
 
 ### New Hono Code
+
 - `packages/api/src/app.ts` - Main Hono app with routes
 - `packages/api/src/middleware/auth.ts` - JWT auth
 - `packages/api/src/db/schema.ts` - Drizzle schema

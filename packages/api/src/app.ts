@@ -13,6 +13,7 @@ import { sessionRoutes } from './routes/sessions';
 import { fileRoutes } from './routes/files';
 import { commentRoutes } from './routes/comments';
 import { chatRoutes } from './routes/chat';
+import { githubRoutes } from './routes/github';
 import { cursorWS } from './ws/cursors';
 
 const app = new Hono()
@@ -37,6 +38,7 @@ const app = new Hono()
   .route('/api', fileRoutes)
   .route('/api', commentRoutes)
   .route('/api', chatRoutes)
+  .route('/api/github', githubRoutes)
 
   // WebSocket routes
   .route('/', cursorWS)
