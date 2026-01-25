@@ -4,11 +4,42 @@
 
 import type { Session } from '@codesync/shared';
 import { useEffect, useState } from 'hono/jsx';
+import {
+  Alert,
+  AlertDescription,
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Checkbox,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Input,
+  Label,
+  Separator,
+  Spinner,
+  Textarea,
+} from '@/components/ui';
 import { apiClient } from '../api/client';
 import { useAuth } from '../hooks/useAuth';
 import { useGitHub } from '../hooks/useGitHub';
 import { useSessions } from '../hooks/useSession';
 import { Link, navigate } from '../router';
+
+function GitHubIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+      <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+    </svg>
+  );
+}
 
 export function DashboardPage() {
   const { user, logout } = useAuth();
@@ -36,7 +67,6 @@ export function DashboardPage() {
     if (githubConnectedParam === 'true') {
       setNotification({ type: 'success', message: 'GitHub account connected successfully!' });
       refreshGitHub();
-      // Clean URL
       window.history.replaceState({}, '', '/dashboard');
     } else if (githubError) {
       const errorMessages: Record<string, string> = {
@@ -50,7 +80,6 @@ export function DashboardPage() {
         type: 'error',
         message: errorMessages[githubError] || `GitHub error: ${githubError}`,
       });
-      // Clean URL
       window.history.replaceState({}, '', '/dashboard');
     }
   }, [refreshGitHub]);
@@ -69,46 +98,39 @@ export function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-gray-800">
+      <header className="border-b border-border">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold text-white">
+          <Link href="/" className="text-xl font-bold text-foreground">
             CodeSync
           </Link>
           <div className="flex items-center gap-4">
             {githubConnected ? (
               <div className="flex items-center gap-2">
-                <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-                </svg>
+                <GitHubIcon className="w-4 h-4 text-muted-foreground" />
                 <span className="text-green-400 text-sm">@{githubUsername}</span>
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={disconnectGitHub}
-                  className="text-gray-500 hover:text-red-400 text-xs"
+                  className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
                   title="Disconnect GitHub"
                 >
                   ✕
-                </button>
+                </Button>
               </div>
             ) : (
-              <button
-                onClick={connectGitHub}
-                className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg text-sm transition-colors"
-              >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-                </svg>
+              <Button variant="secondary" size="sm" onClick={connectGitHub}>
+                <GitHubIcon className="w-4 h-4 mr-2" />
                 Connect GitHub
-              </button>
+              </Button>
             )}
-            <span className="text-gray-400">{user?.email}</span>
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2 text-gray-300 hover:text-white transition-colors"
-            >
+            <Separator orientation="vertical" className="h-6" />
+            <span className="text-muted-foreground text-sm">{user?.email}</span>
+            <Button variant="ghost" onClick={handleLogout}>
               Sign Out
-            </button>
+            </Button>
           </div>
         </div>
       </header>
@@ -116,81 +138,70 @@ export function DashboardPage() {
       <main className="max-w-6xl mx-auto px-4 py-8">
         {/* Notification banner */}
         {notification && (
-          <div
-            className={`mb-6 p-4 rounded-lg flex items-center justify-between ${
-              notification.type === 'success'
-                ? 'bg-green-900/30 border border-green-800 text-green-400'
-                : 'bg-red-900/30 border border-red-800 text-red-400'
-            }`}
+          <Alert
+            variant={notification.type === 'error' ? 'destructive' : 'default'}
+            className="mb-6"
           >
-            <span>{notification.message}</span>
-            <button
-              onClick={() => setNotification(null)}
-              className="text-current opacity-70 hover:opacity-100"
-            >
-              ✕
-            </button>
-          </div>
+            <AlertDescription className="flex items-center justify-between">
+              <span>{notification.message}</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0"
+                onClick={() => setNotification(null)}
+              >
+                ✕
+              </Button>
+            </AlertDescription>
+          </Alert>
         )}
+
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold text-white">Your Sessions</h1>
+          <h1 className="text-2xl font-bold text-foreground">Your Sessions</h1>
           <div className="flex gap-3">
-            <button
-              onClick={() => setShowImportForm(true)}
-              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-lg transition-colors flex items-center gap-2"
-            >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-              </svg>
+            <Button variant="secondary" onClick={() => setShowImportForm(true)}>
+              <GitHubIcon className="w-5 h-5 mr-2" />
               Import from GitHub
-            </button>
-            <button
-              onClick={() => setShowNewForm(true)}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
-            >
-              + New Session
-            </button>
+            </Button>
+            <Button onClick={() => setShowNewForm(true)}>+ New Session</Button>
           </div>
         </div>
 
-        {showNewForm && (
-          <NewSessionForm
-            onClose={() => setShowNewForm(false)}
-            onCreate={async (data) => {
-              const session = await createSession(data);
-              setShowNewForm(false);
-              navigate(`/session/${session.id}`);
-            }}
-          />
-        )}
+        <NewSessionDialog
+          open={showNewForm}
+          onOpenChange={setShowNewForm}
+          onCreate={async (data) => {
+            const session = await createSession(data);
+            setShowNewForm(false);
+            navigate(`/session/${session.id}`);
+          }}
+        />
 
-        {showImportForm && (
-          <ImportPRForm
-            onClose={() => setShowImportForm(false)}
-            onImport={async (sessionId) => {
-              setShowImportForm(false);
-              await refetch();
-              navigate(`/session/${sessionId}`);
-            }}
-            githubConnected={githubConnected}
-            onConnectGitHub={connectGitHub}
-          />
-        )}
+        <ImportPRDialog
+          open={showImportForm}
+          onOpenChange={setShowImportForm}
+          onImport={async (sessionId) => {
+            setShowImportForm(false);
+            await refetch();
+            navigate(`/session/${sessionId}`);
+          }}
+          githubConnected={githubConnected}
+          onConnectGitHub={connectGitHub}
+        />
 
         {loading ? (
           <div className="flex justify-center py-12">
-            <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            <Spinner />
           </div>
         ) : sessions.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-400 mb-4">No sessions yet</p>
-            <button
-              onClick={() => setShowNewForm(true)}
-              className="text-blue-400 hover:text-blue-300"
-            >
-              Create your first session
-            </button>
-          </div>
+          <Card className="text-center py-12">
+            <CardContent>
+              <p className="text-muted-foreground mb-4">No sessions yet</p>
+              <Button variant="link" onClick={() => setShowNewForm(true)}>
+                Create your first session
+              </Button>
+            </CardContent>
+          </Card>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {sessions.map((session) => (
@@ -208,54 +219,58 @@ export function DashboardPage() {
 }
 
 function SessionCard({ session, onDelete }: { session: Session; onDelete: () => void }) {
-  const statusColors = {
-    draft: 'bg-gray-600',
-    in_review: 'bg-yellow-600',
-    approved: 'bg-green-600',
-    merged: 'bg-purple-600',
+  const statusVariants: Record<string, 'secondary' | 'warning' | 'success' | 'default'> = {
+    draft: 'secondary',
+    in_review: 'warning',
+    approved: 'success',
+    merged: 'default',
   };
 
   return (
-    <div className="bg-gray-800 rounded-lg p-4 hover:bg-gray-750 transition-colors">
-      <div className="flex items-start justify-between mb-2">
-        <Link
-          href={`/session/${session.id}`}
-          className="text-lg font-medium text-white hover:text-blue-400"
-        >
-          {session.title}
-        </Link>
-        <span
-          className={`px-2 py-0.5 text-xs font-medium rounded ${statusColors[session.status]} text-white`}
-        >
-          {session.status.replace('_', ' ')}
-        </span>
-      </div>
-
-      {session.description && (
-        <p className="text-gray-400 text-sm mb-3 line-clamp-2">{session.description}</p>
-      )}
-
-      <div className="flex items-center justify-between text-sm text-gray-500">
-        <span>{new Date(session.createdAt).toLocaleDateString()}</span>
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            if (confirm('Delete this session?')) onDelete();
-          }}
-          className="text-red-400 hover:text-red-300"
-        >
-          Delete
-        </button>
-      </div>
-    </div>
+    <Card className="hover:bg-accent/50 transition-colors">
+      <CardHeader className="pb-2">
+        <div className="flex items-start justify-between">
+          <Link
+            href={`/session/${session.id}`}
+            className="text-lg font-medium text-foreground hover:text-primary"
+          >
+            {session.title}
+          </Link>
+          <Badge variant={statusVariants[session.status] || 'secondary'}>
+            {session.status.replace('_', ' ')}
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {session.description && (
+          <CardDescription className="line-clamp-2 mb-3">{session.description}</CardDescription>
+        )}
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <span>{new Date(session.createdAt).toLocaleDateString()}</span>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-destructive hover:text-destructive"
+            onClick={(e) => {
+              e.preventDefault();
+              if (confirm('Delete this session?')) onDelete();
+            }}
+          >
+            Delete
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
-function NewSessionForm({
-  onClose,
+function NewSessionDialog({
+  open,
+  onOpenChange,
   onCreate,
 }: {
-  onClose: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   onCreate: (data: { title: string; description?: string; isPublic?: boolean }) => Promise<void>;
 }) {
   const [title, setTitle] = useState('');
@@ -268,6 +283,9 @@ function NewSessionForm({
     setLoading(true);
     try {
       await onCreate({ title, description: description || undefined, isPublic });
+      setTitle('');
+      setDescription('');
+      setIsPublic(false);
     } catch (err) {
       console.error(err);
     } finally {
@@ -276,67 +294,58 @@ function NewSessionForm({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md">
-        <h2 className="text-xl font-semibold text-white mb-4">New Session</h2>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>New Session</DialogTitle>
+          <DialogDescription>Create a new code review session</DialogDescription>
+        </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Title</label>
-            <input
-              type="text"
+          <div className="space-y-2">
+            <Label htmlFor="title">Title</Label>
+            <Input
+              id="title"
               value={title}
               onInput={(e) => setTitle((e.target as HTMLInputElement).value)}
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Session title"
               required
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
-              Description (optional)
-            </label>
-            <textarea
+          <div className="space-y-2">
+            <Label htmlFor="description">Description (optional)</Label>
+            <Textarea
+              id="description"
               value={description}
               onInput={(e) => setDescription((e.target as HTMLTextAreaElement).value)}
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 h-24 resize-none"
               placeholder="What are you reviewing?"
+              rows={3}
             />
           </div>
 
           <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
+            <Checkbox
               id="isPublic"
               checked={isPublic}
               onChange={(e) => setIsPublic((e.target as HTMLInputElement).checked)}
-              className="w-4 h-4"
             />
-            <label for="isPublic" className="text-gray-300 text-sm">
+            <Label htmlFor="isPublic" className="text-sm font-normal">
               Make this session public
-            </label>
+            </Label>
           </div>
 
-          <div className="flex gap-3 justify-end">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-gray-300 hover:text-white transition-colors"
-            >
+          <DialogFooter className="gap-2">
+            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
               Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading || !title}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
-            >
+            </Button>
+            <Button type="submit" disabled={loading || !title}>
               {loading ? 'Creating...' : 'Create Session'}
-            </button>
-          </div>
+            </Button>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -359,13 +368,15 @@ interface PRValidation {
   message?: string;
 }
 
-function ImportPRForm({
-  onClose,
+function ImportPRDialog({
+  open,
+  onOpenChange,
   onImport,
   githubConnected,
   onConnectGitHub,
 }: {
-  onClose: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   onImport: (sessionId: string) => Promise<void>;
   githubConnected: boolean;
   onConnectGitHub: () => void;
@@ -433,127 +444,127 @@ function ImportPRForm({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-gray-800 rounded-lg p-6 w-full max-w-lg">
-        <div className="flex items-center gap-3 mb-4">
-          <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-          </svg>
-          <h2 className="text-xl font-semibold text-white">Import from GitHub</h2>
-        </div>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <div className="flex items-center gap-3">
+            <GitHubIcon className="w-6 h-6" />
+            <DialogTitle>Import from GitHub</DialogTitle>
+          </div>
+          <DialogDescription>Import a pull request to review</DialogDescription>
+        </DialogHeader>
 
         <form onSubmit={handleImport} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Pull Request URL</label>
+          <div className="space-y-2">
+            <Label htmlFor="prUrl">Pull Request URL</Label>
             <div className="flex gap-2">
-              <input
+              <Input
+                id="prUrl"
                 type="url"
                 value={prUrl}
                 onInput={(e) => {
                   setPrUrl((e.target as HTMLInputElement).value);
                   setValidation(null);
                 }}
-                className="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="https://github.com/owner/repo/pull/123"
                 required
+                className="flex-1"
               />
-              <button
+              <Button
                 type="button"
+                variant="secondary"
                 onClick={handleValidate}
                 disabled={!prUrl.trim() || validating}
-                className="px-4 py-2 bg-gray-600 hover:bg-gray-500 disabled:bg-gray-700 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
               >
                 {validating ? 'Checking...' : 'Validate'}
-              </button>
+              </Button>
             </div>
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               Supports formats: https://github.com/owner/repo/pull/123 or owner/repo#123
             </p>
           </div>
 
           {error && (
-            <div className="p-3 bg-red-900/30 border border-red-800 rounded-lg text-red-400 text-sm">
-              {error}
-            </div>
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
           )}
 
           {validation && (
-            <div className="p-4 bg-gray-700/50 rounded-lg">
-              {validation.needsAuth ? (
-                <div className="text-yellow-400">
-                  <p className="font-medium">GitHub Authentication Required</p>
-                  <p className="text-sm mt-1 text-gray-400">
-                    {validation.message || 'Connect your GitHub account to import pull requests.'}
-                  </p>
-                  <p className="text-xs mt-2 text-gray-500">
-                    PR: {validation.prInfo?.owner}/{validation.prInfo?.repo}#
-                    {validation.prInfo?.prNumber}
-                  </p>
-                  {!githubConnected && (
-                    <button
-                      onClick={onConnectGitHub}
-                      className="mt-3 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg text-sm flex items-center gap-2"
-                    >
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-                      </svg>
-                      Connect GitHub Account
-                    </button>
-                  )}
-                </div>
-              ) : validation.prData ? (
-                <div>
-                  <p className="font-medium text-white">{validation.prData.title}</p>
-                  <div className="mt-2 space-y-1 text-sm text-gray-400">
-                    <p>
-                      <span className="text-gray-500">Author:</span> {validation.prData.author}
+            <Card>
+              <CardContent className="pt-4">
+                {validation.needsAuth ? (
+                  <div>
+                    <p className="font-medium text-yellow-400">GitHub Authentication Required</p>
+                    <p className="text-sm mt-1 text-muted-foreground">
+                      {validation.message || 'Connect your GitHub account to import pull requests.'}
                     </p>
-                    <p>
-                      <span className="text-gray-500">Branch:</span> {validation.prData.branch}
+                    <p className="text-xs mt-2 text-muted-foreground">
+                      PR: {validation.prInfo?.owner}/{validation.prInfo?.repo}#
+                      {validation.prInfo?.prNumber}
                     </p>
-                    <p>
-                      <span className="text-gray-500">Status:</span>{' '}
-                      <span
-                        className={
-                          validation.prData.state === 'open' ? 'text-green-400' : 'text-purple-400'
-                        }
+                    {!githubConnected && (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        onClick={onConnectGitHub}
+                        className="mt-3"
                       >
-                        {validation.prData.state}
-                      </span>
-                    </p>
+                        <GitHubIcon className="w-4 h-4 mr-2" />
+                        Connect GitHub Account
+                      </Button>
+                    )}
                   </div>
-                </div>
-              ) : (
-                <p className="text-green-400">✓ Valid PR URL</p>
-              )}
-            </div>
+                ) : validation.prData ? (
+                  <div>
+                    <p className="font-medium text-foreground">{validation.prData.title}</p>
+                    <div className="mt-2 space-y-1 text-sm text-muted-foreground">
+                      <p>
+                        <span className="text-muted-foreground/70">Author:</span>{' '}
+                        {validation.prData.author}
+                      </p>
+                      <p>
+                        <span className="text-muted-foreground/70">Branch:</span>{' '}
+                        {validation.prData.branch}
+                      </p>
+                      <p>
+                        <span className="text-muted-foreground/70">Status:</span>{' '}
+                        <Badge
+                          variant={validation.prData.state === 'open' ? 'success' : 'secondary'}
+                        >
+                          {validation.prData.state}
+                        </Badge>
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-green-400">✓ Valid PR URL</p>
+                )}
+              </CardContent>
+            </Card>
           )}
 
-          <div className="flex gap-3 justify-end pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-gray-300 hover:text-white transition-colors"
-            >
+          <DialogFooter className="gap-2">
+            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={loading || !prUrl.trim() || (validation?.needsAuth ?? false)}
-              className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors flex items-center gap-2"
             >
               {loading ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <Spinner size="sm" className="mr-2" />
                   Importing...
                 </>
               ) : (
                 'Import PR'
               )}
-            </button>
-          </div>
+            </Button>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

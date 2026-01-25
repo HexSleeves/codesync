@@ -65,12 +65,12 @@ export function SplitDiff({ hunks, comments, onLineClick }: SplitDiffProps) {
   }, [hunks]);
 
   return (
-    <div className="font-mono text-[13px] leading-5 bg-gray-900 text-gray-100 overflow-x-auto">
+    <div className="font-mono text-[13px] leading-5 bg-background text-foreground overflow-x-auto">
       <div className="min-w-max">
         {pairedLines.map((pair, index) => (
           <div key={index} className="flex">
             {/* Left side (old) */}
-            <div className="w-1/2 border-r border-gray-700">
+            <div className="w-1/2 border-r border-border">
               <SplitDiffLine
                 line={pair.left}
                 side="old"
@@ -106,40 +106,40 @@ function SplitDiffLine({
   onLineClick: (lineNumber: number, side?: 'old' | 'new') => void;
 }) {
   if (!line) {
-    return <div className="flex h-5 bg-gray-800/50" />;
+    return <div className="flex h-5 bg-muted/50" />;
   }
 
   const isHunkHeader = line.isHunkHeader;
   if (isHunkHeader) {
     return (
-      <div className="flex bg-blue-900/50 px-2 py-1 text-blue-300 text-xs">{line.content}</div>
+      <div className="flex bg-primary/10 px-2 py-1 text-primary text-xs">{line.content}</div>
     );
   }
 
   const bgColor =
-    line.type === 'add' ? 'bg-green-900/30' : line.type === 'remove' ? 'bg-red-900/30' : '';
+    line.type === 'add' ? 'bg-green-500/10' : line.type === 'remove' ? 'bg-destructive/10' : '';
 
   const textColor =
     line.type === 'add'
-      ? 'text-green-300'
+      ? 'text-green-400'
       : line.type === 'remove'
-        ? 'text-red-300'
-        : 'text-gray-300';
+        ? 'text-destructive'
+        : 'text-muted-foreground';
 
   const lineNumber = side === 'old' ? line.oldLineNumber : line.newLineNumber;
   const lineComments = lineNumber ? comments.get(lineNumber) : undefined;
   const hasComments = lineComments && lineComments.length > 0;
 
   return (
-    <div className={`flex group ${bgColor} hover:bg-opacity-70`}>
+    <div className={`flex group ${bgColor} hover:bg-accent/50`}>
       {/* Line number */}
       <span
-        className="inline-block w-12 text-right pr-2 text-gray-500 select-none cursor-pointer hover:text-blue-400 relative shrink-0"
+        className="inline-block w-12 text-right pr-2 text-muted-foreground select-none cursor-pointer hover:text-primary relative shrink-0"
         onClick={() => lineNumber && onLineClick(lineNumber, side)}
       >
         {lineNumber || ''}
         {hasComments && (
-          <span className="absolute left-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-blue-500" />
+          <span className="absolute left-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary" />
         )}
       </span>
 
@@ -150,7 +150,7 @@ function SplitDiffLine({
 
       {/* Add comment button */}
       <button
-        className="shrink-0 w-6 opacity-0 group-hover:opacity-100 text-gray-500 hover:text-blue-400 transition-opacity"
+        className="shrink-0 w-6 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-primary transition-opacity"
         onClick={() => lineNumber && onLineClick(lineNumber, side)}
         title="Add comment"
       >

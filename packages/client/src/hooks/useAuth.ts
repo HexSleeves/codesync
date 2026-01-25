@@ -1,33 +1,26 @@
 /**
- * Auth hook - subscribes to global auth store
+ * Auth hook - uses Zustand vanilla store with Hono's useSyncExternalStore
  */
 
-import { useEffect, useState } from 'hono/jsx';
-import { authStore } from '../stores/auth';
+import { useEffect } from 'hono/jsx';
+import { authStore, useAuthStore } from '../stores/auth';
 
 export function useAuth() {
-  const [state, setState] = useState(authStore.getState());
+  const user = useAuthStore((s) => s.user);
+  const loading = useAuthStore((s) => s.loading);
+  const error = useAuthStore((s) => s.error);
 
   useEffect(() => {
-    // Subscribe to changes first
-    const unsubscribe = authStore.subscribe(() => {
-      setState({ ...authStore.getState() });
-    });
-
-    // Initialize auth (will trigger subscription when done)
-    authStore.init();
-
-    return unsubscribe;
+    authStore.getState().init();
   }, []);
 
   return {
-    user: state.user,
-    loading: state.loading,
-    error: state.error,
-    isAuthenticated: !!state.user,
-    login: (email: string, password: string) => authStore.login(email, password),
-    register: (email: string, password: string, name: string) =>
-      authStore.register(email, password, name),
-    logout: () => authStore.logout(),
+    user,
+    loading,
+    error,
+    isAuthenticated: !!user,
+    login: authStore.getState().login,
+    register: authStore.getState().register,
+    logout: authStore.getState().logout,
   };
 }

@@ -4,6 +4,17 @@
 
 import type { Comment, File } from '@codesync/shared';
 import { useEffect, useMemo, useState } from 'hono/jsx';
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  Input,
+  Select,
+  SelectOption,
+  Spinner,
+  Textarea,
+} from '@/components/ui';
 import { DiffViewer } from '../components/Diff';
 import { useAuth } from '../hooks/useAuth';
 import { useComments } from '../hooks/useComments';
@@ -43,10 +54,10 @@ export function SessionPage({ sessionId }: SessionPageProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-400">Loading session...</p>
+          <Spinner size="lg" className="mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading session...</p>
         </div>
       </div>
     );
@@ -54,53 +65,53 @@ export function SessionPage({ sessionId }: SessionPageProps) {
 
   if (error || !session) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-4">Session Not Found</h1>
-          <p className="text-gray-400 mb-6">{error || "This session doesn't exist."}</p>
-          <Link
-            href="/dashboard"
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
-          >
-            Go to Dashboard
-          </Link>
-        </div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="max-w-md">
+          <CardContent className="pt-6 text-center">
+            <h1 className="text-2xl font-bold text-foreground mb-4">Session Not Found</h1>
+            <p className="text-muted-foreground mb-6">{error || "This session doesn't exist."}</p>
+            <Link href="/dashboard">
+              <Button>Go to Dashboard</Button>
+            </Link>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
+  const statusVariants: Record<string, 'secondary' | 'warning' | 'success' | 'default'> = {
+    draft: 'secondary',
+    in_review: 'warning',
+    approved: 'success',
+    merged: 'default',
+  };
+
   return (
-    <div className="h-screen bg-gray-900 flex flex-col">
+    <div className="h-screen bg-background flex flex-col">
       {/* Header */}
-      <header className="border-b border-gray-700 bg-gray-800 px-4 py-3 flex items-center justify-between shrink-0">
+      <header className="border-b border-border bg-card px-4 py-3 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-4">
-          <Link href="/dashboard" className="text-gray-400 hover:text-white">
-            ←
+          <Link href="/dashboard">
+            <Button variant="ghost" size="sm">
+              ←
+            </Button>
           </Link>
-          <h1 className="text-lg font-semibold text-white">{session.title}</h1>
-          <span
-            className={`px-2 py-0.5 text-xs font-medium rounded ${
-              session.status === 'approved'
-                ? 'bg-green-600'
-                : session.status === 'in_review'
-                  ? 'bg-yellow-600'
-                  : 'bg-gray-600'
-            } text-white`}
-          >
+          <h1 className="text-lg font-semibold text-foreground">{session.title}</h1>
+          <Badge variant={statusVariants[session.status] || 'secondary'}>
             {session.status.replace('_', ' ')}
-          </span>
+          </Badge>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-gray-400 text-sm">{user?.email}</span>
+          <span className="text-muted-foreground text-sm">{user?.email}</span>
         </div>
       </header>
 
       {/* Main content */}
       <div className="flex-1 flex overflow-hidden">
         {/* File tree sidebar */}
-        <aside className="w-64 border-r border-gray-700 bg-gray-800 overflow-y-auto shrink-0">
-          <div className="p-3 border-b border-gray-700">
-            <h2 className="text-sm font-medium text-gray-400">Files ({files.length})</h2>
+        <aside className="w-64 border-r border-border bg-card overflow-y-auto shrink-0">
+          <div className="p-3 border-b border-border">
+            <h2 className="text-sm font-medium text-muted-foreground">Files ({files.length})</h2>
           </div>
           <div className="py-2">
             {files.map((file) => (
@@ -119,47 +130,42 @@ export function SessionPage({ sessionId }: SessionPageProps) {
           {selectedFile ? (
             <>
               {/* File header */}
-              <div className="border-b border-gray-700 bg-gray-800 px-4 py-2 flex items-center justify-between shrink-0">
+              <div className="border-b border-border bg-card px-4 py-2 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-3">
-                  <span className="font-mono text-sm text-gray-300">{selectedFile.path}</span>
+                  <span className="font-mono text-sm text-muted-foreground">{selectedFile.path}</span>
                   {selectedFile.isReviewed && (
-                    <span className="px-2 py-0.5 bg-green-900/50 text-green-400 rounded text-xs">
-                      ✓ Reviewed
-                    </span>
+                    <Badge variant="success">✓ Reviewed</Badge>
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  <button
+                  <Button
+                    variant={selectedFile.isReviewed ? 'secondary' : 'default'}
+                    size="sm"
                     onClick={() => markFileReviewed(selectedFile.id, !selectedFile.isReviewed)}
-                    className={`px-3 py-1 text-sm rounded ${
-                      selectedFile.isReviewed
-                        ? 'bg-gray-700 text-gray-300'
-                        : 'bg-green-600 text-white'
-                    }`}
                   >
                     {selectedFile.isReviewed ? 'Unmark Reviewed' : 'Mark Reviewed'}
-                  </button>
-                  <select
+                  </Button>
+                  <Select
                     value={viewMode}
                     onChange={(e) =>
                       setViewMode((e.target as HTMLSelectElement).value as 'code' | 'diff')
                     }
-                    className="px-3 py-1 bg-gray-700 border border-gray-600 rounded text-sm text-white"
+                    className="w-32"
                   >
-                    <option value="diff">Diff View</option>
-                    <option value="code">Code View</option>
-                  </select>
+                    <SelectOption value="diff">Diff View</SelectOption>
+                    <SelectOption value="code">Code View</SelectOption>
+                  </Select>
                   {viewMode === 'diff' && (
-                    <select
+                    <Select
                       value={diffMode}
                       onChange={(e) =>
                         setDiffMode((e.target as HTMLSelectElement).value as 'unified' | 'split')
                       }
-                      className="px-3 py-1 bg-gray-700 border border-gray-600 rounded text-sm text-white"
+                      className="w-28"
                     >
-                      <option value="unified">Unified</option>
-                      <option value="split">Split</option>
-                    </select>
+                      <SelectOption value="unified">Unified</SelectOption>
+                      <SelectOption value="split">Split</SelectOption>
+                    </Select>
                   )}
                 </div>
               </div>
@@ -202,7 +208,7 @@ export function SessionPage({ sessionId }: SessionPageProps) {
               </div>
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center text-gray-500">
+            <div className="flex-1 flex items-center justify-center text-muted-foreground">
               <div className="text-center">
                 <p className="text-lg">Select a file to review</p>
                 <p className="text-sm mt-2">Choose a file from the sidebar</p>
@@ -226,7 +232,7 @@ function FileTreeItem({
 }) {
   const getStatusIcon = () => {
     if (file.isAdded) return <span className="text-green-400">A</span>;
-    if (file.isDeleted) return <span className="text-red-400">D</span>;
+    if (file.isDeleted) return <span className="text-destructive">D</span>;
     if (file.isModified) return <span className="text-yellow-400">M</span>;
     return null;
   };
@@ -234,8 +240,8 @@ function FileTreeItem({
   return (
     <button
       onClick={onClick}
-      className={`w-full text-left px-3 py-1.5 flex items-center gap-2 hover:bg-gray-700 ${
-        isSelected ? 'bg-gray-700 text-white' : 'text-gray-300'
+      className={`w-full text-left px-3 py-1.5 flex items-center gap-2 hover:bg-accent ${
+        isSelected ? 'bg-accent text-foreground' : 'text-muted-foreground'
       }`}
     >
       <span className="text-xs font-mono w-4">{getStatusIcon()}</span>
@@ -284,51 +290,59 @@ function CodeViewer({
 
             return (
               <>
-                <tr key={`line-${lineNumber}`} className="hover:bg-gray-800 group">
-                  <td className="w-12 px-2 py-0 text-right text-gray-500 select-none border-r border-gray-700 sticky left-0 bg-gray-900">
+                <tr key={`line-${lineNumber}`} className="hover:bg-accent group">
+                  <td className="w-12 px-2 py-0 text-right text-muted-foreground select-none border-r border-border sticky left-0 bg-background">
                     {lineNumber}
                   </td>
                   <td className="w-8 px-1 py-0 text-center">
                     <button
                       onClick={() => setActiveCommentLine(lineNumber)}
-                      className="opacity-0 group-hover:opacity-100 text-blue-400 hover:text-blue-300"
+                      className="opacity-0 group-hover:opacity-100 text-primary hover:text-primary/80"
                     >
                       +
                     </button>
                   </td>
                   <td className="px-4 py-0 whitespace-pre">{line || ' '}</td>
                   <td className="w-8 px-1">
-                    {hasComments && <span className="text-blue-400">💬 {lineComments.length}</span>}
+                    {hasComments && (
+                      <span className="text-primary">💬 {lineComments.length}</span>
+                    )}
                   </td>
                 </tr>
 
                 {/* Comments for this line */}
                 {hasComments && (
                   <tr key={`comments-${lineNumber}`}>
-                    <td colSpan={4} className="bg-gray-800 border-l-2 border-blue-500">
+                    <td colSpan={4} className="bg-card border-l-2 border-primary">
                       <div className="p-3">
                         {lineComments.map((comment: any) => (
-                          <div
+                          <Card
                             key={comment.id}
-                            className={`mb-2 p-2 rounded ${
-                              comment.isResolved ? 'bg-gray-700/50' : 'bg-gray-700'
-                            }`}
+                            className={`mb-2 ${comment.isResolved ? 'opacity-60' : ''}`}
                           >
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-xs text-gray-400">
-                                {comment.author?.name || 'Unknown'}
-                              </span>
-                              <button
-                                onClick={() => onResolveComment(comment.id, !comment.isResolved)}
-                                className="text-xs text-blue-400 hover:text-blue-300"
+                            <CardContent className="p-2">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-xs text-muted-foreground">
+                                  {comment.author?.name || 'Unknown'}
+                                </span>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 text-xs"
+                                  onClick={() => onResolveComment(comment.id, !comment.isResolved)}
+                                >
+                                  {comment.isResolved ? 'Unresolve' : 'Resolve'}
+                                </Button>
+                              </div>
+                              <p
+                                className={`text-sm ${
+                                  comment.isResolved ? 'text-muted-foreground' : 'text-foreground'
+                                }`}
                               >
-                                {comment.isResolved ? 'Unresolve' : 'Resolve'}
-                              </button>
-                            </div>
-                            <p className={comment.isResolved ? 'text-gray-500' : 'text-gray-200'}>
-                              {comment.text}
-                            </p>
-                          </div>
+                                {comment.text}
+                              </p>
+                            </CardContent>
+                          </Card>
                         ))}
                       </div>
                     </td>
@@ -338,29 +352,29 @@ function CodeViewer({
                 {/* Comment input for this line */}
                 {activeCommentLine === lineNumber && (
                   <tr key={`input-${lineNumber}`}>
-                    <td colSpan={4} className="bg-gray-800 border-l-2 border-green-500">
+                    <td colSpan={4} className="bg-card border-l-2 border-green-500">
                       <div className="p-3">
-                        <textarea
+                        <Textarea
                           value={commentText}
                           onInput={(e) => setCommentText((e.target as HTMLTextAreaElement).value)}
-                          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-sm resize-none"
                           placeholder="Add a comment..."
                           rows={3}
                         />
                         <div className="flex justify-end gap-2 mt-2">
-                          <button
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => setActiveCommentLine(null)}
-                            className="px-3 py-1 text-sm text-gray-400 hover:text-white"
                           >
                             Cancel
-                          </button>
-                          <button
+                          </Button>
+                          <Button
+                            size="sm"
                             onClick={() => handleAddComment(lineNumber)}
                             disabled={!commentText.trim()}
-                            className="px-3 py-1 text-sm bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded"
                           >
                             Add Comment
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     </td>
@@ -404,55 +418,58 @@ function InlineCommentForm({
   };
 
   return (
-    <div className="fixed bottom-0 left-64 right-0 bg-gray-800 border-t border-gray-700 shadow-lg p-4 z-10">
+    <div className="fixed bottom-0 left-64 right-0 bg-card border-t border-border shadow-lg p-4 z-10">
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-sm text-gray-400">Comment on line {lineNumber}</span>
-          <button onClick={onCancel} className="text-gray-500 hover:text-white text-sm">
+          <span className="text-sm text-muted-foreground">Comment on line {lineNumber}</span>
+          <Button variant="ghost" size="sm" onClick={onCancel}>
             ✕ Close
-          </button>
+          </Button>
         </div>
 
         {/* Show existing comments */}
         {existingComments.length > 0 && (
           <div className="mb-3 space-y-2">
             {existingComments.map((comment) => (
-              <div
-                key={comment.id}
-                className={`p-2 rounded ${comment.isResolved ? 'bg-gray-700/50' : 'bg-gray-700'}`}
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-gray-400">{comment.author?.name || 'Unknown'}</span>
-                  <button
-                    onClick={() => onResolveComment(comment.id, !comment.isResolved)}
-                    className="text-xs text-blue-400 hover:text-blue-300"
+              <Card key={comment.id} className={comment.isResolved ? 'opacity-60' : ''}>
+                <CardContent className="p-2">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-muted-foreground">
+                      {comment.author?.name || 'Unknown'}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 text-xs"
+                      onClick={() => onResolveComment(comment.id, !comment.isResolved)}
+                    >
+                      {comment.isResolved ? 'Unresolve' : 'Resolve'}
+                    </Button>
+                  </div>
+                  <p
+                    className={`text-sm ${
+                      comment.isResolved ? 'text-muted-foreground' : 'text-foreground'
+                    }`}
                   >
-                    {comment.isResolved ? 'Unresolve' : 'Resolve'}
-                  </button>
-                </div>
-                <p className={`text-sm ${comment.isResolved ? 'text-gray-500' : 'text-gray-200'}`}>
-                  {comment.text}
-                </p>
-              </div>
+                    {comment.text}
+                  </p>
+                </CardContent>
+              </Card>
             ))}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="flex gap-3">
-          <input
+          <Input
             type="text"
             value={text}
             onInput={(e) => setText((e.target as HTMLInputElement).value)}
-            className="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded text-white"
             placeholder="Add a comment..."
+            className="flex-1"
           />
-          <button
-            type="submit"
-            disabled={!text.trim() || submitting}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 text-white rounded"
-          >
+          <Button type="submit" disabled={!text.trim() || submitting}>
             {submitting ? 'Adding...' : 'Add Comment'}
-          </button>
+          </Button>
         </form>
       </div>
     </div>

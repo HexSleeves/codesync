@@ -68,7 +68,7 @@ export function DiffViewer({ file, mode, comments, onLineClick }: DiffViewerProp
 
   if (hunks.length === 0 && !file.isAdded && !file.isDeleted) {
     return (
-      <div className="p-8 text-center text-gray-500">
+      <div className="p-8 text-center text-muted-foreground">
         <p>No changes to display</p>
         <p className="text-sm mt-2">This file appears unchanged</p>
       </div>
