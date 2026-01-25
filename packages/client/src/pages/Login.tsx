@@ -3,13 +3,13 @@
  */
 
 import { useState } from 'hono/jsx';
-import { useAuth } from '../hooks/useAuth';
-import { Link, navigate } from '../router';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useAuth } from '../hooks/useAuth';
+import { Link, navigate } from '../router';
 
 export function LoginPage() {
   const { login, register, error } = useAuth();
@@ -101,7 +101,9 @@ export function LoginPage() {
 
             <div className="mt-6 text-center">
               <Button variant="link" onClick={() => setIsRegister(!isRegister)}>
-                {isRegister ? 'Already have an account? Sign in' : "Don't have an account? Register"}
+                {isRegister
+                  ? 'Already have an account? Sign in'
+                  : "Don't have an account? Register"}
               </Button>
             </div>
           </CardContent>

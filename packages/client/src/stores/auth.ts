@@ -2,8 +2,8 @@
  * Global auth store - singleton pattern for auth state
  */
 
-import type { User } from "@codesync/shared";
-import { apiCall, clearToken, getToken, setToken } from "../api/client";
+import type { User } from '@codesync/shared';
+import { apiCall, clearToken, getToken, setToken } from '../api/client';
 
 type Listener = () => void;
 
@@ -52,7 +52,7 @@ class AuthStore {
     }
 
     try {
-      const { user } = await apiCall<{ user: User }>("GET", "/auth/me");
+      const { user } = await apiCall<{ user: User }>('GET', '/auth/me');
       this.setState({ user, loading: false, error: null });
     } catch {
       clearToken();
@@ -63,19 +63,15 @@ class AuthStore {
   async login(email: string, password: string) {
     this.setState({ error: null });
     try {
-      const { user, token } = await apiCall<{ user: User; token: string }>(
-        "POST",
-        "/auth/login",
-        {
-          email,
-          password,
-        },
-      );
+      const { user, token } = await apiCall<{ user: User; token: string }>('POST', '/auth/login', {
+        email,
+        password,
+      });
       setToken(token);
       this.setState({ user, loading: false, error: null });
       return { success: true };
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Login failed";
+      const message = err instanceof Error ? err.message : 'Login failed';
       this.setState({ error: message });
       return { success: false, error: message };
     }
@@ -85,23 +81,22 @@ class AuthStore {
     this.setState({ error: null });
     try {
       const { user, token } = await apiCall<{ user: User; token: string }>(
-        "POST",
-        "/auth/register",
-        { email, password, name },
+        'POST',
+        '/auth/register',
+        { email, password, name }
       );
       setToken(token);
       this.setState({ user, loading: false, error: null });
       return { success: true };
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Registration failed";
+      const message = err instanceof Error ? err.message : 'Registration failed';
       this.setState({ error: message });
       return { success: false, error: message };
     }
   }
 
   async logout() {
-    await apiCall("POST", "/auth/logout").catch(() => {});
+    await apiCall('POST', '/auth/logout').catch(() => {});
     clearToken();
     this.setState({ user: null, loading: false, error: null });
   }

@@ -33,9 +33,17 @@ export function Alert({ className, variant, children }: AlertProps) {
 }
 
 export function AlertTitle({ className, children }: { className?: string; children?: Child }) {
-  return <h5 className={cn('mb-1 font-medium leading-none tracking-tight', className)}>{children}</h5>;
+  return (
+    <h5 className={cn('mb-1 font-medium leading-none tracking-tight', className)}>{children}</h5>
+  );
 }
 
-export function AlertDescription({ className, children }: { className?: string; children?: Child }) {
+export function AlertDescription({
+  className,
+  children,
+}: {
+  className?: string;
+  children?: Child;
+}) {
   return <div className={cn('text-sm [&_p]:leading-relaxed', className)}>{children}</div>;
 }

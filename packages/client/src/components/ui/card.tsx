@@ -19,7 +19,9 @@ export function CardHeader({ className, children }: CardProps) {
 }
 
 export function CardTitle({ className, children }: CardProps) {
-  return <div className={cn('font-semibold leading-none tracking-tight', className)}>{children}</div>;
+  return (
+    <div className={cn('font-semibold leading-none tracking-tight', className)}>{children}</div>
+  );
 }
 
 export function CardDescription({ className, children }: CardProps) {
