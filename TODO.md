@@ -42,9 +42,15 @@ codesync/
 ├── packages/
 │   ├── api/           # Hono backend (port 8001)
 │   │   └── src/
-│   │       ├── routes/    # auth, sessions, files, comments, chat, github
+│   │       ├── config.ts      # Centralized env config
+│   │       ├── routes/        # auth, sessions, files, comments, chat
+│   │       │   └── github/    # oauth.ts, import.ts (split by domain)
+│   │       ├── services/      # Business logic layer
+│   │       │   ├── github/    # pr-fetcher.ts, file-processor.ts
+│   │       │   └── session/   # access.ts (ownership checks)
 │   │       ├── middleware/auth.ts
 │   │       ├── db/schema.ts
+│   │       ├── utils/         # github-parser.ts, language.ts
 │   │       └── ws/cursors.ts
 │   ├── client/        # Hono JSX-DOM frontend
 │   │   └── src/
@@ -74,6 +80,11 @@ codesync/
 - [x] GitHub OAuth flow (`/api/github/authorize`, `/api/github/callback`)
 - [x] GitHub PR import (`/api/github/import`, `/api/github/validate`)
 - [x] GitHub status/disconnect endpoints
+- [x] **Domain-based code organization** (Jan 25)
+  - Split monolithic github.ts (658 lines) into domain modules
+  - Created services layer (github/, session/)
+  - Centralized config.ts for environment variables
+  - Extracted reusable utilities (language detection, etc.)
 
 ### Frontend (packages/client)
 
@@ -89,6 +100,10 @@ codesync/
 - [x] Mark file as reviewed
 - [x] GitHub OAuth connection UI
 - [x] Import PR modal with validation
+- [x] **Syntax highlighting** with Prism.js (Jan 25)
+  - Language detection from file extension
+  - 25+ languages supported
+  - One Dark theme
 
 ### UI Components (packages/client/src/components/ui/)
 
@@ -128,20 +143,16 @@ codesync/
    - Need Redis pub/sub for scaling
    - Reference: `imports/ui/components/CodeEditor/Cursors.tsx`
 
-2. **Syntax Highlighting** (Optional enhancement)
-   - [ ] Add Prism.js or Shiki for code highlighting in diff viewer
-   - Currently shows plain text
-
 ### MEDIUM PRIORITY
 
-3. **Chat Panel UI**
+2. **Chat Panel UI**
    - [ ] Chat sidebar component in Session page
    - [ ] Real-time message updates via WebSocket
    - [ ] Message input and send
    - API endpoints exist (`/api/sessions/:id/chat`)
    - Reference: `imports/ui/components/Sidebar/ChatPanel.tsx`
 
-4. **User Presence UI**
+3. **User Presence UI**
    - [ ] Online users list in session sidebar
    - [ ] Cursor positions shown on code lines
    - [ ] User avatars/colors
@@ -149,7 +160,7 @@ codesync/
 
 ### LOW PRIORITY
 
-5. **UI Polish**
+4. **UI Polish**
    - [ ] Keyboard shortcuts modal (? key)
    - [ ] Share session button/modal
    - [ ] Settings modal
@@ -157,7 +168,7 @@ codesync/
    - [ ] TopBar with review actions (Approve, Request Changes)
    - [ ] Toast notifications (instead of Alert banners)
 
-6. **Testing & Deployment**
+5. **Testing & Deployment**
    - [ ] E2E tests with Playwright
    - [ ] Unit tests for API routes
    - [ ] Load testing
@@ -210,9 +221,11 @@ Password: password123
 ### New Hono Code
 
 - `packages/api/src/app.ts` - Main Hono app with routes
+- `packages/api/src/config.ts` - Centralized environment config
 - `packages/api/src/middleware/auth.ts` - JWT auth
 - `packages/api/src/db/schema.ts` - Drizzle schema
-- `packages/api/src/routes/github.ts` - GitHub OAuth + import
+- `packages/api/src/routes/github/` - GitHub OAuth + import (split by domain)
+- `packages/api/src/services/` - Business logic layer
 - `packages/api/src/ws/cursors.ts` - WebSocket handler (incomplete)
 - `packages/client/src/stores/auth.ts` - Auth state management
 - `packages/client/src/hooks/useAuth.ts` - Auth hook
@@ -240,11 +253,7 @@ Password: password123
    - Show online users in session
    - Track join/leave events
 
-4. **Syntax Highlighting** - Polish
-   - Add Prism.js or Shiki
-   - Detect language from file extension
-
-5. **UI Polish** - Final touches
+4. **UI Polish** - Final touches
    - Keyboard shortcuts
    - Share functionality
    - Toast notifications
