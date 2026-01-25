@@ -9,11 +9,12 @@ const statusVariants: Record<string, 'secondary' | 'warning' | 'success' | 'defa
 
 interface SessionStatusBadgeProps {
   status: string;
+  className?: string;
 }
 
-export function SessionStatusBadge({ status }: SessionStatusBadgeProps) {
+export function SessionStatusBadge({ status, className }: SessionStatusBadgeProps) {
   return (
-    <Badge variant={statusVariants[status] || 'secondary'}>
+    <Badge variant={statusVariants[status] || 'secondary'} className={className}>
       {status.replace('_', ' ')}
     </Badge>
   );

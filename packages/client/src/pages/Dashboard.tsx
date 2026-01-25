@@ -112,17 +112,27 @@ export function DashboardPage() {
         </UserMenu>
       </PageHeader>
 
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      <main className="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
         <NotificationBanner notification={notification} onDismiss={() => setNotification(null)} />
 
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold text-foreground">Your Sessions</h1>
-          <div className="flex gap-3">
-            <Button variant="secondary" onClick={() => setShowImportForm(true)}>
-              <GitHubIcon className="w-5 h-5 mr-2" />
-              Import from GitHub
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Your Sessions</h1>
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
+            <Button 
+              variant="secondary" 
+              onClick={() => setShowImportForm(true)}
+              className="w-full sm:w-auto justify-center"
+            >
+              <GitHubIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+              <span className="hidden sm:inline">Import from GitHub</span>
+              <span className="sm:hidden">Import PR</span>
             </Button>
-            <Button onClick={() => setShowNewForm(true)}>+ New Session</Button>
+            <Button 
+              onClick={() => setShowNewForm(true)}
+              className="w-full sm:w-auto justify-center"
+            >
+              + New Session
+            </Button>
           </div>
         </div>
 
@@ -202,7 +212,7 @@ function SessionsList({
   }
 
   return (
-    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {sessions.map((session) => (
         <SessionCard
           key={session.id}

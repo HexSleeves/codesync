@@ -8,11 +8,13 @@ interface UserMenuProps {
 
 export function UserMenu({ email, onLogout, children }: UserMenuProps) {
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
       {children}
-      {children && <Separator orientation="vertical" className="h-6" />}
-      <span className="text-muted-foreground text-sm">{email}</span>
-      <Button variant="ghost" onClick={onLogout}>
+      {children && <Separator orientation="vertical" className="h-6 hidden sm:block" />}
+      <span className="text-muted-foreground text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none">
+        {email}
+      </span>
+      <Button variant="ghost" size="sm" onClick={onLogout} className="text-xs sm:text-sm px-2 sm:px-4">
         Sign Out
       </Button>
     </div>

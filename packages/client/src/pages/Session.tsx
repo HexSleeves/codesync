@@ -1,5 +1,6 @@
 /**
  * Session page - the main code review interface
+ * Mobile-first design with collapsible sidebars
  */
 
 import type { Comment } from '@codesync/shared';
@@ -33,7 +34,8 @@ export function SessionPage({ sessionId }: SessionPageProps) {
   const [viewMode, setViewMode] = useState<'code' | 'diff'>('diff');
   const [diffMode, setDiffMode] = useState<'unified' | 'split'>('unified');
   const [activeCommentLine, setActiveCommentLine] = useState<number | null>(null);
-  const [showChat, setShowChat] = useState(true);
+  const [showChat, setShowChat] = useState(false);
+  const [showFileTree, setShowFileTree] = useState(false);
 
   // WebSocket for real-time collaboration
   const {
@@ -100,11 +102,19 @@ export function SessionPage({ sessionId }: SessionPageProps) {
         userEmail={user?.email}
         connected={connected}
         onlineCount={onlineUsers.length}
+        showFileTree={showFileTree}
+        onToggleFileTree={() => setShowFileTree(!showFileTree)}
       />
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden relative">
         {/* Left Sidebar: Online Users + File Tree */}
-        <aside className="w-64 border-r border-border flex flex-col bg-card">
+        {/* On desktop: always visible. On mobile: shown when showFileTree is true */}
+        <aside
+          className={`
+            w-64 border-r border-border flex flex-col bg-card
+            hidden md:flex
+          `}
+        >
           <OnlineUsers users={onlineUsers} connected={connected} />
           <div className="flex-1 overflow-hidden">
             <FileTree
@@ -115,8 +125,43 @@ export function SessionPage({ sessionId }: SessionPageProps) {
           </div>
         </aside>
 
+        {/* Mobile File Tree Drawer */}
+        {showFileTree && (
+          <aside className="absolute inset-y-0 left-0 z-30 w-64 border-r border-border flex flex-col bg-card md:hidden">
+            <div className="flex items-center justify-between px-3 py-2 border-b border-border">
+              <span className="text-sm font-medium">Files</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowFileTree(false)}
+              >
+                ✕
+              </Button>
+            </div>
+            <OnlineUsers users={onlineUsers} connected={connected} />
+            <div className="flex-1 overflow-hidden">
+              <FileTree
+                files={files}
+                selectedFileId={selectedFileId}
+                onFileSelect={(id) => {
+                  setSelectedFileId(id);
+                  setShowFileTree(false);
+                }}
+              />
+            </div>
+          </aside>
+        )}
+
+        {/* Overlay for mobile when sidebar is open */}
+        {showFileTree && (
+          <div
+            className="fixed inset-0 bg-black/50 z-20 md:hidden"
+            onClick={() => setShowFileTree(false)}
+          />
+        )}
+
         {/* Main Content */}
-        <main className="flex-1 flex flex-col overflow-hidden">
+        <main className="flex-1 flex flex-col overflow-hidden min-w-0">
           {selectedFile ? (
             <>
               <FileHeader
@@ -165,35 +210,43 @@ export function SessionPage({ sessionId }: SessionPageProps) {
           )}
         </main>
 
-        {/* Right Sidebar: Chat */}
+        {/* Right Sidebar: Chat - Slide-out on mobile */}
         {showChat && (
-          <aside className="w-72 border-l border-border flex flex-col bg-card">
-            <div className="flex items-center justify-between px-3 py-2 border-b border-border">
-              <span className="text-sm font-medium">Chat</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowChat(false)}
-              >
-                ×
-              </Button>
-            </div>
-            <div className="flex-1 overflow-hidden">
-              <ChatPanel
-                messages={chatMessages}
-                onSend={sendChat}
-                connected={connected}
-              />
-            </div>
-          </aside>
+          <aside className="absolute md:relative inset-y-0 right-0 z-30 w-full sm:w-72 border-l border-border flex flex-col bg-card">
+          <div className="flex items-center justify-between px-3 py-2 border-b border-border">
+            <span className="text-sm font-medium">Chat</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowChat(false)}
+            >
+              ✕
+            </Button>
+          </div>
+          <div className="flex-1 overflow-hidden">
+            <ChatPanel
+              messages={chatMessages}
+              onSend={sendChat}
+              connected={connected}
+            />
+          </div>
+        </aside>
         )}
 
-        {/* Chat toggle button when hidden */}
+        {/* Overlay for mobile when chat is open */}
+        {showChat && (
+          <div
+            className="fixed inset-0 bg-black/50 z-20 md:hidden"
+            onClick={() => setShowChat(false)}
+          />
+        )}
+
+        {/* Chat toggle button - visible when chat is hidden */}
         {!showChat && (
           <Button
             variant="outline"
             size="sm"
-            className="fixed bottom-4 right-4 z-50"
+            className="fixed bottom-4 right-4 z-10"
             onClick={() => setShowChat(true)}
           >
             💬 Chat
@@ -209,32 +262,56 @@ function SessionHeader({
   userEmail,
   connected,
   onlineCount,
+  showFileTree,
+  onToggleFileTree,
 }: {
   session: any;
   userEmail?: string;
   connected: boolean;
   onlineCount: number;
+  showFileTree: boolean;
+  onToggleFileTree: () => void;
 }) {
   return (
-    <header className="border-b border-border bg-card px-4 py-3 flex items-center justify-between shrink-0">
-      <div className="flex items-center gap-4">
-        <Link href="/dashboard">
-          <Button variant="ghost" size="sm">
-            ←
+    <header className="border-b border-border bg-card px-2 sm:px-4 py-2 sm:py-3 shrink-0">
+      <div className="flex items-center justify-between gap-2">
+        {/* Left side */}
+        <div className="flex items-center gap-1 sm:gap-3 min-w-0 flex-1">
+          {/* Mobile file tree toggle */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="md:hidden px-2"
+            onClick={onToggleFileTree}
+          >
+            ☰
           </Button>
-        </Link>
-        <h1 className="text-lg font-semibold text-foreground">{session.title}</h1>
-        <SessionStatusBadge status={session.status} />
-        {/* Connection status indicator */}
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <div
-            className={`w-2 h-2 rounded-full ${connected ? 'bg-green-500' : 'bg-red-500'}`}
-          />
-          {connected ? `${onlineCount} online` : 'Connecting...'}
+          <Link href="/dashboard">
+            <Button variant="ghost" size="sm" className="px-2 sm:px-3">
+              ←
+            </Button>
+          </Link>
+          <h1 className="text-sm sm:text-lg font-semibold text-foreground truncate min-w-0">
+            {session.title}
+          </h1>
+          <SessionStatusBadge status={session.status} className="hidden sm:inline-flex shrink-0" />
         </div>
-      </div>
-      <div className="flex items-center gap-4">
-        <span className="text-muted-foreground text-sm">{userEmail}</span>
+
+        {/* Right side */}
+        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+          {/* Connection status indicator */}
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <div
+              className={`w-2 h-2 rounded-full ${connected ? 'bg-green-500' : 'bg-red-500'}`}
+            />
+            <span className="hidden sm:inline">
+              {connected ? `${onlineCount} online` : 'Connecting...'}
+            </span>
+          </div>
+          <span className="text-muted-foreground text-xs sm:text-sm hidden sm:inline truncate max-w-[100px]">
+            {userEmail}
+          </span>
+        </div>
       </div>
     </header>
   );
