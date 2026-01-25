@@ -10,7 +10,7 @@ const alertVariants = cva(
         default: 'bg-background text-foreground',
         destructive:
           'border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive',
-        success: 'border-green-500/50 text-green-500 [&>svg]:text-green-500',
+        success: 'border-green-500/50 bg-green-500/10 text-green-500 [&>svg]:text-green-500',
       },
     },
     defaultVariants: {
@@ -32,20 +32,10 @@ export function Alert({ className, variant, children }: AlertProps) {
   );
 }
 
-export interface AlertTitleProps {
-  className?: string;
-  children?: Child;
-}
-
-export function AlertTitle({ className, children }: AlertTitleProps) {
+export function AlertTitle({ className, children }: { className?: string; children?: Child }) {
   return <h5 className={cn('mb-1 font-medium leading-none tracking-tight', className)}>{children}</h5>;
 }
 
-export interface AlertDescriptionProps {
-  className?: string;
-  children?: Child;
-}
-
-export function AlertDescription({ className, children }: AlertDescriptionProps) {
+export function AlertDescription({ className, children }: { className?: string; children?: Child }) {
   return <div className={cn('text-sm [&_p]:leading-relaxed', className)}>{children}</div>;
 }
