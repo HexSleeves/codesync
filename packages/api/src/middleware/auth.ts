@@ -32,9 +32,9 @@ export const authMiddleware = createMiddleware<{ Variables: AuthVariables }>(asy
   const authHeader = c.req.header('Authorization');
   const cookies = c.req.header('Cookie') || '';
   const cookieToken = cookies.split(';').map(c => c.trim()).find(c => c.startsWith('token='))?.split('=')[1];
-  
+
   const token = authHeader?.replace('Bearer ', '') || cookieToken;
-  
+
   if (!token) {
     throw new HTTPException(401, { message: 'Unauthorized - no token provided' });
   }
@@ -42,7 +42,7 @@ export const authMiddleware = createMiddleware<{ Variables: AuthVariables }>(asy
   try {
     // Verify JWT using hono/jwt
     const payload = await verify(token, JWT_SECRET, 'HS256') as JWTPayload;
-    
+
     if (!payload || !payload.sub) {
       throw new HTTPException(401, { message: 'Unauthorized - invalid token' });
     }
@@ -87,13 +87,13 @@ export const optionalAuthMiddleware = createMiddleware<{ Variables: Partial<Auth
   const authHeader = c.req.header('Authorization');
   const cookies = c.req.header('Cookie') || '';
   const cookieToken = cookies.split(';').map(cookie => cookie.trim()).find(cookie => cookie.startsWith('token='))?.split('=')[1];
-  
+
   const token = authHeader?.replace('Bearer ', '') || cookieToken;
-  
+
   if (token) {
     try {
       const payload = await verify(token, JWT_SECRET, 'HS256') as JWTPayload;
-      
+
       if (payload?.sub) {
         const user = await db
           .select()
@@ -131,6 +131,6 @@ export async function generateToken(userId: string): Promise<string> {
     iat: Math.floor(Date.now() / 1000),
     exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7, // 7 days
   };
-  
+
   return await sign(payload, JWT_SECRET);
 }

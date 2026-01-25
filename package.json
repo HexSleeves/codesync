@@ -5,69 +5,20 @@
     "packages/*"
   ],
   "scripts": {
-    "start": "meteor run",
-    "dev": "meteor run",
-    "build": "meteor build ../output --directory",
-    "build:analyze": "RSDOCTOR=true meteor build ../output --directory",
-    "test": "meteor test --once --driver-package meteortesting:mocha",
-    "test:watch": "TEST_WATCH=1 meteor test --full-app --driver-package meteortesting:mocha",
-    "typecheck": "tsc --noEmit",
-    "lint": "eslint imports/ client/ server/ -c eslint.config.mjs",
-    "lint:fix": "eslint imports/ client/ server/ -c eslint.config.mjs --fix",
-    "format": "prettier --write 'imports/**/*.{ts,tsx}' 'client/**/*.{ts,tsx}' 'server/**/*.{ts,tsx}'",
-    "format:check": "prettier --check 'imports/**/*.{ts,tsx}' 'client/**/*.{ts,tsx}' 'server/**/*.{ts,tsx}'"
-  },
-  "dependencies": {
-    "@babel/runtime": "^7.28.6",
-    "@octokit/rest": "19.0.13",
-    "@swc/helpers": "^0.5.18",
-    "@types/meteor": "^2.9.10",
-    "@types/uuid": "^11.0.0",
-    "autoprefixer": "^10.4.23",
-    "diff": "^8.0.3",
-    "meteor-node-stubs": "^1.2.25",
-    "nanoid": "^5.1.6",
-    "prismjs": "^1.30.0",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
-    "react-router-dom": "^6.28.0",
-    "tailwindcss": "^3.4.17",
-    "uuid": "^13.0.0"
+    "dev": "concurrently \"bun run dev:api\" \"bun run dev:client\"",
+    "dev:api": "cd packages/api && bun run dev",
+    "dev:client": "cd packages/client && bun run dev",
+    "build": "bun run build:api && bun run build:client",
+    "build:api": "cd packages/api && bun run build",
+    "build:client": "cd packages/client && bun run build",
+    "typecheck": "bun run typecheck:api && bun run typecheck:client",
+    "typecheck:api": "cd packages/api && bun run typecheck",
+    "typecheck:client": "cd packages/client && bun run typecheck",
+    "db:migrate": "cd packages/api && bun run db:migrate",
+    "db:studio": "cd packages/api && bun run db:studio"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.2",
-    "@meteorjs/rspack": "^0.3.56",
-    "@rsdoctor/cli": "^1.5.0",
-    "@rsdoctor/rspack-plugin": "^1.5.0",
-    "@rspack/cli": "^1.7.3",
-    "@rspack/core": "^1.7.3",
-    "@rspack/plugin-react-refresh": "^1.6.0",
-    "@types/diff": "^8.0.0",
-    "@types/mocha": "^10.0.10",
-    "@types/node": "^25.0.9",
-    "@types/prismjs": "^1.26.5",
-    "@types/react": "^19.2.9",
-    "@types/react-dom": "^19.2.3",
-    "@types/react-router-dom": "^5.3.3",
-    "eslint": "^9.39.2",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-prettier": "^5.5.5",
-    "eslint-plugin-react": "^7.37.5",
-    "eslint-plugin-react-hooks": "^7.0.1",
-    "globals": "^17.1.0",
-    "postcss": "^8.5.6",
-    "postcss-load-config": "^6.0.1",
-    "prettier": "^3.8.1",
-    "react-refresh": "^0.17.0",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.53.1"
-  },
-  "meteor": {
-    "mainModule": {
-      "client": "client/main.tsx",
-      "server": "server/main.ts"
-    },
-    "testModule": "tests/main.ts",
-    "modern": true
+    "concurrently": "^9.1.2",
+    "typescript": "^5.9.3"
   }
 }
