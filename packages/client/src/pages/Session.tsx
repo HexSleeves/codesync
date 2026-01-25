@@ -6,12 +6,19 @@ import type { Comment } from '@codesync/shared';
 import { useEffect, useMemo, useState } from 'hono/jsx';
 import { Button } from '@/components/ui';
 import { PageLoading, PageError } from '@/components/common';
-import { SessionStatusBadge, FileTree, FileHeader } from '@/components/session';
+import {
+  SessionStatusBadge,
+  FileTree,
+  FileHeader,
+  OnlineUsers,
+  ChatPanel,
+} from '@/components/session';
 import { InlineCommentPanel } from '@/components/comment';
 import { DiffViewer } from '@/components/Diff';
 import { useAuth } from '../hooks/useAuth';
 import { useComments } from '../hooks/useComments';
 import { useSession } from '../hooks/useSession';
+import { useWebSocket } from '../hooks/useWebSocket';
 import { Link } from '../router';
 import { CodeViewer } from './session/CodeViewer';
 
@@ -26,6 +33,17 @@ export function SessionPage({ sessionId }: SessionPageProps) {
   const [viewMode, setViewMode] = useState<'code' | 'diff'>('diff');
   const [diffMode, setDiffMode] = useState<'unified' | 'split'>('unified');
   const [activeCommentLine, setActiveCommentLine] = useState<number | null>(null);
+  const [showChat, setShowChat] = useState(true);
+
+  // WebSocket for real-time collaboration
+  const {
+    connected,
+    onlineUsers,
+    cursors,
+    chatMessages,
+    sendCursor,
+    sendChat,
+  } = useWebSocket(sessionId);
 
   const selectedFile = files.find((f) => f.id === selectedFileId) || null;
   const { commentsByLine, addComment, resolveComment } = useComments(selectedFileId);
@@ -68,17 +86,36 @@ export function SessionPage({ sessionId }: SessionPageProps) {
     }
   };
 
+  // Send cursor position when file or line changes
+  const handleLineHover = (lineNumber: number) => {
+    if (selectedFileId) {
+      sendCursor(selectedFileId, lineNumber, 0);
+    }
+  };
+
   return (
     <div className="h-screen bg-background flex flex-col">
-      <SessionHeader session={session} userEmail={user?.email} />
+      <SessionHeader
+        session={session}
+        userEmail={user?.email}
+        connected={connected}
+        onlineCount={onlineUsers.length}
+      />
 
       <div className="flex-1 flex overflow-hidden">
-        <FileTree
-          files={files}
-          selectedFileId={selectedFileId}
-          onFileSelect={setSelectedFileId}
-        />
+        {/* Left Sidebar: Online Users + File Tree */}
+        <aside className="w-64 border-r border-border flex flex-col bg-card">
+          <OnlineUsers users={onlineUsers} connected={connected} />
+          <div className="flex-1 overflow-hidden">
+            <FileTree
+              files={files}
+              selectedFileId={selectedFileId}
+              onFileSelect={setSelectedFileId}
+            />
+          </div>
+        </aside>
 
+        {/* Main Content */}
         <main className="flex-1 flex flex-col overflow-hidden">
           {selectedFile ? (
             <>
@@ -91,7 +128,7 @@ export function SessionPage({ sessionId }: SessionPageProps) {
                 onToggleReviewed={() => markFileReviewed(selectedFile.id, !selectedFile.isReviewed)}
               />
 
-              <div className="flex-1 overflow-auto">
+              <div className="flex-1 overflow-auto relative">
                 {viewMode === 'diff' ? (
                   <div className="flex flex-col h-full">
                     <DiffViewer
@@ -99,6 +136,9 @@ export function SessionPage({ sessionId }: SessionPageProps) {
                       mode={diffMode}
                       comments={commentsMap}
                       onLineClick={(lineNumber) => setActiveCommentLine(lineNumber)}
+                      onLineHover={handleLineHover}
+                      cursors={cursors}
+                      currentUserId={user?.id}
                     />
                     {activeCommentLine !== null && (
                       <InlineCommentPanel
@@ -124,12 +164,57 @@ export function SessionPage({ sessionId }: SessionPageProps) {
             <EmptyFileSelection />
           )}
         </main>
+
+        {/* Right Sidebar: Chat */}
+        {showChat && (
+          <aside className="w-72 border-l border-border flex flex-col bg-card">
+            <div className="flex items-center justify-between px-3 py-2 border-b border-border">
+              <span className="text-sm font-medium">Chat</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowChat(false)}
+              >
+                ×
+              </Button>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <ChatPanel
+                messages={chatMessages}
+                onSend={sendChat}
+                connected={connected}
+              />
+            </div>
+          </aside>
+        )}
+
+        {/* Chat toggle button when hidden */}
+        {!showChat && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="fixed bottom-4 right-4 z-50"
+            onClick={() => setShowChat(true)}
+          >
+            💬 Chat
+          </Button>
+        )}
       </div>
     </div>
   );
 }
 
-function SessionHeader({ session, userEmail }: { session: any; userEmail?: string }) {
+function SessionHeader({
+  session,
+  userEmail,
+  connected,
+  onlineCount,
+}: {
+  session: any;
+  userEmail?: string;
+  connected: boolean;
+  onlineCount: number;
+}) {
   return (
     <header className="border-b border-border bg-card px-4 py-3 flex items-center justify-between shrink-0">
       <div className="flex items-center gap-4">
@@ -140,6 +225,13 @@ function SessionHeader({ session, userEmail }: { session: any; userEmail?: strin
         </Link>
         <h1 className="text-lg font-semibold text-foreground">{session.title}</h1>
         <SessionStatusBadge status={session.status} />
+        {/* Connection status indicator */}
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <div
+            className={`w-2 h-2 rounded-full ${connected ? 'bg-green-500' : 'bg-red-500'}`}
+          />
+          {connected ? `${onlineCount} online` : 'Connecting...'}
+        </div>
       </div>
       <div className="flex items-center gap-4">
         <span className="text-muted-foreground text-sm">{userEmail}</span>

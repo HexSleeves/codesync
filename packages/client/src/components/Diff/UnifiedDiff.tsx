@@ -2,17 +2,32 @@
  * Unified diff view component with syntax highlighting
  */
 
-import type { Comment, DiffHunk, DiffLine } from '@codesync/shared';
+import type { Comment, CursorMessage, DiffHunk, DiffLine } from '@codesync/shared';
 import { highlightLine } from '@/lib/highlight';
 
 export interface UnifiedDiffProps {
   hunks: DiffHunk[];
   comments: Map<number, Comment[]>;
   onLineClick: (lineNumber: number, side?: 'old' | 'new') => void;
+  onLineHover?: (lineNumber: number) => void;
   language: string;
+  cursors?: CursorMessage[];
 }
 
-export function UnifiedDiff({ hunks, comments, onLineClick, language }: UnifiedDiffProps) {
+export function UnifiedDiff({
+  hunks,
+  comments,
+  onLineClick,
+  onLineHover,
+  language,
+  cursors = [],
+}: UnifiedDiffProps) {
+  // Create a map of line numbers to cursors
+  const cursorsByLine = new Map<number, CursorMessage[]>();
+  for (const cursor of cursors) {
+    const existing = cursorsByLine.get(cursor.line) || [];
+    cursorsByLine.set(cursor.line, [...existing, cursor]);
+  }
   return (
     <div className="font-mono text-[13px] leading-5 bg-background text-foreground overflow-x-auto">
       {hunks.map((hunk, hunkIndex) => (
@@ -29,7 +44,9 @@ export function UnifiedDiff({ hunks, comments, onLineClick, language }: UnifiedD
               line={line}
               comments={comments}
               onLineClick={onLineClick}
+              onLineHover={onLineHover}
               language={language}
+              cursors={cursorsByLine.get(line.newLineNumber || line.oldLineNumber || 0)}
             />
           ))}
         </div>
@@ -42,12 +59,16 @@ function UnifiedDiffLine({
   line,
   comments,
   onLineClick,
+  onLineHover,
   language,
+  cursors = [],
 }: {
   line: DiffLine;
   comments: Map<number, Comment[]>;
   onLineClick: (lineNumber: number, side?: 'old' | 'new') => void;
+  onLineHover?: (lineNumber: number) => void;
   language: string;
+  cursors?: CursorMessage[];
 }) {
   const bgColor =
     line.type === 'add' ? 'bg-green-500/10' : line.type === 'remove' ? 'bg-destructive/10' : '';
@@ -67,8 +88,36 @@ function UnifiedDiffLine({
   // Apply syntax highlighting
   const highlightedContent = highlightLine(line.content, language);
 
+  const hasCursors = cursors.length > 0;
+
   return (
-    <div className={`flex group ${bgColor} hover:bg-accent/50`}>
+    <div
+      className={`flex group ${bgColor} hover:bg-accent/50 relative`}
+      onMouseEnter={() => lineNumber && onLineHover?.(lineNumber)}
+    >
+      {/* Remote user cursors */}
+      {hasCursors && (
+        <div className="absolute left-0 top-0 h-full flex items-center pointer-events-none z-10">
+          {cursors.map((cursor) => (
+            <div
+              key={cursor.userId}
+              className="flex items-center"
+              title={cursor.userName}
+            >
+              <div
+                className="w-0.5 h-4 rounded"
+                style={{ backgroundColor: cursor.color }}
+              />
+              <span
+                className="text-[9px] px-1 rounded text-white ml-0.5"
+                style={{ backgroundColor: cursor.color }}
+              >
+                {cursor.userName}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
       {/* Line numbers */}
       <span
         className="inline-block w-12 text-right pr-2 text-muted-foreground select-none cursor-pointer hover:text-primary"

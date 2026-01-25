@@ -3,7 +3,7 @@
  * Supports unified and split view modes with syntax highlighting
  */
 
-import type { Comment, DiffHunk, File } from '@codesync/shared';
+import type { Comment, CursorMessage, DiffHunk, File } from '@codesync/shared';
 import { useMemo } from 'hono/jsx';
 import { createAddedFileHunks, createDeletedFileHunks, createDiffFromStrings } from '@/lib/diff';
 import { getLanguageFromFilename } from '@/lib/highlight';
@@ -15,21 +15,58 @@ interface DiffViewerProps {
   mode: 'unified' | 'split';
   comments: Map<number, Comment[]>;
   onLineClick: (lineNumber: number, side?: 'old' | 'new') => void;
+  onLineHover?: (lineNumber: number) => void;
+  cursors?: Map<string, CursorMessage>;
+  currentUserId?: string;
 }
 
-export function DiffViewer({ file, mode, comments, onLineClick }: DiffViewerProps) {
+export function DiffViewer({
+  file,
+  mode,
+  comments,
+  onLineClick,
+  onLineHover,
+  cursors,
+  currentUserId,
+}: DiffViewerProps) {
   const hunks = useMemo(() => computeHunks(file), [file]);
   const language = useMemo(() => getLanguageFromFilename(file.name || file.path), [file.name, file.path]);
+
+  // Filter cursors for this file
+  const fileCursors = useMemo(() => {
+    if (!cursors) return [];
+    return Array.from(cursors.values()).filter(
+      (c) => c.fileId === file.id && c.userId !== currentUserId
+    );
+  }, [cursors, file.id, currentUserId]);
 
   if (hunks.length === 0 && !file.isAdded && !file.isDeleted) {
     return <NoDiffMessage />;
   }
 
   if (mode === 'split') {
-    return <SplitDiff hunks={hunks} comments={comments} onLineClick={onLineClick} language={language} />;
+    return (
+      <SplitDiff
+        hunks={hunks}
+        comments={comments}
+        onLineClick={onLineClick}
+        onLineHover={onLineHover}
+        language={language}
+        cursors={fileCursors}
+      />
+    );
   }
 
-  return <UnifiedDiff hunks={hunks} comments={comments} onLineClick={onLineClick} language={language} />;
+  return (
+    <UnifiedDiff
+      hunks={hunks}
+      comments={comments}
+      onLineClick={onLineClick}
+      onLineHover={onLineHover}
+      language={language}
+      cursors={fileCursors}
+    />
+  );
 }
 
 function computeHunks(file: File): DiffHunk[] {

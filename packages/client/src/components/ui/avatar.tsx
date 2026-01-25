@@ -28,15 +28,17 @@ export function AvatarImage({ src, alt, className }: AvatarImageProps) {
 export interface AvatarFallbackProps {
   className?: string;
   children?: Child;
+  style?: Record<string, string>;
 }
 
-export function AvatarFallback({ className, children }: AvatarFallbackProps) {
+export function AvatarFallback({ className, children, style }: AvatarFallbackProps) {
   return (
     <div
       className={cn(
         'flex h-full w-full items-center justify-center rounded-full bg-muted text-sm font-medium',
         className
       )}
+      style={style}
     >
       {children}
     </div>

@@ -2,7 +2,7 @@
  * Split (side-by-side) diff view component with syntax highlighting
  */
 
-import type { Comment, DiffHunk, DiffLine } from '@codesync/shared';
+import type { Comment, CursorMessage, DiffHunk, DiffLine } from '@codesync/shared';
 import { useMemo } from 'hono/jsx';
 import { highlightLine } from '@/lib/highlight';
 
@@ -14,10 +14,28 @@ export interface SplitDiffProps {
   hunks: DiffHunk[];
   comments: Map<number, Comment[]>;
   onLineClick: (lineNumber: number, side?: 'old' | 'new') => void;
+  onLineHover?: (lineNumber: number) => void;
   language: string;
+  cursors?: CursorMessage[];
 }
 
-export function SplitDiff({ hunks, comments, onLineClick, language }: SplitDiffProps) {
+export function SplitDiff({
+  hunks,
+  comments,
+  onLineClick,
+  onLineHover,
+  language,
+  cursors = [],
+}: SplitDiffProps) {
+  // Create a map of line numbers to cursors
+  const cursorsByLine = useMemo(() => {
+    const map = new Map<number, CursorMessage[]>();
+    for (const cursor of cursors) {
+      const existing = map.get(cursor.line) || [];
+      map.set(cursor.line, [...existing, cursor]);
+    }
+    return map;
+  }, [cursors]);
   // Build paired lines for side-by-side view
   const pairedLines = useMemo(() => {
     const pairs: Array<{ left: DiffLineWithHeader | null; right: DiffLineWithHeader | null }> = [];
@@ -78,7 +96,9 @@ export function SplitDiff({ hunks, comments, onLineClick, language }: SplitDiffP
                 side="old"
                 comments={comments}
                 onLineClick={onLineClick}
+                onLineHover={onLineHover}
                 language={language}
+                cursors={pair.left?.oldLineNumber ? cursorsByLine.get(pair.left.oldLineNumber) : undefined}
               />
             </div>
             {/* Right side (new) */}
@@ -88,7 +108,9 @@ export function SplitDiff({ hunks, comments, onLineClick, language }: SplitDiffP
                 side="new"
                 comments={comments}
                 onLineClick={onLineClick}
+                onLineHover={onLineHover}
                 language={language}
+                cursors={pair.right?.newLineNumber ? cursorsByLine.get(pair.right.newLineNumber) : undefined}
               />
             </div>
           </div>
@@ -103,13 +125,17 @@ function SplitDiffLine({
   side,
   comments,
   onLineClick,
+  onLineHover,
   language,
+  cursors = [],
 }: {
   line: DiffLineWithHeader | null;
   side: 'old' | 'new';
   comments: Map<number, Comment[]>;
   onLineClick: (lineNumber: number, side?: 'old' | 'new') => void;
+  onLineHover?: (lineNumber: number) => void;
   language: string;
+  cursors?: CursorMessage[];
 }) {
   if (!line) {
     return <div className="flex h-5 bg-muted/50" />;
@@ -132,8 +158,29 @@ function SplitDiffLine({
   // Apply syntax highlighting
   const highlightedContent = highlightLine(line.content, language);
 
+  const hasCursors = cursors.length > 0;
+
   return (
-    <div className={`flex group ${bgColor} hover:bg-accent/50`}>
+    <div
+      className={`flex group ${bgColor} hover:bg-accent/50 relative`}
+      onMouseEnter={() => lineNumber && onLineHover?.(lineNumber)}
+    >
+      {/* Remote user cursors */}
+      {hasCursors && (
+        <div className="absolute left-0 top-0 h-full flex items-center pointer-events-none z-10">
+          {cursors.map((cursor) => (
+            <div key={cursor.userId} className="flex items-center" title={cursor.userName}>
+              <div className="w-0.5 h-4 rounded" style={{ backgroundColor: cursor.color }} />
+              <span
+                className="text-[9px] px-1 rounded text-white ml-0.5"
+                style={{ backgroundColor: cursor.color }}
+              >
+                {cursor.userName}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
       {/* Line number */}
       <span
         className="inline-block w-12 text-right pr-2 text-muted-foreground select-none cursor-pointer hover:text-primary relative shrink-0"

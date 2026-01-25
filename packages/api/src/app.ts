@@ -15,7 +15,7 @@ import { commentRoutes } from './routes/comments';
 import { fileRoutes } from './routes/files';
 import { githubRoutes } from './routes/github/index';
 import { sessionRoutes } from './routes/sessions';
-import { cursorWS } from './ws/cursors';
+// WebSocket handling is done in index.ts via Bun.serve()
 
 const app = new Hono()
   // Global middleware
@@ -40,9 +40,6 @@ const app = new Hono()
   .route('/api', commentRoutes)
   .route('/api', chatRoutes)
   .route('/api/github', githubRoutes)
-
-  // WebSocket routes
-  .route('/', cursorWS)
 
   // 404 handler
   .notFound((c) => c.json({ error: 'Not found' }, 404))
