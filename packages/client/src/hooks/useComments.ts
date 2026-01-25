@@ -2,9 +2,9 @@
  * Comments hook - manages file comments
  */
 
-import { useState, useEffect, useCallback } from 'hono/jsx';
-import { apiCall } from '../api/client';
 import type { Comment } from '@codesync/shared';
+import { useCallback, useEffect, useState } from 'hono/jsx';
+import { apiCall } from '../api/client';
 
 export function useComments(fileId: string | null) {
   const [comments, setComments] = useState<Comment[]>([]);
@@ -37,12 +37,12 @@ export function useComments(fileId: string | null) {
   const addComment = async (text: string, lineNumber?: number, parentId?: string) => {
     if (!fileId) return;
     try {
-      const { comment } = await apiCall<{ comment: Comment }>(
-        'POST',
-        `/files/${fileId}/comments`,
-        { text, lineNumber, parentId }
-      );
-      setComments(c => [...c, comment]);
+      const { comment } = await apiCall<{ comment: Comment }>('POST', `/files/${fileId}/comments`, {
+        text,
+        lineNumber,
+        parentId,
+      });
+      setComments((c) => [...c, comment]);
       return comment;
     } catch (err) {
       console.error('Failed to add comment:', err);
@@ -51,12 +51,9 @@ export function useComments(fileId: string | null) {
 
   const resolveComment = async (commentId: string, resolved: boolean) => {
     try {
-      await apiCall(
-        resolved ? 'POST' : 'DELETE',
-        `/comments/${commentId}/resolve`
-      );
-      setComments(c =>
-        c.map(comment =>
+      await apiCall(resolved ? 'POST' : 'DELETE', `/comments/${commentId}/resolve`);
+      setComments((c) =>
+        c.map((comment) =>
           comment.id === commentId || comment.threadId === commentId
             ? { ...comment, isResolved: resolved }
             : comment
@@ -70,19 +67,22 @@ export function useComments(fileId: string | null) {
   const deleteComment = async (commentId: string) => {
     try {
       await apiCall('DELETE', `/comments/${commentId}`);
-      setComments(c => c.filter(comment => comment.id !== commentId));
+      setComments((c) => c.filter((comment) => comment.id !== commentId));
     } catch (err) {
       console.error('Failed to delete comment:', err);
     }
   };
 
   // Group comments by line number
-  const commentsByLine = comments.reduce((acc, comment) => {
-    const line = comment.lineNumber ?? 0;
-    if (!acc[line]) acc[line] = [];
-    acc[line].push(comment);
-    return acc;
-  }, {} as Record<number, Comment[]>);
+  const commentsByLine = comments.reduce(
+    (acc, comment) => {
+      const line = comment.lineNumber ?? 0;
+      if (!acc[line]) acc[line] = [];
+      acc[line].push(comment);
+      return acc;
+    },
+    {} as Record<number, Comment[]>
+  );
 
   return {
     comments,

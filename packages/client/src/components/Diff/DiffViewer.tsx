@@ -3,10 +3,10 @@
  * Supports unified and split view modes
  */
 
+import type { Comment, DiffHunk, DiffLine, File } from '@codesync/shared';
 import { useMemo } from 'hono/jsx';
-import type { File, DiffHunk, DiffLine, Comment } from '@codesync/shared';
-import { UnifiedDiff } from './UnifiedDiff';
 import { SplitDiff } from './SplitDiff';
+import { UnifiedDiff } from './UnifiedDiff';
 
 interface DiffViewerProps {
   file: File;
@@ -161,14 +161,16 @@ function createDiffFromStrings(oldStr: string, newStr: string): DiffHunk[] {
 
     // Close hunk after enough context
     if (currentHunk && contextBuffer.length === 0) {
-      const lastNonContext = [...currentHunk.lines].reverse().findIndex(l => l.type !== 'context');
+      const lastNonContext = [...currentHunk.lines]
+        .reverse()
+        .findIndex((l) => l.type !== 'context');
       if (lastNonContext >= contextLines) {
         // Finalize hunk
         const hunkOldEnd = currentHunk.lines.filter(
-          l => l.type === 'context' || l.type === 'remove'
+          (l) => l.type === 'context' || l.type === 'remove'
         ).length;
         const hunkNewEnd = currentHunk.lines.filter(
-          l => l.type === 'context' || l.type === 'add'
+          (l) => l.type === 'context' || l.type === 'add'
         ).length;
         currentHunk.oldLines = hunkOldEnd;
         currentHunk.newLines = hunkNewEnd;
@@ -181,10 +183,10 @@ function createDiffFromStrings(oldStr: string, newStr: string): DiffHunk[] {
   // Finalize any remaining hunk
   if (currentHunk) {
     currentHunk.oldLines = currentHunk.lines.filter(
-      l => l.type === 'context' || l.type === 'remove'
+      (l) => l.type === 'context' || l.type === 'remove'
     ).length;
     currentHunk.newLines = currentHunk.lines.filter(
-      l => l.type === 'context' || l.type === 'add'
+      (l) => l.type === 'context' || l.type === 'add'
     ).length;
     hunks.push(currentHunk);
   }

@@ -2,13 +2,13 @@
  * Authentication middleware using JWT
  */
 
+import type { User } from '@codesync/shared';
+import { eq } from 'drizzle-orm';
 import { createMiddleware } from 'hono/factory';
-import { sign, verify } from 'hono/jwt';
 import { HTTPException } from 'hono/http-exception';
+import { sign, verify } from 'hono/jwt';
 import { db } from '../db/client';
 import { users } from '../db/schema';
-import { eq } from 'drizzle-orm';
-import type { User } from '@codesync/shared';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
@@ -31,7 +31,11 @@ export const authMiddleware = createMiddleware<{ Variables: AuthVariables }>(asy
   // Check for JWT in Authorization header or cookie
   const authHeader = c.req.header('Authorization');
   const cookies = c.req.header('Cookie') || '';
-  const cookieToken = cookies.split(';').map(c => c.trim()).find(c => c.startsWith('token='))?.split('=')[1];
+  const cookieToken = cookies
+    .split(';')
+    .map((c) => c.trim())
+    .find((c) => c.startsWith('token='))
+    ?.split('=')[1];
 
   const token = authHeader?.replace('Bearer ', '') || cookieToken;
 
@@ -41,7 +45,7 @@ export const authMiddleware = createMiddleware<{ Variables: AuthVariables }>(asy
 
   try {
     // Verify JWT using hono/jwt
-    const payload = await verify(token, JWT_SECRET, 'HS256') as JWTPayload;
+    const payload = (await verify(token, JWT_SECRET, 'HS256')) as JWTPayload;
 
     if (!payload || !payload.sub) {
       throw new HTTPException(401, { message: 'Unauthorized - invalid token' });
@@ -53,7 +57,7 @@ export const authMiddleware = createMiddleware<{ Variables: AuthVariables }>(asy
       .from(users)
       .where(eq(users.id, payload.sub))
       .limit(1)
-      .then(rows => rows[0]);
+      .then((rows) => rows[0]);
 
     if (!user) {
       throw new HTTPException(401, { message: 'Unauthorized - user not found' });
@@ -83,44 +87,50 @@ export const authMiddleware = createMiddleware<{ Variables: AuthVariables }>(asy
  * Optional auth middleware - doesn't throw if no token
  * Useful for routes that work for both authenticated and anonymous users
  */
-export const optionalAuthMiddleware = createMiddleware<{ Variables: Partial<AuthVariables> }>(async (c, next) => {
-  const authHeader = c.req.header('Authorization');
-  const cookies = c.req.header('Cookie') || '';
-  const cookieToken = cookies.split(';').map(cookie => cookie.trim()).find(cookie => cookie.startsWith('token='))?.split('=')[1];
+export const optionalAuthMiddleware = createMiddleware<{ Variables: Partial<AuthVariables> }>(
+  async (c, next) => {
+    const authHeader = c.req.header('Authorization');
+    const cookies = c.req.header('Cookie') || '';
+    const cookieToken = cookies
+      .split(';')
+      .map((cookie) => cookie.trim())
+      .find((cookie) => cookie.startsWith('token='))
+      ?.split('=')[1];
 
-  const token = authHeader?.replace('Bearer ', '') || cookieToken;
+    const token = authHeader?.replace('Bearer ', '') || cookieToken;
 
-  if (token) {
-    try {
-      const payload = await verify(token, JWT_SECRET, 'HS256') as JWTPayload;
+    if (token) {
+      try {
+        const payload = (await verify(token, JWT_SECRET, 'HS256')) as JWTPayload;
 
-      if (payload?.sub) {
-        const user = await db
-          .select()
-          .from(users)
-          .where(eq(users.id, payload.sub))
-          .limit(1)
-          .then(rows => rows[0]);
+        if (payload?.sub) {
+          const user = await db
+            .select()
+            .from(users)
+            .where(eq(users.id, payload.sub))
+            .limit(1)
+            .then((rows) => rows[0]);
 
-        if (user) {
-          c.set('userId', user.id);
-          c.set('user', {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            githubId: user.githubId,
-            githubUsername: user.githubUsername,
-            createdAt: user.createdAt,
-          });
+          if (user) {
+            c.set('userId', user.id);
+            c.set('user', {
+              id: user.id,
+              email: user.email,
+              name: user.name,
+              githubId: user.githubId,
+              githubUsername: user.githubUsername,
+              createdAt: user.createdAt,
+            });
+          }
         }
+      } catch {
+        // Ignore auth errors for optional auth
       }
-    } catch {
-      // Ignore auth errors for optional auth
     }
-  }
 
-  await next();
-});
+    await next();
+  }
+);
 
 /**
  * Generate JWT token for user

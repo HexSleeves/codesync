@@ -2,7 +2,7 @@
  * Unified diff view component
  */
 
-import type { DiffHunk, DiffLine, Comment } from '@codesync/shared';
+import type { Comment, DiffHunk, DiffLine } from '@codesync/shared';
 
 export interface UnifiedDiffProps {
   hunks: DiffHunk[];

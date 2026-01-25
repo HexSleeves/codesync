@@ -2,13 +2,13 @@
  * Session page - the main code review interface
  */
 
-import { useState, useEffect, useMemo } from 'hono/jsx';
-import { navigate, Link } from '../router';
-import { useAuth } from '../hooks/useAuth';
-import { useSession } from '../hooks/useSession';
-import { useComments } from '../hooks/useComments';
+import type { Comment, File } from '@codesync/shared';
+import { useEffect, useMemo, useState } from 'hono/jsx';
 import { DiffViewer } from '../components/Diff';
-import type { File, Comment } from '@codesync/shared';
+import { useAuth } from '../hooks/useAuth';
+import { useComments } from '../hooks/useComments';
+import { useSession } from '../hooks/useSession';
+import { Link } from '../router';
 
 interface SessionPageProps {
   sessionId: string;
@@ -23,7 +23,7 @@ export function SessionPage({ sessionId }: SessionPageProps) {
   const [activeCommentLine, setActiveCommentLine] = useState<number | null>(null);
 
   const selectedFile = files.find((f) => f.id === selectedFileId) || null;
-  const { comments, commentsByLine, addComment, resolveComment } = useComments(selectedFileId);
+  const { commentsByLine, addComment, resolveComment } = useComments(selectedFileId);
 
   // Convert commentsByLine to Map for DiffViewer
   const commentsMap = useMemo(() => {
@@ -83,8 +83,8 @@ export function SessionPage({ sessionId }: SessionPageProps) {
               session.status === 'approved'
                 ? 'bg-green-600'
                 : session.status === 'in_review'
-                ? 'bg-yellow-600'
-                : 'bg-gray-600'
+                  ? 'bg-yellow-600'
+                  : 'bg-gray-600'
             } text-white`}
           >
             {session.status.replace('_', ' ')}
@@ -121,9 +121,7 @@ export function SessionPage({ sessionId }: SessionPageProps) {
               {/* File header */}
               <div className="border-b border-gray-700 bg-gray-800 px-4 py-2 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-3">
-                  <span className="font-mono text-sm text-gray-300">
-                    {selectedFile.path}
-                  </span>
+                  <span className="font-mono text-sm text-gray-300">{selectedFile.path}</span>
                   {selectedFile.isReviewed && (
                     <span className="px-2 py-0.5 bg-green-900/50 text-green-400 rounded text-xs">
                       ✓ Reviewed
@@ -143,7 +141,9 @@ export function SessionPage({ sessionId }: SessionPageProps) {
                   </button>
                   <select
                     value={viewMode}
-                    onChange={(e) => setViewMode((e.target as HTMLSelectElement).value as 'code' | 'diff')}
+                    onChange={(e) =>
+                      setViewMode((e.target as HTMLSelectElement).value as 'code' | 'diff')
+                    }
                     className="px-3 py-1 bg-gray-700 border border-gray-600 rounded text-sm text-white"
                   >
                     <option value="diff">Diff View</option>
@@ -152,7 +152,9 @@ export function SessionPage({ sessionId }: SessionPageProps) {
                   {viewMode === 'diff' && (
                     <select
                       value={diffMode}
-                      onChange={(e) => setDiffMode((e.target as HTMLSelectElement).value as 'unified' | 'split')}
+                      onChange={(e) =>
+                        setDiffMode((e.target as HTMLSelectElement).value as 'unified' | 'split')
+                      }
                       className="px-3 py-1 bg-gray-700 border border-gray-600 rounded text-sm text-white"
                     >
                       <option value="unified">Unified</option>
@@ -170,7 +172,7 @@ export function SessionPage({ sessionId }: SessionPageProps) {
                       file={selectedFile}
                       mode={diffMode}
                       comments={commentsMap}
-                      onLineClick={(lineNumber, side) => {
+                      onLineClick={(lineNumber, _side) => {
                         setActiveCommentLine(lineNumber);
                       }}
                     />
@@ -238,9 +240,7 @@ function FileTreeItem({
     >
       <span className="text-xs font-mono w-4">{getStatusIcon()}</span>
       <span className="truncate text-sm">{file.name}</span>
-      {file.isReviewed && (
-        <span className="ml-auto text-green-400 text-xs">✓</span>
-      )}
+      {file.isReviewed && <span className="ml-auto text-green-400 text-xs">✓</span>}
     </button>
   );
 }
@@ -261,9 +261,8 @@ function CodeViewer({
   const [activeCommentLine, setActiveCommentLine] = useState<number | null>(null);
   const [commentText, setCommentText] = useState('');
 
-  const content = viewMode === 'diff' && file.originalContent
-    ? file.content || ''
-    : file.content || '';
+  const content =
+    viewMode === 'diff' && file.originalContent ? file.content || '' : file.content || '';
 
   const lines = content.split('\n');
 
@@ -285,10 +284,7 @@ function CodeViewer({
 
             return (
               <>
-                <tr
-                  key={`line-${lineNumber}`}
-                  className="hover:bg-gray-800 group"
-                >
+                <tr key={`line-${lineNumber}`} className="hover:bg-gray-800 group">
                   <td className="w-12 px-2 py-0 text-right text-gray-500 select-none border-r border-gray-700 sticky left-0 bg-gray-900">
                     {lineNumber}
                   </td>
@@ -300,13 +296,9 @@ function CodeViewer({
                       +
                     </button>
                   </td>
-                  <td className="px-4 py-0 whitespace-pre">
-                    {line || ' '}
-                  </td>
+                  <td className="px-4 py-0 whitespace-pre">{line || ' '}</td>
                   <td className="w-8 px-1">
-                    {hasComments && (
-                      <span className="text-blue-400">💬 {lineComments.length}</span>
-                    )}
+                    {hasComments && <span className="text-blue-400">💬 {lineComments.length}</span>}
                   </td>
                 </tr>
 
@@ -354,7 +346,6 @@ function CodeViewer({
                           className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-sm resize-none"
                           placeholder="Add a comment..."
                           rows={3}
-                          autoFocus
                         />
                         <div className="flex justify-end gap-2 mt-2">
                           <button
@@ -417,10 +408,7 @@ function InlineCommentForm({
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center justify-between mb-3">
           <span className="text-sm text-gray-400">Comment on line {lineNumber}</span>
-          <button
-            onClick={onCancel}
-            className="text-gray-500 hover:text-white text-sm"
-          >
+          <button onClick={onCancel} className="text-gray-500 hover:text-white text-sm">
             ✕ Close
           </button>
         </div>
@@ -434,9 +422,7 @@ function InlineCommentForm({
                 className={`p-2 rounded ${comment.isResolved ? 'bg-gray-700/50' : 'bg-gray-700'}`}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-gray-400">
-                    {comment.author?.name || 'Unknown'}
-                  </span>
+                  <span className="text-xs text-gray-400">{comment.author?.name || 'Unknown'}</span>
                   <button
                     onClick={() => onResolveComment(comment.id, !comment.isResolved)}
                     className="text-xs text-blue-400 hover:text-blue-300"
@@ -459,7 +445,6 @@ function InlineCommentForm({
             onInput={(e) => setText((e.target as HTMLInputElement).value)}
             className="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded text-white"
             placeholder="Add a comment..."
-            autoFocus
           />
           <button
             type="submit"

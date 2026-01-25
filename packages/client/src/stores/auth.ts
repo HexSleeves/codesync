@@ -2,8 +2,8 @@
  * Global auth store - singleton pattern for auth state
  */
 
-import { apiCall, getToken, setToken, clearToken } from '../api/client';
 import type { User } from '@codesync/shared';
+import { apiCall, clearToken, getToken, setToken } from '../api/client';
 
 type Listener = () => void;
 
@@ -33,7 +33,7 @@ class AuthStore {
   }
 
   private notify() {
-    this.listeners.forEach(listener => listener());
+    this.listeners.forEach((listener) => listener());
   }
 
   private setState(partial: Partial<AuthState>) {
@@ -63,11 +63,10 @@ class AuthStore {
   async login(email: string, password: string) {
     this.setState({ error: null });
     try {
-      const { user, token } = await apiCall<{ user: User; token: string }>(
-        'POST',
-        '/auth/login',
-        { email, password }
-      );
+      const { user, token } = await apiCall<{ user: User; token: string }>('POST', '/auth/login', {
+        email,
+        password,
+      });
       setToken(token);
       this.setState({ user, loading: false, error: null });
       return { success: true };

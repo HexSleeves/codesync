@@ -2,7 +2,7 @@
  * Client-side router for Hono JSX-DOM SPA
  */
 
-import { useState, useEffect } from 'hono/jsx';
+import { useEffect, useState } from 'hono/jsx';
 
 // Global navigation event
 const NAVIGATE_EVENT = 'app:navigate';
@@ -55,7 +55,12 @@ export function navigate(to: string) {
   window.dispatchEvent(new CustomEvent(NAVIGATE_EVENT));
 }
 
-export function Link({ href, children, className, class: cls }: {
+export function Link({
+  href,
+  children,
+  className,
+  class: cls,
+}: {
   href: string;
   children: any;
   className?: string;

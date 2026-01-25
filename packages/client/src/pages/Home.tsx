@@ -2,8 +2,8 @@
  * Home/Landing page
  */
 
-import { Link } from '../router';
 import { useAuth } from '../hooks/useAuth';
+import { Link } from '../router';
 
 export function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -45,12 +45,10 @@ export function HomePage() {
       {/* Hero */}
       <main className="max-w-6xl mx-auto px-4 py-20">
         <div className="text-center">
-          <h2 className="text-5xl font-bold text-white mb-6">
-            Collaborative Code Review
-          </h2>
+          <h2 className="text-5xl font-bold text-white mb-6">Collaborative Code Review</h2>
           <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
-            Review code together in real-time. Import GitHub PRs, add comments,
-            track changes, and collaborate with your team.
+            Review code together in real-time. Import GitHub PRs, add comments, track changes, and
+            collaborate with your team.
           </p>
           <div className="flex gap-4 justify-center">
             <Link
@@ -85,7 +83,11 @@ export function HomePage() {
   );
 }
 
-function FeatureCard({ title, description, icon }: {
+function FeatureCard({
+  title,
+  description,
+  icon,
+}: {
   title: string;
   description: string;
   icon: string;

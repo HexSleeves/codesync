@@ -2,14 +2,14 @@
  * Auth routes - login, register, logout, me
  */
 
-import { Hono } from 'hono';
+import { loginSchema, registerSchema } from '@codesync/shared';
 import { zValidator } from '@hono/zod-validator';
-import { setCookie, deleteCookie } from 'hono/cookie';
+import { eq } from 'drizzle-orm';
+import { Hono } from 'hono';
+import { deleteCookie, setCookie } from 'hono/cookie';
 import { db } from '../db/client';
 import { users } from '../db/schema';
-import { eq } from 'drizzle-orm';
-import { loginSchema, registerSchema } from '@codesync/shared';
-import { authMiddleware, generateToken, type AuthVariables } from '../middleware/auth';
+import { type AuthVariables, authMiddleware, generateToken } from '../middleware/auth';
 
 export const authRoutes = new Hono<{ Variables: AuthVariables }>()
   // POST /api/auth/login
@@ -22,7 +22,7 @@ export const authRoutes = new Hono<{ Variables: AuthVariables }>()
       .from(users)
       .where(eq(users.email, email))
       .limit(1)
-      .then(rows => rows[0]);
+      .then((rows) => rows[0]);
 
     if (!user) {
       return c.json({ error: 'Invalid email or password' }, 401);
@@ -66,7 +66,7 @@ export const authRoutes = new Hono<{ Variables: AuthVariables }>()
       .from(users)
       .where(eq(users.email, email))
       .limit(1)
-      .then(rows => rows[0]);
+      .then((rows) => rows[0]);
 
     if (existingUser) {
       return c.json({ error: 'Email already registered' }, 400);
@@ -127,5 +127,5 @@ async function hashPassword(password: string): Promise<string> {
   const data = encoder.encode(password + process.env.PASSWORD_SALT || 'salt');
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
 }

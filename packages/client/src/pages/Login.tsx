@@ -3,8 +3,8 @@
  */
 
 import { useState } from 'hono/jsx';
-import { navigate, Link } from '../router';
 import { useAuth } from '../hooks/useAuth';
+import { Link, navigate } from '../router';
 
 export function LoginPage() {
   const { login, register, error } = useAuth();
@@ -53,9 +53,7 @@ export function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {isRegister && (
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Name
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Name</label>
                 <input
                   type="text"
                   value={name}
@@ -68,9 +66,7 @@ export function LoginPage() {
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
-                Email
-              </label>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Email</label>
               <input
                 type="email"
                 value={email}
@@ -82,9 +78,7 @@ export function LoginPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
-                Password
-              </label>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Password</label>
               <input
                 type="password"
                 value={password}
@@ -110,9 +104,7 @@ export function LoginPage() {
               onClick={() => setIsRegister(!isRegister)}
               className="text-blue-400 hover:text-blue-300 text-sm"
             >
-              {isRegister
-                ? 'Already have an account? Sign in'
-                : "Don't have an account? Register"}
+              {isRegister ? 'Already have an account? Sign in' : "Don't have an account? Register"}
             </button>
           </div>
         </div>

@@ -9,11 +9,11 @@ import { prettyJSON } from 'hono/pretty-json';
 import { secureHeaders } from 'hono/secure-headers';
 
 import { authRoutes } from './routes/auth';
-import { sessionRoutes } from './routes/sessions';
-import { fileRoutes } from './routes/files';
-import { commentRoutes } from './routes/comments';
 import { chatRoutes } from './routes/chat';
+import { commentRoutes } from './routes/comments';
+import { fileRoutes } from './routes/files';
 import { githubRoutes } from './routes/github';
+import { sessionRoutes } from './routes/sessions';
 import { cursorWS } from './ws/cursors';
 
 const app = new Hono()

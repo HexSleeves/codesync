@@ -6,7 +6,7 @@
 import app from './app';
 import { cursorWebSocketHandlers } from './ws/cursors';
 
-const PORT = Number.parseInt(process.env.PORT || '8000');
+const PORT = Number.parseInt(process.env.PORT || '8000', 10);
 
 console.log(`\n🚀 CodeSync API starting...`);
 console.log(`   Environment: ${process.env.NODE_ENV || 'development'}`);

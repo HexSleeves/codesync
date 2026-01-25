@@ -3,23 +3,23 @@
  * Handles GitHub OAuth, PR import and validation
  */
 
-import { Hono } from 'hono';
+import { importPRSchema, validatePRUrlSchema } from '@codesync/shared';
 import { zValidator } from '@hono/zod-validator';
-import { setCookie, getCookie } from 'hono/cookie';
 import { Octokit } from '@octokit/rest';
-import { nanoid } from 'nanoid';
 import { eq } from 'drizzle-orm';
-import { z } from 'zod';
-import { importPRSchema, validatePRUrlSchema, type DiffHunk, type DiffLine } from '@codesync/shared';
-import { authMiddleware, generateToken, type AuthVariables } from '../middleware/auth';
+import { Hono } from 'hono';
+import { getCookie, setCookie } from 'hono/cookie';
+import { nanoid } from 'nanoid';
 import { db } from '../db/client';
-import { users, sessions, files, sessionParticipants } from '../db/schema';
-import { parseGitHubPRUrl, parsePatch, type GitHubPRInfo } from '../utils/github-parser';
+import { files, sessionParticipants, sessions, users } from '../db/schema';
+import { type AuthVariables, authMiddleware } from '../middleware/auth';
+import { parseGitHubPRUrl, parsePatch } from '../utils/github-parser';
 
 // GitHub OAuth configuration
 const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID || '';
 const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET || '';
-const GITHUB_REDIRECT_URI = process.env.GITHUB_REDIRECT_URI || 'http://localhost:8001/api/github/callback';
+const GITHUB_REDIRECT_URI =
+  process.env.GITHUB_REDIRECT_URI || 'http://localhost:8001/api/github/callback';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
 // Language detection map
@@ -90,12 +90,7 @@ async function getGitHubToken(userId: string): Promise<string | null> {
 /**
  * Fetch PR details from GitHub
  */
-async function fetchPRDetails(
-  octokit: Octokit,
-  owner: string,
-  repo: string,
-  prNumber: number
-) {
+async function fetchPRDetails(octokit: Octokit, owner: string, repo: string, prNumber: number) {
   const { data } = await octokit.pulls.get({
     owner,
     repo,
@@ -259,7 +254,8 @@ async function processPRFile(
       language,
       isDeleted: prFile.status === 'removed',
       isAdded: prFile.status === 'added',
-      isModified: prFile.status === 'modified' || prFile.status === 'changed' || prFile.status === 'renamed',
+      isModified:
+        prFile.status === 'modified' || prFile.status === 'changed' || prFile.status === 'renamed',
       isReviewed: false,
       hunks,
     });
@@ -285,10 +281,10 @@ export const githubRoutes = new Hono<{ Variables: AuthVariables }>()
     }
 
     const userId = c.get('userId');
-    
+
     // Generate state parameter for CSRF protection
     const state = nanoid(32);
-    
+
     // Store state in cookie for verification
     setCookie(c, 'github_oauth_state', state, {
       httpOnly: true,
@@ -315,7 +311,7 @@ export const githubRoutes = new Hono<{ Variables: AuthVariables }>()
     });
 
     const authUrl = `https://github.com/login/oauth/authorize?${params}`;
-    
+
     return c.redirect(authUrl);
   })
 
@@ -332,7 +328,9 @@ export const githubRoutes = new Hono<{ Variables: AuthVariables }>()
     // Check for OAuth errors
     if (error) {
       console.error('GitHub OAuth error:', error, errorDescription);
-      return c.redirect(`${FRONTEND_URL}/dashboard?github_error=${encodeURIComponent(errorDescription || error)}`);
+      return c.redirect(
+        `${FRONTEND_URL}/dashboard?github_error=${encodeURIComponent(errorDescription || error)}`
+      );
     }
 
     if (!code || !state) {
@@ -356,7 +354,7 @@ export const githubRoutes = new Hono<{ Variables: AuthVariables }>()
       const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
         method: 'POST',
         headers: {
-          'Accept': 'application/json',
+          Accept: 'application/json',
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -367,7 +365,7 @@ export const githubRoutes = new Hono<{ Variables: AuthVariables }>()
         }),
       });
 
-      const tokenData = await tokenResponse.json() as {
+      const tokenData = (await tokenResponse.json()) as {
         access_token?: string;
         error?: string;
         error_description?: string;
@@ -375,7 +373,9 @@ export const githubRoutes = new Hono<{ Variables: AuthVariables }>()
 
       if (tokenData.error || !tokenData.access_token) {
         console.error('GitHub token exchange error:', tokenData.error);
-        return c.redirect(`${FRONTEND_URL}/dashboard?github_error=${encodeURIComponent(tokenData.error_description || tokenData.error || 'token_error')}`);
+        return c.redirect(
+          `${FRONTEND_URL}/dashboard?github_error=${encodeURIComponent(tokenData.error_description || tokenData.error || 'token_error')}`
+        );
       }
 
       const accessToken = tokenData.access_token;

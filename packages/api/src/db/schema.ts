@@ -3,13 +3,15 @@
  * PostgreSQL tables for CodeSync
  */
 
-import { pgTable, text, timestamp, boolean, integer, jsonb } from 'drizzle-orm/pg-core';
+import type { DiffHunk, SessionSettings, SessionSource } from '@codesync/shared';
 import { relations } from 'drizzle-orm';
+import { boolean, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 import { nanoid } from 'nanoid';
-import type { SessionSource, SessionSettings, DiffHunk } from '@codesync/shared';
 
 export const users = pgTable('users', {
-  id: text('id').primaryKey().$defaultFn(() => nanoid()),
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => nanoid()),
   email: text('email').unique().notNull(),
   passwordHash: text('password_hash'),
   name: text('name'),
@@ -20,13 +22,20 @@ export const users = pgTable('users', {
 });
 
 export const sessions = pgTable('sessions', {
-  id: text('id').primaryKey().$defaultFn(() => nanoid()),
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => nanoid()),
   title: text('title').notNull(),
   description: text('description'),
-  createdBy: text('created_by').references(() => users.id).notNull(),
+  createdBy: text('created_by')
+    .references(() => users.id)
+    .notNull(),
   isPublic: boolean('is_public').default(false).notNull(),
   shareToken: text('share_token'),
-  status: text('status').$type<'draft' | 'in_review' | 'approved' | 'merged'>().default('draft').notNull(),
+  status: text('status')
+    .$type<'draft' | 'in_review' | 'approved' | 'merged'>()
+    .default('draft')
+    .notNull(),
   source: jsonb('source').$type<SessionSource>(),
   settings: jsonb('settings').$type<SessionSettings>(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -34,8 +43,12 @@ export const sessions = pgTable('sessions', {
 });
 
 export const files = pgTable('files', {
-  id: text('id').primaryKey().$defaultFn(() => nanoid()),
-  sessionId: text('session_id').references(() => sessions.id, { onDelete: 'cascade' }).notNull(),
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => nanoid()),
+  sessionId: text('session_id')
+    .references(() => sessions.id, { onDelete: 'cascade' })
+    .notNull(),
   path: text('path').notNull(),
   name: text('name').notNull(),
   content: text('content'),
@@ -50,10 +63,18 @@ export const files = pgTable('files', {
 });
 
 export const comments = pgTable('comments', {
-  id: text('id').primaryKey().$defaultFn(() => nanoid()),
-  sessionId: text('session_id').references(() => sessions.id, { onDelete: 'cascade' }).notNull(),
-  fileId: text('file_id').references(() => files.id, { onDelete: 'cascade' }).notNull(),
-  authorId: text('author_id').references(() => users.id).notNull(),
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => nanoid()),
+  sessionId: text('session_id')
+    .references(() => sessions.id, { onDelete: 'cascade' })
+    .notNull(),
+  fileId: text('file_id')
+    .references(() => files.id, { onDelete: 'cascade' })
+    .notNull(),
+  authorId: text('author_id')
+    .references(() => users.id)
+    .notNull(),
   lineNumber: integer('line_number'),
   text: text('text').notNull(),
   parentId: text('parent_id'),
@@ -63,17 +84,29 @@ export const comments = pgTable('comments', {
 });
 
 export const chatMessages = pgTable('chat_messages', {
-  id: text('id').primaryKey().$defaultFn(() => nanoid()),
-  sessionId: text('session_id').references(() => sessions.id, { onDelete: 'cascade' }).notNull(),
-  authorId: text('author_id').references(() => users.id).notNull(),
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => nanoid()),
+  sessionId: text('session_id')
+    .references(() => sessions.id, { onDelete: 'cascade' })
+    .notNull(),
+  authorId: text('author_id')
+    .references(() => users.id)
+    .notNull(),
   text: text('text').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
 export const sessionParticipants = pgTable('session_participants', {
-  id: text('id').primaryKey().$defaultFn(() => nanoid()),
-  sessionId: text('session_id').references(() => sessions.id, { onDelete: 'cascade' }).notNull(),
-  userId: text('user_id').references(() => users.id).notNull(),
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => nanoid()),
+  sessionId: text('session_id')
+    .references(() => sessions.id, { onDelete: 'cascade' })
+    .notNull(),
+  userId: text('user_id')
+    .references(() => users.id)
+    .notNull(),
   role: text('role').$type<'owner' | 'reviewer' | 'viewer'>().default('viewer').notNull(),
   joinedAt: timestamp('joined_at').defaultNow().notNull(),
 });

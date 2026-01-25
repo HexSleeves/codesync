@@ -2,19 +2,19 @@
  * Chat routes - Messages in a session
  */
 
-import { Hono } from 'hono';
+import { sendChatMessageSchema } from '@codesync/shared';
 import { zValidator } from '@hono/zod-validator';
+import { desc, eq } from 'drizzle-orm';
+import { Hono } from 'hono';
 import { db } from '../db/client';
 import { chatMessages, users } from '../db/schema';
-import { eq, desc } from 'drizzle-orm';
-import { sendChatMessageSchema } from '@codesync/shared';
-import { authMiddleware, type AuthVariables } from '../middleware/auth';
+import { type AuthVariables, authMiddleware } from '../middleware/auth';
 
 export const chatRoutes = new Hono<{ Variables: AuthVariables }>()
   // GET /api/sessions/:sessionId/chat - Get chat messages
   .get('/sessions/:sessionId/chat', authMiddleware, async (c) => {
     const { sessionId } = c.req.param();
-    const limit = parseInt(c.req.query('limit') || '100');
+    const limit = parseInt(c.req.query('limit') || '100', 10);
 
     const messages = await db
       .select({
@@ -42,27 +42,32 @@ export const chatRoutes = new Hono<{ Variables: AuthVariables }>()
   })
 
   // POST /api/sessions/:sessionId/chat - Send chat message
-  .post('/sessions/:sessionId/chat', authMiddleware, zValidator('json', sendChatMessageSchema), async (c) => {
-    const { sessionId } = c.req.param();
-    const userId = c.get('userId');
-    const { text } = c.req.valid('json');
+  .post(
+    '/sessions/:sessionId/chat',
+    authMiddleware,
+    zValidator('json', sendChatMessageSchema),
+    async (c) => {
+      const { sessionId } = c.req.param();
+      const userId = c.get('userId');
+      const { text } = c.req.valid('json');
 
-    const [message] = await db
-      .insert(chatMessages)
-      .values({
-        sessionId,
-        authorId: userId,
-        text,
-      })
-      .returning();
+      const [message] = await db
+        .insert(chatMessages)
+        .values({
+          sessionId,
+          authorId: userId,
+          text,
+        })
+        .returning();
 
-    // Get author info
-    const author = await db
-      .select({ id: users.id, name: users.name, email: users.email })
-      .from(users)
-      .where(eq(users.id, userId))
-      .limit(1)
-      .then(rows => rows[0]);
+      // Get author info
+      const author = await db
+        .select({ id: users.id, name: users.name, email: users.email })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1)
+        .then((rows) => rows[0]);
 
-    return c.json({ message: { ...message, author } }, 201);
-  });
+      return c.json({ message: { ...message, author } }, 201);
+    }
+  );

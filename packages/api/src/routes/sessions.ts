@@ -2,14 +2,14 @@
  * Session routes - CRUD for code review sessions
  */
 
-import { Hono } from 'hono';
-import { zValidator } from '@hono/zod-validator';
-import { db } from '../db/client';
-import { sessions, files, sessionParticipants } from '../db/schema';
-import { eq, desc, and, or } from 'drizzle-orm';
 import { createSessionSchema, updateSessionSchema } from '@codesync/shared';
-import { authMiddleware, optionalAuthMiddleware, type AuthVariables } from '../middleware/auth';
+import { zValidator } from '@hono/zod-validator';
+import { desc, eq, or } from 'drizzle-orm';
+import { Hono } from 'hono';
 import { nanoid } from 'nanoid';
+import { db } from '../db/client';
+import { files, sessionParticipants, sessions } from '../db/schema';
+import { type AuthVariables, authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
 
 export const sessionRoutes = new Hono<{ Variables: AuthVariables }>()
   // GET /api/sessions - List sessions for current user
@@ -19,12 +19,7 @@ export const sessionRoutes = new Hono<{ Variables: AuthVariables }>()
     const userSessions = await db
       .select()
       .from(sessions)
-      .where(
-        or(
-          eq(sessions.createdBy, userId),
-          eq(sessions.isPublic, true)
-        )
-      )
+      .where(or(eq(sessions.createdBy, userId), eq(sessions.isPublic, true)))
       .orderBy(desc(sessions.updatedAt));
 
     return c.json({ sessions: userSessions });
@@ -64,7 +59,7 @@ export const sessionRoutes = new Hono<{ Variables: AuthVariables }>()
       .from(sessions)
       .where(eq(sessions.id, id))
       .limit(1)
-      .then(rows => rows[0]);
+      .then((rows) => rows[0]);
 
     if (!session) {
       return c.json({ error: 'Session not found' }, 404);
@@ -76,10 +71,7 @@ export const sessionRoutes = new Hono<{ Variables: AuthVariables }>()
     }
 
     // Get files for session
-    const sessionFiles = await db
-      .select()
-      .from(files)
-      .where(eq(files.sessionId, id));
+    const sessionFiles = await db.select().from(files).where(eq(files.sessionId, id));
 
     return c.json({ session, files: sessionFiles });
   })
@@ -96,7 +88,7 @@ export const sessionRoutes = new Hono<{ Variables: AuthVariables }>()
       .from(sessions)
       .where(eq(sessions.id, id))
       .limit(1)
-      .then(rows => rows[0]);
+      .then((rows) => rows[0]);
 
     if (!session) {
       return c.json({ error: 'Session not found' }, 404);
@@ -129,7 +121,7 @@ export const sessionRoutes = new Hono<{ Variables: AuthVariables }>()
       .from(sessions)
       .where(eq(sessions.id, id))
       .limit(1)
-      .then(rows => rows[0]);
+      .then((rows) => rows[0]);
 
     if (!session) {
       return c.json({ error: 'Session not found' }, 404);
@@ -155,7 +147,7 @@ export const sessionRoutes = new Hono<{ Variables: AuthVariables }>()
       .from(sessions)
       .where(eq(sessions.id, id))
       .limit(1)
-      .then(rows => rows[0]);
+      .then((rows) => rows[0]);
 
     if (!session) {
       return c.json({ error: 'Session not found' }, 404);
@@ -177,7 +169,7 @@ export const sessionRoutes = new Hono<{ Variables: AuthVariables }>()
   // POST /api/sessions/:id/review/submit - Submit review
   .post('/:id/review/submit', authMiddleware, async (c) => {
     const { id } = c.req.param();
-    const userId = c.get('userId');
+    const _userId = c.get('userId');
     const { approved } = await c.req.json<{ approved: boolean }>();
 
     const session = await db
@@ -185,7 +177,7 @@ export const sessionRoutes = new Hono<{ Variables: AuthVariables }>()
       .from(sessions)
       .where(eq(sessions.id, id))
       .limit(1)
-      .then(rows => rows[0]);
+      .then((rows) => rows[0]);
 
     if (!session) {
       return c.json({ error: 'Session not found' }, 404);

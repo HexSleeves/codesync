@@ -2,7 +2,7 @@
  * GitHub connection hook
  */
 
-import { useState, useEffect, useCallback } from 'hono/jsx';
+import { useCallback, useEffect, useState } from 'hono/jsx';
 import { apiClient } from '../api/client';
 
 interface GitHubStatus {
@@ -18,7 +18,7 @@ export function useGitHub() {
     try {
       const res = await apiClient('/api/github/status');
       if (res.ok) {
-        const data = await res.json() as GitHubStatus;
+        const data = (await res.json()) as GitHubStatus;
         setStatus(data);
       }
     } catch (err) {

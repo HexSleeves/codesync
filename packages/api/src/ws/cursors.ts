@@ -2,9 +2,9 @@
  * WebSocket handler for real-time cursor positions
  */
 
-import { Hono } from 'hono';
-import type { ServerWebSocket } from 'bun';
 import type { CursorPosition } from '@codesync/shared';
+import type { ServerWebSocket } from 'bun';
+import { Hono } from 'hono';
 
 // WebSocket data attached during upgrade
 interface WSData {
@@ -16,7 +16,7 @@ interface WSData {
 const sessionConnections = new Map<string, Set<ServerWebSocket<WSData>>>();
 
 export const cursorWS = new Hono().get('/ws/sessions/:sessionId/cursors', (c) => {
-  const sessionId = c.req.param('sessionId');
+  const _sessionId = c.req.param('sessionId');
   const upgradeHeader = c.req.header('Upgrade');
 
   if (upgradeHeader !== 'websocket') {
@@ -55,7 +55,7 @@ export const cursorWebSocketHandlers = {
     if (!sessionId) return;
 
     const data = JSON.parse(message.toString()) as CursorPosition;
-    
+
     // Broadcast to all other connections in the session
     const connections = sessionConnections.get(sessionId);
     if (connections) {

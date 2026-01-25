@@ -2,12 +2,12 @@
  * Main App component with routing
  */
 
-import { useRouter } from './router';
 import { useAuth } from './hooks/useAuth';
+import { DashboardPage } from './pages/Dashboard';
 import { HomePage } from './pages/Home';
 import { LoginPage } from './pages/Login';
-import { DashboardPage } from './pages/Dashboard';
 import { SessionPage } from './pages/Session';
+import { useRouter } from './router';
 
 export function App() {
   const { path, params } = useRouter();

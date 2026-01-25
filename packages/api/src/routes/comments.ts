@@ -2,14 +2,14 @@
  * Comment routes - CRUD for comments on files
  */
 
-import { Hono } from 'hono';
+import { createCommentSchema, updateCommentSchema } from '@codesync/shared';
 import { zValidator } from '@hono/zod-validator';
+import { eq } from 'drizzle-orm';
+import { Hono } from 'hono';
+import { nanoid } from 'nanoid';
 import { db } from '../db/client';
 import { comments, files, users } from '../db/schema';
-import { eq, and } from 'drizzle-orm';
-import { createCommentSchema, updateCommentSchema } from '@codesync/shared';
-import { authMiddleware, type AuthVariables } from '../middleware/auth';
-import { nanoid } from 'nanoid';
+import { type AuthVariables, authMiddleware } from '../middleware/auth';
 
 export const commentRoutes = new Hono<{ Variables: AuthVariables }>()
   // GET /api/files/:fileId/comments - Get comments for file
@@ -38,47 +38,52 @@ export const commentRoutes = new Hono<{ Variables: AuthVariables }>()
   })
 
   // POST /api/files/:fileId/comments - Add comment to file
-  .post('/files/:fileId/comments', authMiddleware, zValidator('json', createCommentSchema), async (c) => {
-    const { fileId } = c.req.param();
-    const userId = c.get('userId');
-    const data = c.req.valid('json');
+  .post(
+    '/files/:fileId/comments',
+    authMiddleware,
+    zValidator('json', createCommentSchema),
+    async (c) => {
+      const { fileId } = c.req.param();
+      const userId = c.get('userId');
+      const data = c.req.valid('json');
 
-    // Get file to get sessionId
-    const file = await db
-      .select()
-      .from(files)
-      .where(eq(files.id, fileId))
-      .limit(1)
-      .then(rows => rows[0]);
+      // Get file to get sessionId
+      const file = await db
+        .select()
+        .from(files)
+        .where(eq(files.id, fileId))
+        .limit(1)
+        .then((rows) => rows[0]);
 
-    if (!file) {
-      return c.json({ error: 'File not found' }, 404);
+      if (!file) {
+        return c.json({ error: 'File not found' }, 404);
+      }
+
+      // Generate threadId for new threads
+      const threadId = data.parentId ? data.threadId : nanoid();
+
+      const [comment] = await db
+        .insert(comments)
+        .values({
+          ...data,
+          fileId,
+          sessionId: file.sessionId,
+          authorId: userId,
+          threadId,
+        })
+        .returning();
+
+      // Get author info
+      const author = await db
+        .select({ id: users.id, name: users.name, email: users.email })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1)
+        .then((rows) => rows[0]);
+
+      return c.json({ comment: { ...comment, author } }, 201);
     }
-
-    // Generate threadId for new threads
-    const threadId = data.parentId ? data.threadId : nanoid();
-
-    const [comment] = await db
-      .insert(comments)
-      .values({
-        ...data,
-        fileId,
-        sessionId: file.sessionId,
-        authorId: userId,
-        threadId,
-      })
-      .returning();
-
-    // Get author info
-    const author = await db
-      .select({ id: users.id, name: users.name, email: users.email })
-      .from(users)
-      .where(eq(users.id, userId))
-      .limit(1)
-      .then(rows => rows[0]);
-
-    return c.json({ comment: { ...comment, author } }, 201);
-  })
+  )
 
   // PATCH /api/comments/:id - Update comment
   .patch('/comments/:id', authMiddleware, zValidator('json', updateCommentSchema), async (c) => {
@@ -92,7 +97,7 @@ export const commentRoutes = new Hono<{ Variables: AuthVariables }>()
       .from(comments)
       .where(eq(comments.id, id))
       .limit(1)
-      .then(rows => rows[0]);
+      .then((rows) => rows[0]);
 
     if (!comment) {
       return c.json({ error: 'Comment not found' }, 404);
@@ -122,7 +127,7 @@ export const commentRoutes = new Hono<{ Variables: AuthVariables }>()
       .from(comments)
       .where(eq(comments.id, id))
       .limit(1)
-      .then(rows => rows[0]);
+      .then((rows) => rows[0]);
 
     if (!comment) {
       return c.json({ error: 'Comment not found' }, 404);
@@ -147,7 +152,7 @@ export const commentRoutes = new Hono<{ Variables: AuthVariables }>()
       .from(comments)
       .where(eq(comments.id, id))
       .limit(1)
-      .then(rows => rows[0]);
+      .then((rows) => rows[0]);
 
     if (!comment) {
       return c.json({ error: 'Comment not found' }, 404);
@@ -160,10 +165,7 @@ export const commentRoutes = new Hono<{ Variables: AuthVariables }>()
         .set({ isResolved: true })
         .where(eq(comments.threadId, comment.threadId));
     } else {
-      await db
-        .update(comments)
-        .set({ isResolved: true })
-        .where(eq(comments.id, id));
+      await db.update(comments).set({ isResolved: true }).where(eq(comments.id, id));
     }
 
     return c.json({ success: true });
@@ -178,7 +180,7 @@ export const commentRoutes = new Hono<{ Variables: AuthVariables }>()
       .from(comments)
       .where(eq(comments.id, id))
       .limit(1)
-      .then(rows => rows[0]);
+      .then((rows) => rows[0]);
 
     if (!comment) {
       return c.json({ error: 'Comment not found' }, 404);
@@ -190,10 +192,7 @@ export const commentRoutes = new Hono<{ Variables: AuthVariables }>()
         .set({ isResolved: false })
         .where(eq(comments.threadId, comment.threadId));
     } else {
-      await db
-        .update(comments)
-        .set({ isResolved: false })
-        .where(eq(comments.id, id));
+      await db.update(comments).set({ isResolved: false }).where(eq(comments.id, id));
     }
 
     return c.json({ success: true });

@@ -2,8 +2,8 @@
  * Hono RPC Client - Type-safe API calls
  */
 
-import { hc } from 'hono/client';
 import type { AppType } from '@codesync/api';
+import { hc } from 'hono/client';
 
 // Create type-safe client
 export const api = hc<AppType>('/', {

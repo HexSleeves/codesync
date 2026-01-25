@@ -2,9 +2,9 @@
  * Session hook - manages session data and files
  */
 
-import { useState, useEffect, useCallback } from 'hono/jsx';
+import type { File, Session } from '@codesync/shared';
+import { useCallback, useEffect, useState } from 'hono/jsx';
 import { apiCall } from '../api/client';
-import type { Session, File } from '@codesync/shared';
 
 interface SessionState {
   session: Session | null;
@@ -27,7 +27,7 @@ export function useSession(sessionId: string | undefined) {
       return;
     }
 
-    setState(s => ({ ...s, loading: true, error: null }));
+    setState((s) => ({ ...s, loading: true, error: null }));
     try {
       const data = await apiCall<{ session: Session; files: File[] }>(
         'GET',
@@ -40,7 +40,7 @@ export function useSession(sessionId: string | undefined) {
         error: null,
       });
     } catch (err) {
-      setState(s => ({
+      setState((s) => ({
         ...s,
         loading: false,
         error: err instanceof Error ? err.message : 'Failed to load session',
@@ -60,7 +60,7 @@ export function useSession(sessionId: string | undefined) {
         `/sessions/${sessionId}`,
         updates
       );
-      setState(s => ({ ...s, session }));
+      setState((s) => ({ ...s, session }));
     } catch (err) {
       console.error('Failed to update session:', err);
     }
@@ -74,7 +74,7 @@ export function useSession(sessionId: string | undefined) {
         `/sessions/${sessionId}/files`,
         file
       );
-      setState(s => ({ ...s, files: [...s.files, newFile] }));
+      setState((s) => ({ ...s, files: [...s.files, newFile] }));
       return newFile;
     } catch (err) {
       console.error('Failed to add file:', err);
@@ -83,15 +83,10 @@ export function useSession(sessionId: string | undefined) {
 
   const markFileReviewed = async (fileId: string, reviewed: boolean) => {
     try {
-      await apiCall(
-        reviewed ? 'POST' : 'DELETE',
-        `/files/${fileId}/reviewed`
-      );
-      setState(s => ({
+      await apiCall(reviewed ? 'POST' : 'DELETE', `/files/${fileId}/reviewed`);
+      setState((s) => ({
         ...s,
-        files: s.files.map(f =>
-          f.id === fileId ? { ...f, isReviewed: reviewed } : f
-        ),
+        files: s.files.map((f) => (f.id === fileId ? { ...f, isReviewed: reviewed } : f)),
       }));
     } catch (err) {
       console.error('Failed to mark file reviewed:', err);
@@ -130,10 +125,14 @@ export function useSessions() {
     fetchSessions();
   }, [fetchSessions]);
 
-  const createSession = async (data: { title: string; description?: string; isPublic?: boolean }) => {
+  const createSession = async (data: {
+    title: string;
+    description?: string;
+    isPublic?: boolean;
+  }) => {
     try {
       const { session } = await apiCall<{ session: Session }>('POST', '/sessions', data);
-      setSessions(s => [session, ...s]);
+      setSessions((s) => [session, ...s]);
       return session;
     } catch (err) {
       console.error('Failed to create session:', err);
@@ -144,7 +143,7 @@ export function useSessions() {
   const deleteSession = async (id: string) => {
     try {
       await apiCall('DELETE', `/sessions/${id}`);
-      setSessions(s => s.filter(session => session.id !== id));
+      setSessions((s) => s.filter((session) => session.id !== id));
     } catch (err) {
       console.error('Failed to delete session:', err);
     }

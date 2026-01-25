@@ -2,8 +2,8 @@
  * Split (side-by-side) diff view component
  */
 
+import type { Comment, DiffHunk, DiffLine } from '@codesync/shared';
 import { useMemo } from 'hono/jsx';
-import type { DiffHunk, DiffLine, Comment } from '@codesync/shared';
 
 interface DiffLineWithHeader extends DiffLine {
   isHunkHeader?: boolean;
