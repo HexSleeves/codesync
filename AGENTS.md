@@ -558,3 +558,50 @@ bun run typecheck        # TypeScript check
 bun run lint             # Lint
 bun run test             # Run tests
 ```
+
+---
+
+## Agent Instructions
+
+### After Completing Each Feature
+
+**ALWAYS** perform these steps after completing a feature or significant task:
+
+1. **Update `CONTEXT.md`** - Dump current context including:
+   - What was built/changed
+   - Key files modified
+   - Current project state
+   - Any gotchas or important notes
+
+2. **Update `TODO.md`** - Mark completed items and update:
+   - Move completed items to the COMPLETED section
+   - Update the NOT MIGRATED section
+   - Update NEXT STEPS if needed
+   - Fix any outdated file references
+
+3. **Update `plans/` if applicable**:
+   - Mark plan status as complete
+   - Update the plans/README.md index
+
+4. **Commit with descriptive message** following conventional commits:
+   - `feat:` for new features
+   - `fix:` for bug fixes
+   - `docs:` for documentation
+   - `refactor:` for code restructuring
+
+### Key Files to Maintain
+
+| File | Purpose |
+|------|--------|
+| `CONTEXT.md` | Agent context dump - project state, recent changes |
+| `TODO.md` | Task tracking - what's done, what's left |
+| `AGENTS.md` | Agent instructions (this file) |
+| `plans/` | Detailed implementation plans |
+| `README.md` | User-facing documentation |
+
+### Before Starting Work
+
+Read these files to understand current state:
+1. `CONTEXT.md` - Recent changes and current state
+2. `TODO.md` - What needs to be done
+3. `plans/` - Any existing plans for the feature

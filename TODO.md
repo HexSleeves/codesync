@@ -51,7 +51,7 @@ codesync/
 │   │       ├── middleware/auth.ts
 │   │       ├── db/schema.ts
 │   │       ├── utils/         # github-parser.ts, language.ts
-│   │       └── ws/cursors.ts
+│   │       └── ws/index.ts    # WebSocket handlers
 │   ├── client/        # Hono JSX-DOM frontend
 │   │   └── src/
 │   │       ├── pages/     # Home, Login, Dashboard, Session
@@ -223,7 +223,10 @@ Password: password123
 - `packages/api/src/db/schema.ts` - Drizzle schema
 - `packages/api/src/routes/github/` - GitHub OAuth + import (split by domain)
 - `packages/api/src/services/` - Business logic layer
-- `packages/api/src/ws/cursors.ts` - WebSocket handler (incomplete)
+- `packages/api/src/ws/index.ts` - WebSocket handlers (cursors, chat, presence)
+- `packages/client/src/hooks/useWebSocket.ts` - WebSocket connection hook
+- `packages/client/src/components/session/ChatPanel.tsx` - Real-time chat
+- `packages/client/src/components/session/OnlineUsers.tsx` - Online user display
 - `packages/client/src/stores/auth.ts` - Auth state management
 - `packages/client/src/hooks/useAuth.ts` - Auth hook
 - `packages/client/src/hooks/useGitHub.ts` - GitHub connection hook
