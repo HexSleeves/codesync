@@ -1,3 +1,198 @@
+# Plan 001: WebSocket Real-time Collaboration
+
+**Status:** 🟡 Planned  
+**Priority:** High  
+**Estimated Effort:** 4-6 hours  
+**Created:** Jan 25, 2026  
+
+---
+
+## Executive Summary
+
+Implement real-time collaboration for CodeSync sessions including cursor positions, chat messages, and user presence. This is the core differentiating feature that enables live code review collaboration.
+
+## Success Criteria
+
+- [ ] Multiple users can join a session and see each other online
+- [ ] Cursor positions are visible to all participants in real-time
+- [ ] Chat messages are delivered instantly to all participants
+- [ ] Connections automatically reconnect on disconnect
+- [ ] WebSocket connections are authenticated via JWT
+
+---
+
+## Detailed Execution Steps
+
+### Step 1: Create Shared WebSocket Types (15 min)
+
+```bash
+# Create the file
+touch packages/shared/src/ws-types.ts
+
+# Export from index
+echo 'export * from "./ws-types";' >> packages/shared/src/index.ts
+```
+
+**Actions:**
+1. Define all message types (cursor, presence, chat, error)
+2. Define server→client message union type
+3. Define client→server message union type
+4. Export from shared/index.ts
+
+**Verification:**
+```bash
+cd packages/shared && bun tsc --noEmit
+```
+
+---
+
+### Step 2: Refactor Backend WebSocket Handlers (45 min)
+
+```bash
+# Create new unified handler
+touch packages/api/src/ws/index.ts
+
+# We'll delete the old cursors.ts after migration
+```
+
+**Actions:**
+1. Create session state management (connections Map, cursors Map)
+2. Implement `getUserColor()` for consistent user colors
+3. Implement `broadcast()` and `broadcastAll()` helpers
+4. Implement `open` handler:
+   - Add user to session connections
+   - Send current online users to new user
+   - Send existing cursors to new user
+   - Broadcast join to others
+5. Implement `message` handler:
+   - Parse and validate message type
+   - Handle cursor updates (store + broadcast)
+   - Handle chat messages (persist to DB + broadcast)
+6. Implement `close` handler:
+   - Remove user from session
+   - Clean up cursor data
+   - Broadcast leave to others
+
+**Verification:**
+```bash
+cd packages/api && bun tsc --noEmit
+```
+
+---
+
+### Step 3: Add WebSocket Auth in Server Entry (30 min)
+
+**Actions:**
+1. Modify `packages/api/src/index.ts`
+2. Add custom fetch handler that intercepts `/ws/sessions/:id`
+3. Extract token from query string `?token=xxx`
+4. Verify JWT and fetch user from database
+5. Call `server.upgrade()` with user data attached
+6. Fall through to Hono app for non-WS requests
+
+**Verification:**
+```bash
+# Start server
+cd packages/api && bun --hot src/index.ts
+
+# Test with wscat (install: npm i -g wscat)
+wscat -c "ws://localhost:8001/ws/sessions/test123?token=VALID_JWT"
+```
+
+---
+
+### Step 4: Create Client WebSocket Hook (45 min)
+
+```bash
+touch packages/client/src/hooks/useWebSocket.ts
+```
+
+**Actions:**
+1. Create `useWebSocket(sessionId)` hook
+2. Manage WebSocket connection lifecycle
+3. Handle reconnection with exponential backoff
+4. Parse incoming messages and update state
+5. Provide `sendCursor()` and `sendChat()` methods
+6. Clean up on unmount
+
+**State shape:**
+```typescript
+{
+  connected: boolean,
+  onlineUsers: OnlineUser[],
+  cursors: Map<string, CursorMessage>,
+  chatMessages: ChatMessage[],
+}
+```
+
+**Verification:**
+```bash
+# Add to Session.tsx temporarily
+const ws = useWebSocket(sessionId);
+console.log('WS state:', ws);
+
+# Check browser console for connection logs
+```
+
+---
+
+### Step 5: Create UI Components (45 min)
+
+```bash
+mkdir -p packages/client/src/components/session
+touch packages/client/src/components/session/OnlineUsers.tsx
+touch packages/client/src/components/session/ChatPanel.tsx
+touch packages/client/src/components/session/CursorOverlay.tsx
+```
+
+**OnlineUsers.tsx:**
+- Avatar stack with user colors
+- Tooltip with full name on hover
+- "Online:" label
+
+**ChatPanel.tsx:**
+- Scrollable message list
+- Input field with send button
+- Auto-scroll to bottom on new message
+- Show user color next to name
+
+**CursorOverlay.tsx:**
+- Absolute positioned overlay
+- Filter cursors by current fileId
+- Show cursor line with user color
+- Show small name tag
+
+---
+
+### Step 6: Integrate into Session Page (30 min)
+
+**Actions:**
+1. Import `useWebSocket` hook
+2. Import UI components
+3. Add `OnlineUsers` to sidebar header
+4. Add `ChatPanel` to sidebar (collapsible)
+5. Add `CursorOverlay` to diff viewer
+6. Wire up cursor tracking on line hover/click
+
+---
+
+### Step 7: Testing & Polish (30 min)
+
+**Manual Testing Checklist:**
+- [ ] Open session in Tab A, verify "connected" state
+- [ ] Open same session in Tab B (different user), verify both see each other
+- [ ] Move cursor in Tab A, verify Tab B sees cursor
+- [ ] Send chat in Tab A, verify Tab B receives instantly
+- [ ] Close Tab A, verify Tab B sees user leave
+- [ ] Disconnect network, verify reconnection works
+
+**Edge Cases:**
+- [ ] Invalid token → connection rejected
+- [ ] Session doesn't exist → graceful handling
+- [ ] Rapid cursor movements → no lag/flooding
+
+---
+
 # WebSocket Real-time Implementation Plan
 
 ## Overview
