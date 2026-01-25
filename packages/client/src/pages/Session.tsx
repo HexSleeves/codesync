@@ -1,0 +1,337 @@
+/**
+ * Session page - the main code review interface
+ */
+
+import { useState, useEffect } from 'hono/jsx';
+import { navigate, Link } from '../router';
+import { useAuth } from '../hooks/useAuth';
+import { useSession } from '../hooks/useSession';
+import { useComments } from '../hooks/useComments';
+import type { File } from '@codesync/shared';
+
+interface SessionPageProps {
+  sessionId: string;
+}
+
+export function SessionPage({ sessionId }: SessionPageProps) {
+  const { user } = useAuth();
+  const { session, files, loading, error, markFileReviewed } = useSession(sessionId);
+  const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'code' | 'diff'>('diff');
+
+  const selectedFile = files.find((f) => f.id === selectedFileId) || null;
+  const { comments, commentsByLine, addComment, resolveComment } = useComments(selectedFileId);
+
+  // Select first file by default
+  useEffect(() => {
+    if (files.length > 0 && !selectedFileId) {
+      setSelectedFileId(files[0].id);
+    }
+  }, [files, selectedFileId]);
+
+  if (loading) {
+    return (
+      <div class="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div class="text-center">
+          <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p class="text-gray-400">Loading session...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !session) {
+    return (
+      <div class="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div class="text-center">
+          <h1 class="text-2xl font-bold text-white mb-4">Session Not Found</h1>
+          <p class="text-gray-400 mb-6">{error || "This session doesn't exist."}</p>
+          <Link
+            href="/dashboard"
+            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+          >
+            Go to Dashboard
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div class="h-screen bg-gray-900 flex flex-col">
+      {/* Header */}
+      <header class="border-b border-gray-700 bg-gray-800 px-4 py-3 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-4">
+          <Link href="/dashboard" class="text-gray-400 hover:text-white">
+            ←
+          </Link>
+          <h1 class="text-lg font-semibold text-white">{session.title}</h1>
+          <span
+            class={`px-2 py-0.5 text-xs font-medium rounded ${
+              session.status === 'approved'
+                ? 'bg-green-600'
+                : session.status === 'in_review'
+                ? 'bg-yellow-600'
+                : 'bg-gray-600'
+            } text-white`}
+          >
+            {session.status.replace('_', ' ')}
+          </span>
+        </div>
+        <div class="flex items-center gap-4">
+          <span class="text-gray-400 text-sm">{user?.email}</span>
+        </div>
+      </header>
+
+      {/* Main content */}
+      <div class="flex-1 flex overflow-hidden">
+        {/* File tree sidebar */}
+        <aside class="w-64 border-r border-gray-700 bg-gray-800 overflow-y-auto shrink-0">
+          <div class="p-3 border-b border-gray-700">
+            <h2 class="text-sm font-medium text-gray-400">Files ({files.length})</h2>
+          </div>
+          <div class="py-2">
+            {files.map((file) => (
+              <FileTreeItem
+                key={file.id}
+                file={file}
+                isSelected={file.id === selectedFileId}
+                onClick={() => setSelectedFileId(file.id)}
+              />
+            ))}
+          </div>
+        </aside>
+
+        {/* Code view */}
+        <main class="flex-1 flex flex-col overflow-hidden">
+          {selectedFile ? (
+            <>
+              {/* File header */}
+              <div class="border-b border-gray-700 bg-gray-800 px-4 py-2 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-3">
+                  <span class="font-mono text-sm text-gray-300">
+                    {selectedFile.path}
+                  </span>
+                  {selectedFile.isReviewed && (
+                    <span class="px-2 py-0.5 bg-green-900/50 text-green-400 rounded text-xs">
+                      ✓ Reviewed
+                    </span>
+                  )}
+                </div>
+                <div class="flex items-center gap-2">
+                  <button
+                    onClick={() => markFileReviewed(selectedFile.id, !selectedFile.isReviewed)}
+                    class={`px-3 py-1 text-sm rounded ${
+                      selectedFile.isReviewed
+                        ? 'bg-gray-700 text-gray-300'
+                        : 'bg-green-600 text-white'
+                    }`}
+                  >
+                    {selectedFile.isReviewed ? 'Unmark Reviewed' : 'Mark Reviewed'}
+                  </button>
+                  <select
+                    value={viewMode}
+                    onChange={(e) => setViewMode((e.target as HTMLSelectElement).value as 'code' | 'diff')}
+                    class="px-3 py-1 bg-gray-700 border border-gray-600 rounded text-sm text-white"
+                  >
+                    <option value="diff">Diff View</option>
+                    <option value="code">Code View</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Code content */}
+              <div class="flex-1 overflow-auto">
+                <CodeViewer
+                  file={selectedFile}
+                  viewMode={viewMode}
+                  commentsByLine={commentsByLine}
+                  onAddComment={addComment}
+                  onResolveComment={resolveComment}
+                />
+              </div>
+            </>
+          ) : (
+            <div class="flex-1 flex items-center justify-center text-gray-500">
+              <div class="text-center">
+                <p class="text-lg">Select a file to review</p>
+                <p class="text-sm mt-2">Choose a file from the sidebar</p>
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
+    </div>
+  );
+}
+
+function FileTreeItem({
+  file,
+  isSelected,
+  onClick,
+}: {
+  file: File;
+  isSelected: boolean;
+  onClick: () => void;
+}) {
+  const getStatusIcon = () => {
+    if (file.isAdded) return <span class="text-green-400">A</span>;
+    if (file.isDeleted) return <span class="text-red-400">D</span>;
+    if (file.isModified) return <span class="text-yellow-400">M</span>;
+    return null;
+  };
+
+  return (
+    <button
+      onClick={onClick}
+      class={`w-full text-left px-3 py-1.5 flex items-center gap-2 hover:bg-gray-700 ${
+        isSelected ? 'bg-gray-700 text-white' : 'text-gray-300'
+      }`}
+    >
+      <span class="text-xs font-mono w-4">{getStatusIcon()}</span>
+      <span class="truncate text-sm">{file.name}</span>
+      {file.isReviewed && (
+        <span class="ml-auto text-green-400 text-xs">✓</span>
+      )}
+    </button>
+  );
+}
+
+function CodeViewer({
+  file,
+  viewMode,
+  commentsByLine,
+  onAddComment,
+  onResolveComment,
+}: {
+  file: File;
+  viewMode: 'code' | 'diff';
+  commentsByLine: Record<number, any[]>;
+  onAddComment: (text: string, lineNumber?: number) => Promise<any>;
+  onResolveComment: (id: string, resolved: boolean) => Promise<void>;
+}) {
+  const [activeCommentLine, setActiveCommentLine] = useState<number | null>(null);
+  const [commentText, setCommentText] = useState('');
+
+  const content = viewMode === 'diff' && file.originalContent
+    ? file.content || ''
+    : file.content || '';
+
+  const lines = content.split('\n');
+
+  const handleAddComment = async (lineNumber: number) => {
+    if (!commentText.trim()) return;
+    await onAddComment(commentText, lineNumber);
+    setCommentText('');
+    setActiveCommentLine(null);
+  };
+
+  return (
+    <div class="font-mono text-sm">
+      <table class="w-full border-collapse">
+        <tbody>
+          {lines.map((line, index) => {
+            const lineNumber = index + 1;
+            const lineComments = commentsByLine[lineNumber] || [];
+            const hasComments = lineComments.length > 0;
+
+            return (
+              <>
+                <tr
+                  key={`line-${lineNumber}`}
+                  class="hover:bg-gray-800 group"
+                >
+                  <td class="w-12 px-2 py-0 text-right text-gray-500 select-none border-r border-gray-700 sticky left-0 bg-gray-900">
+                    {lineNumber}
+                  </td>
+                  <td class="w-8 px-1 py-0 text-center">
+                    <button
+                      onClick={() => setActiveCommentLine(lineNumber)}
+                      class="opacity-0 group-hover:opacity-100 text-blue-400 hover:text-blue-300"
+                    >
+                      +
+                    </button>
+                  </td>
+                  <td class="px-4 py-0 whitespace-pre">
+                    {line || ' '}
+                  </td>
+                  <td class="w-8 px-1">
+                    {hasComments && (
+                      <span class="text-blue-400">💬 {lineComments.length}</span>
+                    )}
+                  </td>
+                </tr>
+
+                {/* Comments for this line */}
+                {hasComments && (
+                  <tr key={`comments-${lineNumber}`}>
+                    <td colSpan={4} class="bg-gray-800 border-l-2 border-blue-500">
+                      <div class="p-3">
+                        {lineComments.map((comment: any) => (
+                          <div
+                            key={comment.id}
+                            class={`mb-2 p-2 rounded ${
+                              comment.isResolved ? 'bg-gray-700/50' : 'bg-gray-700'
+                            }`}
+                          >
+                            <div class="flex items-center justify-between mb-1">
+                              <span class="text-xs text-gray-400">
+                                {comment.author?.name || 'Unknown'}
+                              </span>
+                              <button
+                                onClick={() => onResolveComment(comment.id, !comment.isResolved)}
+                                class="text-xs text-blue-400 hover:text-blue-300"
+                              >
+                                {comment.isResolved ? 'Unresolve' : 'Resolve'}
+                              </button>
+                            </div>
+                            <p class={comment.isResolved ? 'text-gray-500' : 'text-gray-200'}>
+                              {comment.text}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </td>
+                  </tr>
+                )}
+
+                {/* Comment input for this line */}
+                {activeCommentLine === lineNumber && (
+                  <tr key={`input-${lineNumber}`}>
+                    <td colSpan={4} class="bg-gray-800 border-l-2 border-green-500">
+                      <div class="p-3">
+                        <textarea
+                          value={commentText}
+                          onInput={(e) => setCommentText((e.target as HTMLTextAreaElement).value)}
+                          class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-sm resize-none"
+                          placeholder="Add a comment..."
+                          rows={3}
+                          autoFocus
+                        />
+                        <div class="flex justify-end gap-2 mt-2">
+                          <button
+                            onClick={() => setActiveCommentLine(null)}
+                            class="px-3 py-1 text-sm text-gray-400 hover:text-white"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => handleAddComment(lineNumber)}
+                            disabled={!commentText.trim()}
+                            class="px-3 py-1 text-sm bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded"
+                          >
+                            Add Comment
+                          </button>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}

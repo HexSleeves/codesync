@@ -3,10 +3,17 @@
  */
 
 import { Hono } from 'hono';
+import type { ServerWebSocket } from 'bun';
 import type { CursorPosition } from '@codesync/shared';
 
+// WebSocket data attached during upgrade
+interface WSData {
+  sessionId: string;
+  userId: string;
+}
+
 // Store active connections by session
-const sessionConnections = new Map<string, Set<WebSocket>>();
+const sessionConnections = new Map<string, Set<ServerWebSocket<WSData>>>();
 
 export const cursorWS = new Hono().get('/ws/sessions/:sessionId/cursors', (c) => {
   const sessionId = c.req.param('sessionId');
@@ -23,7 +30,7 @@ export const cursorWS = new Hono().get('/ws/sessions/:sessionId/cursors', (c) =>
   }
 
   // This will be handled by Bun's WebSocket handler
-  return c.text('WebSocket upgrade', 101);
+  return new Response(null, { status: 101, statusText: 'Switching Protocols' });
 });
 
 /**
@@ -31,7 +38,7 @@ export const cursorWS = new Hono().get('/ws/sessions/:sessionId/cursors', (c) =>
  * Used when running with Bun.serve()
  */
 export const cursorWebSocketHandlers = {
-  open(ws: WebSocket & { data?: { sessionId: string; userId: string } }) {
+  open(ws: ServerWebSocket<WSData>) {
     const sessionId = ws.data?.sessionId;
     if (!sessionId) return;
 
@@ -43,7 +50,7 @@ export const cursorWebSocketHandlers = {
     console.log(`User joined cursor channel: ${sessionId}`);
   },
 
-  message(ws: WebSocket & { data?: { sessionId: string; userId: string } }, message: string | Buffer) {
+  message(ws: ServerWebSocket<WSData>, message: string | Buffer) {
     const sessionId = ws.data?.sessionId;
     if (!sessionId) return;
 
@@ -60,7 +67,7 @@ export const cursorWebSocketHandlers = {
     }
   },
 
-  close(ws: WebSocket & { data?: { sessionId: string; userId: string } }) {
+  close(ws: ServerWebSocket<WSData>) {
     const sessionId = ws.data?.sessionId;
     if (!sessionId) return;
 

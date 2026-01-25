@@ -6,14 +6,14 @@
 import app from './app';
 import { cursorWebSocketHandlers } from './ws/cursors';
 
-const PORT = parseInt(process.env.PORT || '8000');
+const PORT = Number.parseInt(process.env.PORT || '8000');
 
 console.log(`\n🚀 CodeSync API starting...`);
 console.log(`   Environment: ${process.env.NODE_ENV || 'development'}`);
 console.log(`   Port: ${PORT}`);
 console.log(`   Database: ${process.env.DATABASE_URL ? 'configured' : 'using default'}\n`);
 
-const server = Bun.serve({
+const server = Bun.serve<{ sessionId: string; userId: string }>({
   port: PORT,
   fetch: app.fetch,
   websocket: {

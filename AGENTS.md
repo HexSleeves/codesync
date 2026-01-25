@@ -10,13 +10,13 @@ We are migrating from Meteor.js to a split frontend/backend architecture using H
 
 ## Hono Documentation Reference
 
-- **Full Docs**: https://hono.dev/llms-full.txt
-- **Tiny Docs**: https://hono.dev/llms-small.txt  
-- **RPC Guide**: https://hono.dev/docs/guides/rpc
-- **Client Components (JSX-DOM)**: https://hono.dev/docs/guides/jsx-dom
-- **WebSocket Helper**: https://hono.dev/docs/helpers/websocket
-- **JWT Middleware**: https://hono.dev/docs/middleware/builtin/jwt
-- **Validation (Zod)**: https://hono.dev/docs/guides/validation
+- **Full Docs**: <https://hono.dev/llms-full.txt>
+- **Tiny Docs**: <https://hono.dev/llms-small.txt>
+- **RPC Guide**: <https://hono.dev/docs/guides/rpc>
+- **Client Components (JSX-DOM)**: <https://hono.dev/docs/guides/jsx-dom>
+- **WebSocket Helper**: <https://hono.dev/docs/helpers/websocket>
+- **JWT Middleware**: <https://hono.dev/docs/middleware/builtin/jwt>
+- **Validation (Zod)**: <https://hono.dev/docs/guides/validation>
 
 ---
 
@@ -25,6 +25,7 @@ We are migrating from Meteor.js to a split frontend/backend architecture using H
 ### Phase 1: Project Setup & Infrastructure
 
 #### 1.1 New Project Structure
+
 ```
 codesync/
 ├── packages/
@@ -106,6 +107,7 @@ codesync/
 ```
 
 #### 1.2 Technology Choices
+
 - **Runtime**: Bun (fast, native TypeScript)
 - **Backend**: Hono (ultrafast, Web Standards)
 - **Frontend**: Hono JSX-DOM (Client Components)
@@ -196,7 +198,7 @@ export const sessionRoutes = new Hono()
     async (c) => {
       const data = c.req.valid('json')
       const userId = c.get('userId')
-      
+
       const session = await createSession(userId, data)
       return c.json({ session }, 201)
     }
@@ -222,7 +224,7 @@ export const cursorWS = new Hono().get(
   '/ws/sessions/:sessionId/cursors',
   upgradeWebSocket((c) => {
     const sessionId = c.req.param('sessionId')
-    
+
     return {
       onOpen(event, ws) {
         // Join session room (use Redis pub/sub for scaling)
@@ -467,7 +469,7 @@ export const chatMessages = pgTable('chat_messages', {
    - [x] Setup Bun for development
 
 2. **Week 2: Auth & Core API** ✅ COMPLETE
-   - [x] Implement JWT auth (login, register) 
+   - [x] Implement JWT auth (login, register)
    - [ ] OAuth GitHub (pending)
    - [x] Migrate sessions CRUD
    - [x] Migrate files CRUD

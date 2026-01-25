@@ -1,0 +1,58 @@
+/**
+ * Hono RPC Client - Type-safe API calls
+ */
+
+import { hc } from 'hono/client';
+import type { AppType } from '@codesync/api';
+
+// Create type-safe client
+export const api = hc<AppType>('/', {
+  init: {
+    credentials: 'include',
+  },
+});
+
+// Auth helpers
+export function getToken(): string | null {
+  return localStorage.getItem('token');
+}
+
+export function setToken(token: string): void {
+  localStorage.setItem('token', token);
+}
+
+export function clearToken(): void {
+  localStorage.removeItem('token');
+}
+
+// Fetch wrapper with auth
+export async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Response> {
+  const token = getToken();
+  const headers = new Headers(options.headers);
+  
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+  headers.set('Content-Type', 'application/json');
+  
+  return fetch(url, { ...options, headers, credentials: 'include' });
+}
+
+// Generic API call helper
+export async function apiCall<T>(
+  method: 'GET' | 'POST' | 'PATCH' | 'DELETE',
+  path: string,
+  body?: unknown
+): Promise<T> {
+  const response = await fetchWithAuth(`/api${path}`, {
+    method,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Request failed' }));
+    throw new Error(error.error || 'Request failed');
+  }
+  
+  return response.json();
+}
