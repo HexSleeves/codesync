@@ -10,6 +10,10 @@ import { nanoid } from 'nanoid';
 import { db } from '../db/client';
 import { files, sessionParticipants, sessions } from '../db/schema';
 import { type AuthVariables, authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
+import {
+  checkSessionAccess,
+  checkSessionOwnership,
+} from '../services/session/access';
 
 export const sessionRoutes = new Hono<{ Variables: AuthVariables }>()
   // GET /api/sessions - List sessions for current user
@@ -54,26 +58,20 @@ export const sessionRoutes = new Hono<{ Variables: AuthVariables }>()
     const { id } = c.req.param();
     const userId = c.get('userId');
 
-    const session = await db
-      .select()
-      .from(sessions)
-      .where(eq(sessions.id, id))
-      .limit(1)
-      .then((rows) => rows[0]);
+    const access = await checkSessionAccess(id, userId);
 
-    if (!session) {
+    if (access.error === 'not_found') {
       return c.json({ error: 'Session not found' }, 404);
     }
 
-    // Check access
-    if (!session.isPublic && session.createdBy !== userId) {
+    if (access.error === 'access_denied') {
       return c.json({ error: 'Access denied' }, 403);
     }
 
     // Get files for session
     const sessionFiles = await db.select().from(files).where(eq(files.sessionId, id));
 
-    return c.json({ session, files: sessionFiles });
+    return c.json({ session: access.session, files: sessionFiles });
   })
 
   // PATCH /api/sessions/:id - Update session
@@ -82,19 +80,13 @@ export const sessionRoutes = new Hono<{ Variables: AuthVariables }>()
     const userId = c.get('userId');
     const data = c.req.valid('json');
 
-    // Check ownership
-    const session = await db
-      .select()
-      .from(sessions)
-      .where(eq(sessions.id, id))
-      .limit(1)
-      .then((rows) => rows[0]);
+    const access = await checkSessionOwnership(id, userId);
 
-    if (!session) {
+    if (access.error === 'not_found') {
       return c.json({ error: 'Session not found' }, 404);
     }
 
-    if (session.createdBy !== userId) {
+    if (access.error === 'access_denied') {
       return c.json({ error: 'Not authorized' }, 403);
     }
 
@@ -115,19 +107,13 @@ export const sessionRoutes = new Hono<{ Variables: AuthVariables }>()
     const { id } = c.req.param();
     const userId = c.get('userId');
 
-    // Check ownership
-    const session = await db
-      .select()
-      .from(sessions)
-      .where(eq(sessions.id, id))
-      .limit(1)
-      .then((rows) => rows[0]);
+    const access = await checkSessionOwnership(id, userId);
 
-    if (!session) {
+    if (access.error === 'not_found') {
       return c.json({ error: 'Session not found' }, 404);
     }
 
-    if (session.createdBy !== userId) {
+    if (access.error === 'access_denied') {
       return c.json({ error: 'Not authorized' }, 403);
     }
 
@@ -142,18 +128,13 @@ export const sessionRoutes = new Hono<{ Variables: AuthVariables }>()
     const { id } = c.req.param();
     const userId = c.get('userId');
 
-    const session = await db
-      .select()
-      .from(sessions)
-      .where(eq(sessions.id, id))
-      .limit(1)
-      .then((rows) => rows[0]);
+    const access = await checkSessionOwnership(id, userId);
 
-    if (!session) {
+    if (access.error === 'not_found') {
       return c.json({ error: 'Session not found' }, 404);
     }
 
-    if (session.createdBy !== userId) {
+    if (access.error === 'access_denied') {
       return c.json({ error: 'Not authorized' }, 403);
     }
 
@@ -169,18 +150,18 @@ export const sessionRoutes = new Hono<{ Variables: AuthVariables }>()
   // POST /api/sessions/:id/review/submit - Submit review
   .post('/:id/review/submit', authMiddleware, async (c) => {
     const { id } = c.req.param();
-    const _userId = c.get('userId');
+    const userId = c.get('userId');
     const { approved } = await c.req.json<{ approved: boolean }>();
 
-    const session = await db
-      .select()
-      .from(sessions)
-      .where(eq(sessions.id, id))
-      .limit(1)
-      .then((rows) => rows[0]);
+    // For submit, we check access (not just ownership) since reviewers can submit
+    const access = await checkSessionAccess(id, userId);
 
-    if (!session) {
+    if (access.error === 'not_found') {
       return c.json({ error: 'Session not found' }, 404);
+    }
+
+    if (access.error === 'access_denied') {
+      return c.json({ error: 'Access denied' }, 403);
     }
 
     const newStatus = approved ? 'approved' : 'draft';

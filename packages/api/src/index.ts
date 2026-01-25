@@ -4,17 +4,16 @@
  */
 
 import app from './app';
+import { config } from './config';
 import { cursorWebSocketHandlers } from './ws/cursors';
 
-const PORT = Number.parseInt(process.env.PORT || '8000', 10);
-
 console.log(`\n🚀 CodeSync API starting...`);
-console.log(`   Environment: ${process.env.NODE_ENV || 'development'}`);
-console.log(`   Port: ${PORT}`);
-console.log(`   Database: ${process.env.DATABASE_URL ? 'configured' : 'using default'}\n`);
+console.log(`   Environment: ${config.nodeEnv}`);
+console.log(`   Port: ${config.port}`);
+console.log(`   Database: ${config.databaseUrl !== 'postgres://codesync:codesync@localhost:5432/codesync' ? 'configured' : 'using default'}\n`);
 
 const server = Bun.serve<{ sessionId: string; userId: string }>({
-  port: PORT,
+  port: config.port,
   fetch: app.fetch,
   websocket: {
     open: cursorWebSocketHandlers.open,

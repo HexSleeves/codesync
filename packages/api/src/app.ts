@@ -8,11 +8,12 @@ import { logger } from 'hono/logger';
 import { prettyJSON } from 'hono/pretty-json';
 import { secureHeaders } from 'hono/secure-headers';
 
+import { config } from './config';
 import { authRoutes } from './routes/auth';
 import { chatRoutes } from './routes/chat';
 import { commentRoutes } from './routes/comments';
 import { fileRoutes } from './routes/files';
-import { githubRoutes } from './routes/github';
+import { githubRoutes } from './routes/github/index';
 import { sessionRoutes } from './routes/sessions';
 import { cursorWS } from './ws/cursors';
 
@@ -24,7 +25,7 @@ const app = new Hono()
   .use(
     '*',
     cors({
-      origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+      origin: config.corsOrigin,
       credentials: true,
     })
   )
@@ -52,7 +53,7 @@ const app = new Hono()
     return c.json(
       {
         error: err.message || 'Internal server error',
-        ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+        ...(config.isDev && { stack: err.stack }),
       },
       500
     );
