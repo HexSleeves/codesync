@@ -1,7 +1,7 @@
 # Agent Context Dump
 
 **Last Updated:** Jan 25, 2026  
-**Last Task:** Implemented WebSocket real-time collaboration (Plan 001)
+**Last Task:** Mobile-first responsive design update
 
 ---
 
@@ -40,7 +40,21 @@ Password: password123
 
 ## Recent Changes (Jan 25, 2026)
 
-### 1. API Refactoring
+### 1. Mobile-First Responsive Design
+- Updated all client components to use mobile-first approach
+- **PageHeader**: Wraps items with gap on mobile
+- **UserMenu**: Truncated email, smaller buttons on mobile
+- **GitHubStatus**: Shows "GitHub" text on mobile, full text on desktop
+- **Dashboard**: Stacked title/buttons on mobile, full-width action buttons
+- **Session page**: Collapsible file tree and chat sidebars on mobile
+  - File tree hidden by default, toggleable via hamburger menu
+  - Chat panel hidden by default, full-width when open on mobile
+  - Desktop shows both sidebars permanently
+- **SessionCard**: Title truncation, smaller text on mobile
+- **FileHeader**: Stacked controls on mobile
+- **Home page**: Responsive hero text and feature grid
+
+### 2. API Refactoring (Previous)
 - Split monolithic `github.ts` (658 lines) into domain modules:
   - `routes/github/oauth.ts` - OAuth flow
   - `routes/github/import.ts` - PR import
