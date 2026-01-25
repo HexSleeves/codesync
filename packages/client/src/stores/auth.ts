@@ -3,8 +3,8 @@
  */
 
 import type { User } from '@codesync/shared';
-import { createStore } from 'zustand/vanilla';
 import { useSyncExternalStore } from 'hono/jsx';
+import { createStore } from 'zustand/vanilla';
 import { apiCall, clearToken, getToken, setToken } from '../api/client';
 
 interface AuthState {
@@ -16,7 +16,11 @@ interface AuthState {
 interface AuthActions {
   init: () => Promise<void>;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  register: (email: string, password: string, name: string) => Promise<{ success: boolean; error?: string }>;
+  register: (
+    email: string,
+    password: string,
+    name: string
+  ) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   clearError: () => void;
 }
@@ -71,11 +75,15 @@ export const authStore = createStore<AuthStore>()((set) => ({
   register: async (email: string, password: string, name: string) => {
     set({ error: null });
     try {
-      const { user, token } = await apiCall<{ user: User; token: string }>('POST', '/auth/register', {
-        email,
-        password,
-        name,
-      });
+      const { user, token } = await apiCall<{ user: User; token: string }>(
+        'POST',
+        '/auth/register',
+        {
+          email,
+          password,
+          name,
+        }
+      );
       setToken(token);
       set({ user, loading: false, error: null });
       return { success: true };

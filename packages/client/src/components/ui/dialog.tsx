@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'hono/jsx';
 import type { Child } from 'hono/jsx';
+import { useEffect, useRef } from 'hono/jsx';
 import { cn } from '@/lib/utils';
 
 export interface DialogProps {
@@ -57,7 +57,11 @@ export function DialogContent({ className, children }: DialogContentProps) {
 }
 
 export function DialogHeader({ className, children }: { className?: string; children?: Child }) {
-  return <div className={cn('flex flex-col space-y-1.5 text-center sm:text-left', className)}>{children}</div>;
+  return (
+    <div className={cn('flex flex-col space-y-1.5 text-center sm:text-left', className)}>
+      {children}
+    </div>
+  );
 }
 
 export function DialogFooter({ className, children }: { className?: string; children?: Child }) {
@@ -69,10 +73,20 @@ export function DialogFooter({ className, children }: { className?: string; chil
 }
 
 export function DialogTitle({ className, children }: { className?: string; children?: Child }) {
-  return <h2 className={cn('text-lg font-semibold leading-none tracking-tight', className)}>{children}</h2>;
+  return (
+    <h2 className={cn('text-lg font-semibold leading-none tracking-tight', className)}>
+      {children}
+    </h2>
+  );
 }
 
-export function DialogDescription({ className, children }: { className?: string; children?: Child }) {
+export function DialogDescription({
+  className,
+  children,
+}: {
+  className?: string;
+  children?: Child;
+}) {
   return <p className={cn('text-sm text-muted-foreground', className)}>{children}</p>;
 }
 
@@ -96,7 +110,12 @@ export function DialogClose({
     >
       {children || (
         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M6 18L18 6M6 6l12 12"
+          />
         </svg>
       )}
     </button>

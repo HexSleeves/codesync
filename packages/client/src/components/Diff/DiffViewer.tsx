@@ -1,10 +1,11 @@
 /**
  * DiffViewer component - Main diff display
- * Supports unified and split view modes
+ * Supports unified and split view modes with syntax highlighting
  */
 
 import type { Comment, DiffHunk, DiffLine, File } from '@codesync/shared';
 import { useMemo } from 'hono/jsx';
+import { getLanguageFromFilename } from '@/lib/highlight';
 import { SplitDiff } from './SplitDiff';
 import { UnifiedDiff } from './UnifiedDiff';
 
@@ -66,6 +67,9 @@ export function DiffViewer({ file, mode, comments, onLineClick }: DiffViewerProp
     return [];
   }, [file]);
 
+  // Get language for syntax highlighting
+  const language = useMemo(() => getLanguageFromFilename(file.name || file.path), [file.name, file.path]);
+
   if (hunks.length === 0 && !file.isAdded && !file.isDeleted) {
     return (
       <div className="p-8 text-center text-muted-foreground">
@@ -76,9 +80,9 @@ export function DiffViewer({ file, mode, comments, onLineClick }: DiffViewerProp
   }
 
   return mode === 'split' ? (
-    <SplitDiff hunks={hunks} comments={comments} onLineClick={onLineClick} />
+    <SplitDiff hunks={hunks} comments={comments} onLineClick={onLineClick} language={language} />
   ) : (
-    <UnifiedDiff hunks={hunks} comments={comments} onLineClick={onLineClick} />
+    <UnifiedDiff hunks={hunks} comments={comments} onLineClick={onLineClick} language={language} />
   );
 }
 

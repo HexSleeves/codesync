@@ -132,10 +132,10 @@ export function SessionPage({ sessionId }: SessionPageProps) {
               {/* File header */}
               <div className="border-b border-border bg-card px-4 py-2 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-3">
-                  <span className="font-mono text-sm text-muted-foreground">{selectedFile.path}</span>
-                  {selectedFile.isReviewed && (
-                    <Badge variant="success">✓ Reviewed</Badge>
-                  )}
+                  <span className="font-mono text-sm text-muted-foreground">
+                    {selectedFile.path}
+                  </span>
+                  {selectedFile.isReviewed && <Badge variant="success">✓ Reviewed</Badge>}
                 </div>
                 <div className="flex items-center gap-2">
                   <Button
@@ -304,9 +304,7 @@ function CodeViewer({
                   </td>
                   <td className="px-4 py-0 whitespace-pre">{line || ' '}</td>
                   <td className="w-8 px-1">
-                    {hasComments && (
-                      <span className="text-primary">💬 {lineComments.length}</span>
-                    )}
+                    {hasComments && <span className="text-primary">💬 {lineComments.length}</span>}
                   </td>
                 </tr>
 

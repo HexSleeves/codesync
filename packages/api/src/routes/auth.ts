@@ -7,6 +7,7 @@ import { zValidator } from '@hono/zod-validator';
 import { eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { deleteCookie, setCookie } from 'hono/cookie';
+import { config } from '../config';
 import { db } from '../db/client';
 import { users } from '../db/schema';
 import { type AuthVariables, authMiddleware, generateToken } from '../middleware/auth';
@@ -40,9 +41,9 @@ export const authRoutes = new Hono<{ Variables: AuthVariables }>()
     // Set cookie
     setCookie(c, 'token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: !config.isDev,
       sameSite: 'Lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60 * 24 * config.tokenExpiryDays,
     });
 
     return c.json({
@@ -89,9 +90,9 @@ export const authRoutes = new Hono<{ Variables: AuthVariables }>()
     // Set cookie
     setCookie(c, 'token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: !config.isDev,
       sameSite: 'Lax',
-      maxAge: 60 * 60 * 24 * 7,
+      maxAge: 60 * 60 * 24 * config.tokenExpiryDays,
     });
 
     return c.json(
@@ -124,7 +125,7 @@ export const authRoutes = new Hono<{ Variables: AuthVariables }>()
  */
 async function hashPassword(password: string): Promise<string> {
   const encoder = new TextEncoder();
-  const data = encoder.encode(password + process.env.PASSWORD_SALT || 'salt');
+  const data = encoder.encode(password + config.passwordSalt);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');

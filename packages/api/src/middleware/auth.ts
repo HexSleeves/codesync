@@ -7,10 +7,9 @@ import { eq } from 'drizzle-orm';
 import { createMiddleware } from 'hono/factory';
 import { HTTPException } from 'hono/http-exception';
 import { sign, verify } from 'hono/jwt';
+import { config } from '../config';
 import { db } from '../db/client';
 import { users } from '../db/schema';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
 export type AuthVariables = {
   userId: string;
@@ -24,55 +23,71 @@ type JWTPayload = {
 };
 
 /**
+ * Extract token from request (Authorization header or cookie)
+ */
+function extractToken(c: { req: { header: (name: string) => string | undefined } }): string | null {
+  const authHeader = c.req.header('Authorization');
+  if (authHeader?.startsWith('Bearer ')) {
+    return authHeader.slice(7);
+  }
+
+  const cookies = c.req.header('Cookie') || '';
+  const tokenCookie = cookies
+    .split(';')
+    .map((cookie) => cookie.trim())
+    .find((cookie) => cookie.startsWith('token='));
+
+  return tokenCookie?.split('=')[1] || null;
+}
+
+/**
+ * Fetch user from database and create User object
+ */
+async function fetchUser(userId: string): Promise<User | null> {
+  const user = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1)
+    .then((rows) => rows[0]);
+
+  if (!user) return null;
+
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    githubId: user.githubId,
+    githubUsername: user.githubUsername,
+    createdAt: user.createdAt,
+  };
+}
+
+/**
  * Middleware that requires authentication
  * Adds userId and user to context
  */
 export const authMiddleware = createMiddleware<{ Variables: AuthVariables }>(async (c, next) => {
-  // Check for JWT in Authorization header or cookie
-  const authHeader = c.req.header('Authorization');
-  const cookies = c.req.header('Cookie') || '';
-  const cookieToken = cookies
-    .split(';')
-    .map((c) => c.trim())
-    .find((c) => c.startsWith('token='))
-    ?.split('=')[1];
-
-  const token = authHeader?.replace('Bearer ', '') || cookieToken;
+  const token = extractToken(c);
 
   if (!token) {
     throw new HTTPException(401, { message: 'Unauthorized - no token provided' });
   }
 
   try {
-    // Verify JWT using hono/jwt
-    const payload = (await verify(token, JWT_SECRET, 'HS256')) as JWTPayload;
+    const payload = (await verify(token, config.jwtSecret, 'HS256')) as JWTPayload;
 
-    if (!payload || !payload.sub) {
+    if (!payload?.sub) {
       throw new HTTPException(401, { message: 'Unauthorized - invalid token' });
     }
 
-    // Fetch user from database
-    const user = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, payload.sub))
-      .limit(1)
-      .then((rows) => rows[0]);
-
+    const user = await fetchUser(payload.sub);
     if (!user) {
       throw new HTTPException(401, { message: 'Unauthorized - user not found' });
     }
 
-    // Set user info in context
     c.set('userId', user.id);
-    c.set('user', {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      githubId: user.githubId,
-      githubUsername: user.githubUsername,
-      createdAt: user.createdAt,
-    });
+    c.set('user', user);
 
     await next();
   } catch (error) {
@@ -89,38 +104,17 @@ export const authMiddleware = createMiddleware<{ Variables: AuthVariables }>(asy
  */
 export const optionalAuthMiddleware = createMiddleware<{ Variables: Partial<AuthVariables> }>(
   async (c, next) => {
-    const authHeader = c.req.header('Authorization');
-    const cookies = c.req.header('Cookie') || '';
-    const cookieToken = cookies
-      .split(';')
-      .map((cookie) => cookie.trim())
-      .find((cookie) => cookie.startsWith('token='))
-      ?.split('=')[1];
-
-    const token = authHeader?.replace('Bearer ', '') || cookieToken;
+    const token = extractToken(c);
 
     if (token) {
       try {
-        const payload = (await verify(token, JWT_SECRET, 'HS256')) as JWTPayload;
+        const payload = (await verify(token, config.jwtSecret, 'HS256')) as JWTPayload;
 
         if (payload?.sub) {
-          const user = await db
-            .select()
-            .from(users)
-            .where(eq(users.id, payload.sub))
-            .limit(1)
-            .then((rows) => rows[0]);
-
+          const user = await fetchUser(payload.sub);
           if (user) {
             c.set('userId', user.id);
-            c.set('user', {
-              id: user.id,
-              email: user.email,
-              name: user.name,
-              githubId: user.githubId,
-              githubUsername: user.githubUsername,
-              createdAt: user.createdAt,
-            });
+            c.set('user', user);
           }
         }
       } catch {
@@ -136,11 +130,12 @@ export const optionalAuthMiddleware = createMiddleware<{ Variables: Partial<Auth
  * Generate JWT token for user
  */
 export async function generateToken(userId: string): Promise<string> {
+  const now = Math.floor(Date.now() / 1000);
   const payload: JWTPayload = {
     sub: userId,
-    iat: Math.floor(Date.now() / 1000),
-    exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7, // 7 days
+    iat: now,
+    exp: now + 60 * 60 * 24 * config.tokenExpiryDays,
   };
 
-  return await sign(payload, JWT_SECRET);
+  return await sign(payload, config.jwtSecret);
 }

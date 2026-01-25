@@ -1,9 +1,10 @@
 /**
- * Split (side-by-side) diff view component
+ * Split (side-by-side) diff view component with syntax highlighting
  */
 
 import type { Comment, DiffHunk, DiffLine } from '@codesync/shared';
 import { useMemo } from 'hono/jsx';
+import { highlightLine } from '@/lib/highlight';
 
 interface DiffLineWithHeader extends DiffLine {
   isHunkHeader?: boolean;
@@ -13,9 +14,10 @@ export interface SplitDiffProps {
   hunks: DiffHunk[];
   comments: Map<number, Comment[]>;
   onLineClick: (lineNumber: number, side?: 'old' | 'new') => void;
+  language: string;
 }
 
-export function SplitDiff({ hunks, comments, onLineClick }: SplitDiffProps) {
+export function SplitDiff({ hunks, comments, onLineClick, language }: SplitDiffProps) {
   // Build paired lines for side-by-side view
   const pairedLines = useMemo(() => {
     const pairs: Array<{ left: DiffLineWithHeader | null; right: DiffLineWithHeader | null }> = [];
@@ -76,6 +78,7 @@ export function SplitDiff({ hunks, comments, onLineClick }: SplitDiffProps) {
                 side="old"
                 comments={comments}
                 onLineClick={onLineClick}
+                language={language}
               />
             </div>
             {/* Right side (new) */}
@@ -85,6 +88,7 @@ export function SplitDiff({ hunks, comments, onLineClick }: SplitDiffProps) {
                 side="new"
                 comments={comments}
                 onLineClick={onLineClick}
+                language={language}
               />
             </div>
           </div>
@@ -99,11 +103,13 @@ function SplitDiffLine({
   side,
   comments,
   onLineClick,
+  language,
 }: {
   line: DiffLineWithHeader | null;
   side: 'old' | 'new';
   comments: Map<number, Comment[]>;
   onLineClick: (lineNumber: number, side?: 'old' | 'new') => void;
+  language: string;
 }) {
   if (!line) {
     return <div className="flex h-5 bg-muted/50" />;
@@ -119,16 +125,12 @@ function SplitDiffLine({
   const bgColor =
     line.type === 'add' ? 'bg-green-500/10' : line.type === 'remove' ? 'bg-destructive/10' : '';
 
-  const textColor =
-    line.type === 'add'
-      ? 'text-green-400'
-      : line.type === 'remove'
-        ? 'text-destructive'
-        : 'text-muted-foreground';
-
   const lineNumber = side === 'old' ? line.oldLineNumber : line.newLineNumber;
   const lineComments = lineNumber ? comments.get(lineNumber) : undefined;
   const hasComments = lineComments && lineComments.length > 0;
+
+  // Apply syntax highlighting
+  const highlightedContent = highlightLine(line.content, language);
 
   return (
     <div className={`flex group ${bgColor} hover:bg-accent/50`}>
@@ -143,10 +145,11 @@ function SplitDiffLine({
         )}
       </span>
 
-      {/* Content */}
-      <span className={`flex-1 whitespace-pre px-2 ${textColor} overflow-hidden`}>
-        {line.content}
-      </span>
+      {/* Content with syntax highlighting */}
+      <span
+        className="flex-1 whitespace-pre px-2 overflow-hidden"
+        dangerouslySetInnerHTML={{ __html: highlightedContent || '&nbsp;' }}
+      />
 
       {/* Add comment button */}
       <button

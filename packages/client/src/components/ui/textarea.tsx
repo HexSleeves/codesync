@@ -7,6 +7,8 @@ export interface TextareaProps {
   disabled?: boolean;
   required?: boolean;
   rows?: number;
+  id?: string;
+  name?: string;
   onInput?: (e: Event) => void;
   onChange?: (e: Event) => void;
 }

@@ -1,0 +1,231 @@
+/**
+ * GitHub PR Import Routes
+ * Handles PR validation and import into review sessions
+ */
+
+import { importPRSchema, validatePRUrlSchema } from '@codesync/shared';
+import { zValidator } from '@hono/zod-validator';
+import { Hono } from 'hono';
+import { nanoid } from 'nanoid';
+import { db } from '../../db/client';
+import { sessionParticipants, sessions } from '../../db/schema';
+import { type AuthVariables, authMiddleware } from '../../middleware/auth';
+import { processPRFiles } from '../../services/github/file-processor';
+import {
+  createOctokit,
+  fetchPRDetails,
+  fetchPRFiles,
+  getGitHubErrorStatus,
+  getGitHubToken,
+} from '../../services/github/pr-fetcher';
+import { parseGitHubPRUrl } from '../../utils/github-parser';
+
+export const importRoutes = new Hono<{ Variables: AuthVariables }>()
+  /**
+   * POST /validate
+   * Validate a GitHub PR URL and return PR info
+   */
+  .post('/validate', authMiddleware, zValidator('json', validatePRUrlSchema), async (c) => {
+    const { prUrl } = c.req.valid('json');
+
+    const prInfo = parseGitHubPRUrl(prUrl);
+    if (!prInfo) {
+      return c.json(
+        { error: 'Invalid GitHub PR URL. Use format: https://github.com/owner/repo/pull/123' },
+        400
+      );
+    }
+
+    const userId = c.get('userId');
+    const token = await getGitHubToken(userId);
+
+    // Return basic info without fetching if no token
+    if (!token) {
+      return c.json({
+        valid: true,
+        prInfo: {
+          owner: prInfo.owner,
+          repo: prInfo.repo,
+          prNumber: prInfo.prNumber,
+        },
+        needsAuth: true,
+        message: 'GitHub authentication required to fetch PR details',
+      });
+    }
+
+    try {
+      const octokit = createOctokit(token);
+      const prData = await fetchPRDetails(octokit, prInfo.owner, prInfo.repo, prInfo.prNumber);
+
+      return c.json({
+        valid: true,
+        prInfo: {
+          owner: prInfo.owner,
+          repo: prInfo.repo,
+          prNumber: prInfo.prNumber,
+        },
+        prData: {
+          title: prData.title,
+          body: prData.body,
+          state: prData.state,
+          author: prData.author,
+          branch: prData.head.ref,
+          url: prData.url,
+        },
+        needsAuth: false,
+      });
+    } catch (error: unknown) {
+      const status = getGitHubErrorStatus(error);
+
+      if (status === 404) {
+        return c.json({ error: 'Pull request not found or not accessible' }, 404);
+      }
+
+      if (status === 401 || status === 403) {
+        return c.json({
+          valid: true,
+          prInfo: {
+            owner: prInfo.owner,
+            repo: prInfo.repo,
+            prNumber: prInfo.prNumber,
+          },
+          needsAuth: true,
+          message: 'GitHub authentication required or token expired',
+        });
+      }
+
+      console.error('GitHub validation error:', error);
+      return c.json({ error: 'Failed to validate PR URL' }, 500);
+    }
+  })
+
+  /**
+   * POST /import
+   * Import a GitHub PR into a new review session
+   */
+  .post('/import', authMiddleware, zValidator('json', importPRSchema), async (c) => {
+    const { prUrl } = c.req.valid('json');
+    const userId = c.get('userId');
+
+    const prInfo = parseGitHubPRUrl(prUrl);
+    if (!prInfo) {
+      return c.json(
+        { error: 'Invalid GitHub PR URL. Use format: https://github.com/owner/repo/pull/123' },
+        400
+      );
+    }
+
+    const token = await getGitHubToken(userId);
+    if (!token) {
+      return c.json(
+        {
+          error: 'GitHub authentication required',
+          code: 'no-github-token',
+          message: 'Please connect your GitHub account to import pull requests.',
+        },
+        401
+      );
+    }
+
+    const octokit = createOctokit(token);
+
+    try {
+      // Fetch PR details
+      const prData = await fetchPRDetails(octokit, prInfo.owner, prInfo.repo, prInfo.prNumber);
+
+      // Create session
+      const sessionId = nanoid();
+      const shareToken = nanoid(12);
+
+      await db.insert(sessions).values({
+        id: sessionId,
+        title: prData.title || `PR #${prInfo.prNumber}`,
+        description: prData.body || '',
+        createdBy: userId,
+        isPublic: false,
+        shareToken,
+        status: 'in_review',
+        source: {
+          type: 'github',
+          url: prData.url,
+          repository: `${prInfo.owner}/${prInfo.repo}`,
+          prNumber: prInfo.prNumber,
+          branch: prData.head.ref,
+          commit: prData.head.sha,
+        },
+        settings: {
+          diffView: 'unified',
+          allowComments: true,
+        },
+      });
+
+      // Add creator as owner participant
+      await db.insert(sessionParticipants).values({
+        id: nanoid(),
+        sessionId,
+        userId,
+        role: 'owner',
+      });
+
+      // Fetch and process PR files
+      const prFiles = await fetchPRFiles(octokit, prInfo.owner, prInfo.repo, prInfo.prNumber);
+      const fileCount = await processPRFiles(octokit, sessionId, prFiles, {
+        owner: prInfo.owner,
+        repo: prInfo.repo,
+        baseSha: prData.base.sha,
+        headSha: prData.head.sha,
+      });
+
+      return c.json(
+        {
+          success: true,
+          session: {
+            id: sessionId,
+            title: prData.title,
+            shareToken,
+            fileCount,
+          },
+          message: `Imported ${fileCount} files from PR #${prInfo.prNumber}`,
+        },
+        201
+      );
+    } catch (error: unknown) {
+      const status = getGitHubErrorStatus(error);
+
+      if (status === 401) {
+        return c.json(
+          {
+            error: 'GitHub authentication failed',
+            code: 'github-auth-error',
+            message: 'Please re-connect your GitHub account.',
+          },
+          401
+        );
+      }
+
+      if (status === 403) {
+        return c.json(
+          {
+            error: 'GitHub API rate limit exceeded',
+            code: 'github-rate-limit',
+            message: 'Please try again later.',
+          },
+          429
+        );
+      }
+
+      if (status === 404) {
+        return c.json(
+          {
+            error: 'Pull request not found',
+            code: 'pr-not-found',
+            message: 'Make sure the repository is accessible and the PR exists.',
+          },
+          404
+        );
+      }
+
+      console.error('GitHub import error:', error);
+      return c.json({ error: 'Failed to import PR' }, 500);
+    }
+  });

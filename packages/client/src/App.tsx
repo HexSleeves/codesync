@@ -2,14 +2,14 @@
  * Main App component with routing
  */
 
-import { Spinner } from '@/components/ui/spinner';
 import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import { useAuth } from './hooks/useAuth';
 import { DashboardPage } from './pages/Dashboard';
 import { HomePage } from './pages/Home';
 import { LoginPage } from './pages/Login';
 import { SessionPage } from './pages/Session';
-import { useRouter, Link } from './router';
+import { Link, useRouter } from './router';
 
 export function App() {
   const { path, params } = useRouter();

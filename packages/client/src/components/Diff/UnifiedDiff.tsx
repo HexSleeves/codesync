@@ -1,16 +1,18 @@
 /**
- * Unified diff view component
+ * Unified diff view component with syntax highlighting
  */
 
 import type { Comment, DiffHunk, DiffLine } from '@codesync/shared';
+import { highlightLine } from '@/lib/highlight';
 
 export interface UnifiedDiffProps {
   hunks: DiffHunk[];
   comments: Map<number, Comment[]>;
   onLineClick: (lineNumber: number, side?: 'old' | 'new') => void;
+  language: string;
 }
 
-export function UnifiedDiff({ hunks, comments, onLineClick }: UnifiedDiffProps) {
+export function UnifiedDiff({ hunks, comments, onLineClick, language }: UnifiedDiffProps) {
   return (
     <div className="font-mono text-[13px] leading-5 bg-background text-foreground overflow-x-auto">
       {hunks.map((hunk, hunkIndex) => (
@@ -27,6 +29,7 @@ export function UnifiedDiff({ hunks, comments, onLineClick }: UnifiedDiffProps) 
               line={line}
               comments={comments}
               onLineClick={onLineClick}
+              language={language}
             />
           ))}
         </div>
@@ -39,26 +42,30 @@ function UnifiedDiffLine({
   line,
   comments,
   onLineClick,
+  language,
 }: {
   line: DiffLine;
   comments: Map<number, Comment[]>;
   onLineClick: (lineNumber: number, side?: 'old' | 'new') => void;
+  language: string;
 }) {
   const bgColor =
     line.type === 'add' ? 'bg-green-500/10' : line.type === 'remove' ? 'bg-destructive/10' : '';
 
-  const textColor =
+  const prefix = line.type === 'add' ? '+' : line.type === 'remove' ? '-' : ' ';
+  const prefixColor =
     line.type === 'add'
       ? 'text-green-400'
       : line.type === 'remove'
         ? 'text-destructive'
         : 'text-muted-foreground';
 
-  const prefix = line.type === 'add' ? '+' : line.type === 'remove' ? '-' : ' ';
-
   const lineNumber = line.newLineNumber || line.oldLineNumber || 0;
   const lineComments = comments.get(lineNumber);
   const hasComments = lineComments && lineComments.length > 0;
+
+  // Apply syntax highlighting
+  const highlightedContent = highlightLine(line.content, language);
 
   return (
     <div className={`flex group ${bgColor} hover:bg-accent/50`}>
@@ -80,10 +87,13 @@ function UnifiedDiffLine({
       </span>
 
       {/* Prefix */}
-      <span className={`inline-block w-4 ${textColor} select-none`}>{prefix}</span>
+      <span className={`inline-block w-4 ${prefixColor} select-none`}>{prefix}</span>
 
-      {/* Content */}
-      <span className={`flex-1 whitespace-pre ${textColor}`}>{line.content}</span>
+      {/* Content with syntax highlighting */}
+      <span
+        className="flex-1 whitespace-pre"
+        dangerouslySetInnerHTML={{ __html: highlightedContent || '&nbsp;' }}
+      />
 
       {/* Add comment button */}
       <button
