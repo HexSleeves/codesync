@@ -3,12 +3,7 @@
  * Manages connection, presence, cursors, and chat
  */
 
-import type {
-  CursorMessage,
-  OnlineUser,
-  ServerMessage,
-  WSChatMessage,
-} from '@codesync/shared';
+import type { CursorMessage, OnlineUser, ServerMessage, WSChatMessage } from '@codesync/shared';
 import { useCallback, useEffect, useRef, useState } from 'hono/jsx';
 import { getToken } from '../api/client';
 
@@ -66,10 +61,21 @@ export function useWebSocket(sessionId: string | undefined): UseWebSocketReturn 
     }
 
     // Build WebSocket URL
+    // When accessed through a proxy (like exe.dev), use the page's host
+    // Otherwise use the API URL directly
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8001';
-    const host = apiUrl.replace(/^https?:\/\//, '');
-    const url = `${protocol}//${host}/ws/sessions/${sessionId}?token=${token}`;
+    let wsHost: string;
+    
+    if (window.location.hostname.includes('exe.xyz')) {
+      // Using exe.dev proxy - WebSocket goes through the same proxy on port 8001
+      wsHost = window.location.hostname + ':8001';
+    } else {
+      // Local development - use API URL
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8001';
+      wsHost = apiUrl.replace(/^https?:\/\//, '');
+    }
+    
+    const url = `${protocol}//${wsHost}/ws/sessions/${sessionId}?token=${token}`;
 
     console.log('[WS] Connecting to', url.replace(/token=.*/, 'token=***'));
 
@@ -169,21 +175,18 @@ export function useWebSocket(sessionId: string | undefined): UseWebSocketReturn 
   /**
    * Send cursor position update
    */
-  const sendCursor = useCallback(
-    (fileId: string | null, line: number, column: number) => {
-      if (wsRef.current?.readyState === WebSocket.OPEN) {
-        wsRef.current.send(
-          JSON.stringify({
-            type: 'cursor',
-            fileId,
-            line,
-            column,
-          })
-        );
-      }
-    },
-    []
-  );
+  const sendCursor = useCallback((fileId: string | null, line: number, column: number) => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(
+        JSON.stringify({
+          type: 'cursor',
+          fileId,
+          line,
+          column,
+        })
+      );
+    }
+  }, []);
 
   /**
    * Send chat message
