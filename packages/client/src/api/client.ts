@@ -29,12 +29,12 @@ export function clearToken(): void {
 export async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Response> {
   const token = getToken();
   const headers = new Headers(options.headers);
-  
+
   if (token) {
     headers.set('Authorization', `Bearer ${token}`);
   }
   headers.set('Content-Type', 'application/json');
-  
+
   return fetch(url, { ...options, headers, credentials: 'include' });
 }
 
@@ -48,11 +48,24 @@ export async function apiCall<T>(
     method,
     body: body ? JSON.stringify(body) : undefined,
   });
-  
+
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: 'Request failed' }));
-    throw new Error(error.error || 'Request failed');
+    const data = await response.json().catch(() => ({ error: 'Request failed' }));
+    // Handle different error formats
+    let message = 'Request failed';
+    if (typeof data.error === 'string') {
+      message = data.error;
+    } else if (data.error?.message) {
+      // Zod validation errors
+      try {
+        const errors = JSON.parse(data.error.message);
+        message = errors.map((e: any) => e.message).join(', ');
+      } catch {
+        message = data.error.message;
+      }
+    }
+    throw new Error(message);
   }
-  
+
   return response.json();
 }

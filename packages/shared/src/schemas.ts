@@ -7,12 +7,12 @@ import { z } from 'zod';
 
 // Auth schemas
 export const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  email: z.email('Invalid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
 });
 
 export const registerSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  email: z.email('Invalid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   name: z.string().min(1, 'Name is required').max(100),
 });
@@ -20,7 +20,7 @@ export const registerSchema = z.object({
 // Session schemas
 export const sessionSourceSchema = z.object({
   type: z.enum(['manual', 'github']),
-  url: z.string().url().optional(),
+  url: z.url().optional(),
   repository: z.string().optional(),
   prNumber: z.number().int().positive().optional(),
   branch: z.string().optional(),
@@ -78,12 +78,12 @@ export const sendChatMessageSchema = z.object({
 
 // GitHub schemas
 export const importPRSchema = z.object({
-  prUrl: z.string().url('Invalid PR URL'),
+  prUrl: z.url('Invalid PR URL'),
   sessionId: z.string().optional(), // If importing to existing session
 });
 
 export const validatePRUrlSchema = z.object({
-  prUrl: z.string().url('Invalid PR URL'),
+  prUrl: z.url('Invalid PR URL'),
 });
 
 // WebSocket message schemas
