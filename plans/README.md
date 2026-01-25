@@ -15,13 +15,13 @@ Each plan follows this structure:
 
 ## Active Plans
 
-| # | Name | Status | Priority |
-|---|------|--------|----------|
-| 001 | [WebSocket Real-time](001-websocket-realtime.md) | 🟡 Planned | High |
+_None currently_
 
 ## Completed Plans
 
-_None yet_
+| # | Name | Status | Priority |
+|---|------|--------|----------|
+| 001 | [WebSocket Real-time](001-websocket-realtime.md) | 🟢 Complete | High |
 
 ## How to Create a New Plan
 
