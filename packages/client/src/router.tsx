@@ -55,10 +55,11 @@ export function navigate(to: string) {
   window.dispatchEvent(new CustomEvent(NAVIGATE_EVENT));
 }
 
-export function Link({ href, children, className = '' }: {
+export function Link({ href, children, className, class: cls }: {
   href: string;
   children: any;
   className?: string;
+  class?: string;
 }) {
   const handleClick = (e: MouseEvent) => {
     e.preventDefault();
@@ -66,7 +67,7 @@ export function Link({ href, children, className = '' }: {
   };
 
   return (
-    <a href={href} onClick={handleClick} class={className}>
+    <a href={href} onClick={handleClick} class={className || cls || ''}>
       {children}
     </a>
   );

@@ -9,13 +9,13 @@ export function useAuth() {
   const [state, setState] = useState(authStore.getState());
 
   useEffect(() => {
-    // Initialize auth on first mount
-    authStore.init();
-    
-    // Subscribe to changes
+    // Subscribe to changes first
     const unsubscribe = authStore.subscribe(() => {
-      setState(authStore.getState());
+      setState({ ...authStore.getState() });
     });
+    
+    // Initialize auth (will trigger subscription when done)
+    authStore.init();
     
     return unsubscribe;
   }, []);
