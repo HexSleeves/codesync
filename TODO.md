@@ -104,6 +104,12 @@ codesync/
   - Language detection from file extension
   - 25+ languages supported
   - One Dark theme
+- [x] **WebSocket real-time collaboration** (Jan 25)
+  - User presence (online users list)
+  - Real-time chat with message persistence
+  - Cursor position broadcasting
+  - JWT-authenticated WebSocket connections
+  - Auto-reconnect with exponential backoff
 
 ### UI Components (packages/client/src/components/ui/)
 
@@ -135,28 +141,19 @@ codesync/
 
 ### HIGH PRIORITY
 
-1. **WebSocket Real-time**
-   - [ ] Cursor broadcasting to session participants
-   - [ ] Chat real-time updates
-   - [ ] User presence (online/offline)
-   - Handler exists at `packages/api/src/ws/cursors.ts` but no broadcast logic
-   - Need Redis pub/sub for scaling
-   - Reference: `imports/ui/components/CodeEditor/Cursors.tsx`
+_None - all high priority items complete!_
 
 ### MEDIUM PRIORITY
 
-2. **Chat Panel UI**
-   - [ ] Chat sidebar component in Session page
-   - [ ] Real-time message updates via WebSocket
-   - [ ] Message input and send
-   - API endpoints exist (`/api/sessions/:id/chat`)
-   - Reference: `imports/ui/components/Sidebar/ChatPanel.tsx`
+2. **Enhanced Chat Features**
+   - [ ] Load chat history on session open
+   - [ ] Typing indicators
+   - [ ] Message reactions
 
-3. **User Presence UI**
-   - [ ] Online users list in session sidebar
-   - [ ] Cursor positions shown on code lines
-   - [ ] User avatars/colors
-   - Reference: `imports/ui/components/Sidebar/UserList.tsx`
+3. **Enhanced Cursor Features**
+   - [ ] Cursor debouncing/throttling
+   - [ ] Smooth cursor animations
+   - [ ] Click to follow cursor
 
 ### LOW PRIORITY
 
@@ -238,22 +235,11 @@ Password: password123
 
 ## NEXT STEPS (Suggested Order)
 
-1. **WebSocket Real-time** - Core collaboration feature
-   - Implement broadcast in `packages/api/src/ws/cursors.ts`
-   - Add `useWebSocket` hook in client
-   - Show other users' cursors on code
-   - Real-time chat updates
-
-2. **Chat Panel** - Collaboration feature
-   - Add chat sidebar to Session page
-   - Connect to WebSocket for real-time
-   - Use existing `/api/sessions/:id/chat` endpoints
-
-3. **User Presence** - Collaboration feature
-   - Show online users in session
-   - Track join/leave events
-
-4. **UI Polish** - Final touches
+1. **Load Chat History** - Load previous messages when opening session
+2. **UI Polish** - Final touches
    - Keyboard shortcuts
-   - Share functionality
+   - Share functionality  
    - Toast notifications
+3. **Testing** - Add test coverage
+   - E2E tests with Playwright
+   - Unit tests for WebSocket handlers
