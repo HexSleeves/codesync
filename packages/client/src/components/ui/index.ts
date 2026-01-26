@@ -13,6 +13,7 @@ export {
   DialogHeader,
   DialogTitle,
 } from './dialog';
+export { Dropdown, DropdownItem, DropdownLabel, DropdownSeparator } from './dropdown';
 export { Input } from './input';
 export { Label } from './label';
 export { Select, SelectOption } from './select';

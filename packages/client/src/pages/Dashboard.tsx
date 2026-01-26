@@ -5,7 +5,7 @@
 import { useEffect, useState } from 'hono/jsx';
 import { EmptyState } from '@/components/common';
 import { GitHubIcon } from '@/components/icons';
-import { GitHubStatus, PageHeader, UserMenu } from '@/components/layout';
+import { AppShell, UserDropdown } from '@/components/layout';
 import { SessionCard } from '@/components/session';
 import { Button, Spinner, toast } from '@/components/ui';
 import { useAuth } from '../hooks/useAuth';
@@ -75,19 +75,20 @@ export function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <PageHeader>
-        <UserMenu email={user?.email || ''} onLogout={handleLogout}>
-          <GitHubStatus
-            connected={githubConnected}
-            username={githubUsername}
-            onConnect={connectGitHub}
-            onDisconnect={disconnectGitHub}
-          />
-        </UserMenu>
-      </PageHeader>
-
-      <main className="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
+    <AppShell
+      headerRight={
+        <UserDropdown
+          email={user?.email || ''}
+          name={user?.githubUsername || undefined}
+          githubUsername={githubUsername || undefined}
+          githubConnected={githubConnected}
+          onLogout={handleLogout}
+          onConnectGitHub={connectGitHub}
+          onDisconnectGitHub={disconnectGitHub}
+        />
+      }
+    >
+      <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
           <h1 className="text-xl sm:text-2xl font-bold text-foreground">Your Sessions</h1>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
@@ -129,8 +130,8 @@ export function DashboardPage() {
           onDeleteSession={deleteSession}
           onCreateNew={() => setShowNewForm(true)}
         />
-      </main>
-    </div>
+      </div>
+    </AppShell>
   );
 }
 

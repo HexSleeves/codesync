@@ -8,6 +8,8 @@ import { useEffect, useMemo, useState } from 'hono/jsx';
 import { InlineCommentPanel } from '@/components/comment';
 import { PageError, PageLoading } from '@/components/common';
 import { DiffViewer } from '@/components/Diff';
+import { CloseIcon, MessageIcon, SidebarIcon, UsersIcon } from '@/components/icons';
+import { AppShell, UserDropdown } from '@/components/layout';
 import {
   ChatPanel,
   FileHeader,
@@ -18,9 +20,10 @@ import {
 import { Button } from '@/components/ui';
 import { useAuth } from '../hooks/useAuth';
 import { useComments } from '../hooks/useComments';
+import { useGitHub } from '../hooks/useGitHub';
 import { useSession } from '../hooks/useSession';
 import { useWebSocket } from '../hooks/useWebSocket';
-import { Link } from '../router';
+import { navigate } from '../router';
 import { CodeViewer } from './session/CodeViewer';
 
 interface SessionPageProps {
@@ -28,14 +31,20 @@ interface SessionPageProps {
 }
 
 export function SessionPage({ sessionId }: SessionPageProps) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { session, files, loading, error, markFileReviewed } = useSession(sessionId);
+  const {
+    connected: githubConnected,
+    username: githubUsername,
+    connect: connectGitHub,
+    disconnect: disconnectGitHub,
+  } = useGitHub();
   const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'code' | 'diff'>('diff');
   const [diffMode, setDiffMode] = useState<'unified' | 'split'>('unified');
   const [activeCommentLine, setActiveCommentLine] = useState<number | null>(null);
   const [showChat, setShowChat] = useState(false);
-  const [showFileTree, setShowFileTree] = useState(true); // Default to visible on desktop
+  const [showFileTree, setShowFileTree] = useState(true);
 
   // WebSocket for real-time collaboration
   const { connected, onlineUsers, cursors, chatMessages, sendCursor, sendChat } =
@@ -59,6 +68,11 @@ export function SessionPage({ sessionId }: SessionPageProps) {
       setSelectedFileId(files[0].id);
     }
   }, [files, selectedFileId]);
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
 
   if (loading) {
     return <PageLoading message="Loading session..." />;
@@ -90,25 +104,51 @@ export function SessionPage({ sessionId }: SessionPageProps) {
   };
 
   return (
-    <div className="h-screen bg-background flex flex-col">
-      <SessionHeader
-        session={session}
-        userDisplay={user?.githubUsername || user?.email}
-        connected={connected}
-        onlineCount={onlineUsers.length}
-        onToggleFileTree={() => setShowFileTree(!showFileTree)}
-      />
+    <AppShell
+      fullHeight
+      breadcrumbs={[{ label: session.title }]}
+      headerCenter={
+        <div className="flex items-center gap-3">
+          {/* Sidebar toggle */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowFileTree(!showFileTree)}
+            aria-label={showFileTree ? 'Hide sidebar' : 'Show sidebar'}
+            className="gap-1.5"
+          >
+            <SidebarIcon className="size-4" />
+            <span className="hidden lg:inline">Files</span>
+          </Button>
+
+          {/* Session status */}
+          <SessionStatusBadge status={session.status} />
+
+          {/* Online users indicator */}
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <div className={`size-2 rounded-full ${connected ? 'bg-green-500' : 'bg-red-500'}`} />
+            <UsersIcon className="size-4" />
+            <span className="tabular-nums">{onlineUsers.length}</span>
+          </div>
+        </div>
+      }
+      headerRight={
+        <UserDropdown
+          email={user?.email || ''}
+          name={user?.githubUsername || undefined}
+          githubUsername={githubUsername || undefined}
+          githubConnected={githubConnected}
+          onLogout={handleLogout}
+          onConnectGitHub={connectGitHub}
+          onDisconnectGitHub={disconnectGitHub}
+        />
+      }
+    >
 
       <div className="flex-1 flex overflow-hidden relative">
-        {/* Left Sidebar: Online Users + File Tree */}
-        {/* On desktop: shown when showFileTree is true. On mobile: shown when showFileTree is true */}
+        {/* Left Sidebar: File Tree */}
         {showFileTree && (
-          <aside
-            className={`
-              w-64 border-r border-border flex-col bg-card
-              hidden md:flex
-            `}
-          >
+          <aside className="w-64 border-r border-border flex-col bg-card hidden md:flex shrink-0">
             <OnlineUsers users={onlineUsers} connected={connected} />
             <div className="flex-1 overflow-hidden">
               <FileTree
@@ -125,8 +165,8 @@ export function SessionPage({ sessionId }: SessionPageProps) {
           <aside className="absolute inset-y-0 left-0 z-30 w-64 border-r border-border flex flex-col bg-card md:hidden">
             <div className="flex items-center justify-between px-3 py-2 border-b border-border">
               <span className="text-sm font-medium">Files</span>
-              <Button variant="ghost" size="sm" onClick={() => setShowFileTree(false)}>
-                ✕
+              <Button variant="ghost" size="sm" onClick={() => setShowFileTree(false)} aria-label="Close sidebar">
+                <CloseIcon className="size-4" />
               </Button>
             </div>
             <OnlineUsers users={onlineUsers} connected={connected} />
@@ -201,13 +241,13 @@ export function SessionPage({ sessionId }: SessionPageProps) {
           )}
         </main>
 
-        {/* Right Sidebar: Chat - Slide-out on mobile */}
+        {/* Right Sidebar: Chat */}
         {showChat && (
           <aside className="absolute md:relative inset-y-0 right-0 z-30 w-full sm:w-72 border-l border-border flex flex-col bg-card">
             <div className="flex items-center justify-between px-3 py-2 border-b border-border">
               <span className="text-sm font-medium">Chat</span>
-              <Button variant="ghost" size="sm" onClick={() => setShowChat(false)}>
-                ✕
+              <Button variant="ghost" size="sm" onClick={() => setShowChat(false)} aria-label="Close chat">
+                <CloseIcon className="size-4" />
               </Button>
             </div>
             <div className="flex-1 overflow-hidden">
@@ -224,70 +264,20 @@ export function SessionPage({ sessionId }: SessionPageProps) {
           />
         )}
 
-        {/* Chat toggle button - visible when chat is hidden */}
+        {/* Chat toggle button */}
         {!showChat && (
           <Button
             variant="outline"
             size="sm"
-            className="fixed bottom-4 right-4 z-10"
+            className="fixed bottom-4 right-4 z-10 gap-1.5"
             onClick={() => setShowChat(true)}
           >
-            💬 Chat
+            <MessageIcon className="size-4" />
+            <span className="hidden sm:inline">Chat</span>
           </Button>
         )}
       </div>
-    </div>
-  );
-}
-
-function SessionHeader({
-  session,
-  userDisplay,
-  connected,
-  onlineCount,
-  onToggleFileTree,
-}: {
-  session: any;
-  userDisplay?: string;
-  connected: boolean;
-  onlineCount: number;
-  onToggleFileTree: () => void;
-}) {
-  return (
-    <header className="border-b border-border bg-card px-2 sm:px-4 py-2 sm:py-3 shrink-0">
-      <div className="flex items-center justify-between gap-2">
-        {/* Left side */}
-        <div className="flex items-center gap-1 sm:gap-3 min-w-0 flex-1">
-          {/* File tree toggle - visible on all screen sizes */}
-          <Button variant="ghost" size="sm" className="px-2" onClick={onToggleFileTree}>
-            ☰
-          </Button>
-          <Link href="/dashboard">
-            <Button variant="ghost" size="sm" className="px-2 sm:px-3">
-              ←
-            </Button>
-          </Link>
-          <h1 className="text-sm sm:text-lg font-semibold text-foreground truncate min-w-0">
-            {session.title}
-          </h1>
-          <SessionStatusBadge status={session.status} className="hidden sm:inline-flex shrink-0" />
-        </div>
-
-        {/* Right side */}
-        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-          {/* Connection status indicator */}
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <div className={`w-2 h-2 rounded-full ${connected ? 'bg-green-500' : 'bg-red-500'}`} />
-            <span className="hidden sm:inline">
-              {connected ? `${onlineCount} online` : 'Connecting...'}
-            </span>
-          </div>
-          <span className="text-muted-foreground text-xs sm:text-sm hidden sm:inline">
-            {userDisplay}
-          </span>
-        </div>
-      </div>
-    </header>
+    </AppShell>
   );
 }
 
