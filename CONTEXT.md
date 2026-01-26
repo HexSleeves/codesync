@@ -1,7 +1,7 @@
 # Agent Context Dump
 
-**Last Updated:** Jan 25, 2026  
-**Last Task:** Mobile-first responsive design update
+**Last Updated:** Jan 26, 2026  
+**Last Task:** Replaced react-hook-form with @tanstack/react-form
 
 ---
 
@@ -38,7 +38,23 @@ Password: password123
 
 ---
 
-## Recent Changes (Jan 25, 2026)
+## Recent Changes (Jan 26, 2026)
+
+### 1. TanStack Form Migration
+- Replaced `react-hook-form` with `@tanstack/react-form`
+- Created `lib/form.tsx` wrapper for Hono JSX compatibility
+- Added `onBlur` and `onFocus` props to Input and Textarea components
+- Converted all forms:
+  - `LoginPage` - login/register form
+  - `NewSessionDialog` - create session form
+  - `ImportPRDialog` - GitHub PR URL form
+  - `CommentForm` - inline/block comment form
+  - `ChatPanel` - real-time chat input
+- Removed unused `react-hook-form` and `@hookform/resolvers` dependencies
+
+---
+
+## Previous Changes (Jan 25, 2026)
 
 ### 1. Mobile-First Responsive Design
 - Updated all client components to use mobile-first approach
@@ -182,6 +198,7 @@ codesync/
 | Auth | JWT (HTTP-only cookies) |
 | Real-time | Bun WebSocket + custom handlers |
 | Syntax Highlighting | Prism.js |
+| Form Management | TanStack Form |
 
 ---
 
@@ -199,6 +216,7 @@ codesync/
 - `packages/client/src/hooks/useWebSocket.ts` - WebSocket connection hook
 - `packages/client/src/stores/auth.ts` - Auth state management
 - `packages/client/src/components/Diff/` - Diff viewer components
+- `packages/client/src/lib/form.tsx` - TanStack Form wrapper for Hono JSX
 
 ### Shared
 - `packages/shared/src/ws-types.ts` - WebSocket message types

@@ -251,6 +251,12 @@ Password: password123
 
 ## RECENTLY COMPLETED (Jan 26, 2026)
 
+- **TanStack Form Migration** - Replaced react-hook-form with @tanstack/react-form
+  - Created `lib/form.tsx` wrapper for Hono JSX compatibility
+  - Converted: LoginPage, NewSessionDialog, ImportPRDialog, CommentForm, ChatPanel
+  - Added onBlur/onFocus props to Input, Textarea components
+  - Removed react-hook-form and @hookform/resolvers dependencies
+
 - **Toast Notifications** - Replaced inline Alert banners with sonner toast system
   - Uses React createRoot to mount sonner (since it's a React component)
   - Auto-initializes on first toast() call
