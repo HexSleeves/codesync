@@ -158,9 +158,9 @@ _None - all high priority items complete!_
 ### LOW PRIORITY
 
 4. **UI Polish**
-   - [ ] Keyboard shortcuts modal (? key)
-   - [ ] Share session button/modal
-   - [ ] Settings modal
+   - [x] Keyboard shortcuts modal (? key)
+   - [x] Share session button/modal
+   - [x] Settings modal
    - [ ] File upload drag & drop
    - [ ] TopBar with review actions (Approve, Request Changes)
    - [x] Toast notifications with sonner (replaces Alert banners)
@@ -250,6 +250,11 @@ Password: password123
 ---
 
 ## RECENTLY COMPLETED (Jan 26, 2026)
+
+- **UI Polish Modals** (Jan 26) - Implemented by 3 parallel agents
+  - Keyboard Shortcuts Modal: Press `?` to show shortcuts, `j/k` for file nav, `f/c/d/v/m` for toggles
+  - Share Session: Generate/copy/revoke share links, public read-only SharedSession page
+  - Settings Modal: Theme, font size, default diff/view modes, localStorage persistence
 
 - **Custom Form Hook** - Replaced react-hook-form with custom `useForm` hook
   - TanStack React Form incompatible with Hono JSX (uses React hooks)
