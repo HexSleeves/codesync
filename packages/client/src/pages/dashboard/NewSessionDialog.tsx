@@ -1,7 +1,8 @@
 /**
- * New session creation dialog - uses TanStack Form
+ * New session creation dialog - uses custom form hook
  */
 
+import { useForm } from '@/lib/form';
 import {
   Button,
   Checkbox,
@@ -16,7 +17,6 @@ import {
   Textarea,
   toast,
 } from '@/components/ui';
-import { useForm } from '@/lib/form';
 
 interface NewSessionFormValues {
   title: string;
@@ -68,73 +68,41 @@ export function NewSessionDialog({ open, onOpenChange, onCreate }: NewSessionDia
           }}
           className="space-y-4"
         >
-          <form.Field name="title">
-            {(field: any) => (
-              <div className="space-y-2">
-                <Label htmlFor="title">Title</Label>
-                <Input
-                  id="title"
-                  value={field.state.value}
-                  onInput={(e) => field.handleChange((e.target as HTMLInputElement).value)}
-                  onBlur={field.handleBlur}
-                  placeholder="Session title"
-                  required
-                />
-              </div>
-            )}
-          </form.Field>
+          <div className="space-y-2">
+            <Label htmlFor="title">Title</Label>
+            <Input
+              id="title"
+              placeholder="Session title"
+              required
+              {...form.getFieldProps('title')}
+            />
+          </div>
 
-          <form.Field name="description">
-            {(field: any) => (
-              <div className="space-y-2">
-                <Label htmlFor="description">Description (optional)</Label>
-                <Textarea
-                  id="description"
-                  value={field.state.value}
-                  onInput={(e) => field.handleChange((e.target as HTMLTextAreaElement).value)}
-                  onBlur={field.handleBlur}
-                  placeholder="What are you reviewing?"
-                  rows={3}
-                />
-              </div>
-            )}
-          </form.Field>
+          <div className="space-y-2">
+            <Label htmlFor="description">Description (optional)</Label>
+            <Textarea
+              id="description"
+              placeholder="What are you reviewing?"
+              rows={3}
+              {...form.getTextAreaProps('description')}
+            />
+          </div>
 
-          <form.Field name="isPublic">
-            {(field: any) => (
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="isPublic"
-                  checked={field.state.value}
-                  onChange={(e) => field.handleChange((e.target as HTMLInputElement).checked)}
-                />
-                <Label htmlFor="isPublic" className="text-sm font-normal">
-                  Make this session public
-                </Label>
-              </div>
-            )}
-          </form.Field>
+          <div className="flex items-center gap-2">
+            <Checkbox id="isPublic" {...form.getCheckboxProps('isPublic')} />
+            <Label htmlFor="isPublic" className="text-sm font-normal">
+              Make this session public
+            </Label>
+          </div>
 
-          <form.Subscribe
-            selector={(state: any) => ({ isSubmitting: state.isSubmitting, values: state.values })}
-          >
-            {({
-              isSubmitting,
-              values,
-            }: {
-              isSubmitting: boolean;
-              values: NewSessionFormValues;
-            }) => (
-              <DialogFooter className="gap-2">
-                <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isSubmitting || !values.title}>
-                  {isSubmitting ? 'Creating...' : 'Create Session'}
-                </Button>
-              </DialogFooter>
-            )}
-          </form.Subscribe>
+          <DialogFooter className="gap-2">
+            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={form.isSubmitting || !form.values.title}>
+              {form.isSubmitting ? 'Creating...' : 'Create Session'}
+            </Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

@@ -1,9 +1,9 @@
 /**
- * Comment form - uses TanStack Form
+ * Comment form - uses custom form hook
  */
 
-import { Button, Input, Textarea } from '@/components/ui';
 import { useForm } from '@/lib/form';
+import { Button, Input, Textarea } from '@/components/ui';
 
 interface CommentFormValues {
   text: string;
@@ -45,30 +45,15 @@ export function CommentForm({
         }}
         className="flex gap-3"
       >
-        <form.Field name="text">
-          {(field: any) => (
-            <Input
-              type="text"
-              value={field.state.value}
-              onInput={(e) => field.handleChange((e.target as HTMLInputElement).value)}
-              onBlur={field.handleBlur}
-              placeholder={placeholder}
-              className="flex-1"
-            />
-          )}
-        </form.Field>
-        <form.Subscribe
-          selector={(state: any) => ({
-            isSubmitting: state.isSubmitting,
-            text: state.values.text,
-          })}
-        >
-          {({ isSubmitting, text }: { isSubmitting: boolean; text: string }) => (
-            <Button type="submit" disabled={!text.trim() || isSubmitting}>
-              {isSubmitting ? 'Adding...' : submitLabel}
-            </Button>
-          )}
-        </form.Subscribe>
+        <Input
+          type="text"
+          placeholder={placeholder}
+          className="flex-1"
+          {...form.getFieldProps('text')}
+        />
+        <Button type="submit" disabled={!form.values.text.trim() || form.isSubmitting}>
+          {form.isSubmitting ? 'Adding...' : submitLabel}
+        </Button>
       </form>
     );
   }
@@ -81,36 +66,17 @@ export function CommentForm({
         form.handleSubmit();
       }}
     >
-      <form.Field name="text">
-        {(field: any) => (
-          <Textarea
-            value={field.state.value}
-            onInput={(e) => field.handleChange((e.target as HTMLTextAreaElement).value)}
-            onBlur={field.handleBlur}
-            placeholder={placeholder}
-            rows={3}
-          />
+      <Textarea placeholder={placeholder} rows={3} {...form.getTextAreaProps('text')} />
+      <div className="flex justify-end gap-2 mt-2">
+        {onCancel && (
+          <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
+            Cancel
+          </Button>
         )}
-      </form.Field>
-      <form.Subscribe
-        selector={(state: any) => ({
-          isSubmitting: state.isSubmitting,
-          text: state.values.text,
-        })}
-      >
-        {({ isSubmitting, text }: { isSubmitting: boolean; text: string }) => (
-          <div className="flex justify-end gap-2 mt-2">
-            {onCancel && (
-              <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
-                Cancel
-              </Button>
-            )}
-            <Button type="submit" size="sm" disabled={!text.trim() || isSubmitting}>
-              {isSubmitting ? 'Adding...' : submitLabel}
-            </Button>
-          </div>
-        )}
-      </form.Subscribe>
+        <Button type="submit" size="sm" disabled={!form.values.text.trim() || form.isSubmitting}>
+          {form.isSubmitting ? 'Adding...' : submitLabel}
+        </Button>
+      </div>
     </form>
   );
 }

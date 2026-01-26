@@ -1,5 +1,5 @@
 /**
- * Login page component - uses TanStack Form
+ * Login page component - uses custom form hook
  */
 
 import { useEffect, useState } from 'hono/jsx';
@@ -22,13 +22,6 @@ export function LoginPage() {
   const { login, register, error } = useAuth();
   const [isRegister, setIsRegister] = useState(false);
 
-  // Show toast when auth error changes
-  useEffect(() => {
-    if (error) {
-      toast.error(error);
-    }
-  }, [error]);
-
   const form = useForm<LoginFormValues>({
     defaultValues: {
       email: '',
@@ -46,6 +39,13 @@ export function LoginPage() {
       }
     },
   });
+
+  // Show toast when auth error changes
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
 
   const handleModeSwitch = () => {
     form.reset();
@@ -79,65 +79,43 @@ export function LoginPage() {
               className="space-y-4"
             >
               {isRegister && (
-                <form.Field name="name">
-                  {(field) => (
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Name</Label>
-                      <Input
-                        id="name"
-                        type="text"
-                        value={field.state.value}
-                        onInput={(e) => field.handleChange((e.target as HTMLInputElement).value)}
-                        onBlur={field.handleBlur}
-                        placeholder="Your name"
-                        required={isRegister}
-                      />
-                    </div>
-                  )}
-                </form.Field>
+                <div className="space-y-2">
+                  <Label htmlFor="name">Name</Label>
+                  <Input
+                    id="name"
+                    type="text"
+                    placeholder="Your name"
+                    required={isRegister}
+                    {...form.getFieldProps('name')}
+                  />
+                </div>
               )}
 
-              <form.Field name="email">
-                {(field: any) => (
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={field.state.value}
-                      onInput={(e) => field.handleChange((e.target as HTMLInputElement).value)}
-                      onBlur={field.handleBlur}
-                      placeholder="you@example.com"
-                      required
-                    />
-                  </div>
-                )}
-              </form.Field>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  required
+                  {...form.getFieldProps('email')}
+                />
+              </div>
 
-              <form.Field name="password">
-                {(field: any) => (
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      value={field.state.value}
-                      onInput={(e) => field.handleChange((e.target as HTMLInputElement).value)}
-                      onBlur={field.handleBlur}
-                      placeholder="••••••••"
-                      required
-                    />
-                  </div>
-                )}
-              </form.Field>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  required
+                  {...form.getFieldProps('password')}
+                />
+              </div>
 
-              <form.Subscribe selector={(state: any) => state.isSubmitting}>
-                {(isSubmitting: boolean) => (
-                  <Button type="submit" disabled={isSubmitting} className="w-full">
-                    {isSubmitting ? 'Please wait...' : isRegister ? 'Create Account' : 'Sign In'}
-                  </Button>
-                )}
-              </form.Subscribe>
+              <Button type="submit" disabled={form.isSubmitting} className="w-full">
+                {form.isSubmitting ? 'Please wait...' : isRegister ? 'Create Account' : 'Sign In'}
+              </Button>
             </form>
 
             <div className="mt-6 text-center">

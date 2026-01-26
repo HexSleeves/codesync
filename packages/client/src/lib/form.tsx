@@ -5,126 +5,129 @@
  * with Hono JSX, we implement a simple form API that works with Hono's useState.
  */
 
-import { useCallback, useMemo, useState } from 'hono/jsx';
-import type { JSX } from 'hono/jsx/jsx-runtime';
+import { useCallback, useRef, useState } from 'hono/jsx';
 
-type FieldState<T> = {
-  value: T;
-  meta: {
-    isTouched: boolean;
-    isDirty: boolean;
-  };
-};
-
-type FormState<TFormData> = {
-  values: TFormData;
-  isSubmitting: boolean;
-  isValid: boolean;
-  fieldMeta: Record<string, { isTouched: boolean; isDirty: boolean }>;
-};
-
-type FieldApi<TFormData, TName extends keyof TFormData> = {
-  state: FieldState<TFormData[TName]>;
-  handleChange: (value: TFormData[TName]) => void;
-  handleBlur: () => void;
-};
+type FieldMeta = { isTouched: boolean; isDirty: boolean };
 
 export interface UseFormOptions<TFormData> {
   defaultValues: TFormData;
   onSubmit: (props: { value: TFormData }) => void | Promise<void>;
 }
 
-export function useForm<TFormData extends Record<string, any>>(opts: UseFormOptions<TFormData>) {
-  const [values, setValues] = useState<TFormData>(opts.defaultValues);
+export interface UseFormReturn<TFormData> {
+  values: TFormData;
+  isSubmitting: boolean;
+  fieldMeta: Record<string, FieldMeta>;
+  getFieldProps: <K extends keyof TFormData>(
+    name: K
+  ) => {
+    value: TFormData[K];
+    onInput: (e: Event) => void;
+    onBlur: () => void;
+  };
+  getTextAreaProps: <K extends keyof TFormData>(
+    name: K
+  ) => {
+    value: TFormData[K];
+    onInput: (e: Event) => void;
+    onBlur: () => void;
+  };
+  getCheckboxProps: <K extends keyof TFormData>(
+    name: K
+  ) => {
+    checked: boolean;
+    onChange: (e: Event) => void;
+  };
+  handleSubmit: () => Promise<void>;
+  reset: () => void;
+  setFieldValue: <K extends keyof TFormData>(name: K, value: TFormData[K]) => void;
+}
+
+export function useForm<TFormData extends Record<string, any>>(
+  opts: UseFormOptions<TFormData>
+): UseFormReturn<TFormData> {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [fieldMeta, setFieldMeta] = useState<
-    Record<string, { isTouched: boolean; isDirty: boolean }>
-  >({});
+  const [values, setValues] = useState<TFormData>(opts.defaultValues);
+  const [fieldMeta, setFieldMeta] = useState<Record<string, FieldMeta>>({});
+
+  // Keep a ref to current values for handleSubmit
+  const valuesRef = useRef(values);
+  valuesRef.current! = values;
+
+  const setFieldValue = useCallback(<K extends keyof TFormData>(name: K, value: TFormData[K]) => {
+    setValues((prev) => ({ ...prev, [name]: value }));
+    setFieldMeta((prev) => ({
+      ...prev,
+      [name as string]: { isTouched: prev[name as string]?.isTouched ?? false, isDirty: true },
+    }));
+  }, []);
+
+  const setFieldTouched = useCallback((name: string) => {
+    setFieldMeta((prev) => ({
+      ...prev,
+      [name]: { isTouched: true, isDirty: prev[name]?.isDirty ?? false },
+    }));
+  }, []);
 
   const reset = useCallback(() => {
     setValues(opts.defaultValues);
     setFieldMeta({});
     setIsSubmitting(false);
-  }, []);
-
-  const setFieldValue = useCallback(
-    <TName extends keyof TFormData>(name: TName, value: TFormData[TName]) => {
-      // setValues((prev) => ({ ...prev, [name]: value }));
-      // setFieldMeta((prev) => ({
-      //   ...prev,
-      //   [name as string]: { ...prev[name as string], isDirty: true },
-      // }));
-    },
-    []
-  );
+  }, [opts.defaultValues]);
 
   const handleSubmit = useCallback(async () => {
     setIsSubmitting(true);
     try {
-      await opts.onSubmit({ value: values });
+      await opts.onSubmit({ value: valuesRef.current! });
     } finally {
       setIsSubmitting(false);
     }
-  }, [values, opts.onSubmit]);
+  }, [opts.onSubmit]);
 
-  // Field component
-  const Field = useMemo(() => {
-    return function FormField<TName extends keyof TFormData & string>({
-      name,
-      children,
-    }: {
-      name: TName;
-      children: (field: FieldApi<TFormData, TName>) => JSX.Element;
-    }): JSX.Element {
-      const fieldState: FieldState<TFormData[TName]> = {
-        value: values[name],
-        meta: fieldMeta[name] || { isTouched: false, isDirty: false },
-      };
+  const getFieldProps = useCallback(
+    <K extends keyof TFormData>(name: K) => ({
+      value: values[name],
+      onInput: (e: Event) => {
+        const target = e.target as HTMLInputElement;
+        setFieldValue(name, target.value as TFormData[K]);
+      },
+      onBlur: () => setFieldTouched(name as string),
+    }),
+    [values, setFieldValue, setFieldTouched]
+  );
 
-      const fieldApi: FieldApi<TFormData, TName> = {
-        state: fieldState,
-        handleChange: (value) => setFieldValue(name, value),
-        handleBlur: () => {
-          setFieldMeta((prev) => ({
-            ...prev,
-            [name]: { ...prev[name], isTouched: true },
-          }));
-        },
-      };
+  const getTextAreaProps = useCallback(
+    <K extends keyof TFormData>(name: K) => ({
+      value: values[name],
+      onInput: (e: Event) => {
+        const target = e.target as HTMLTextAreaElement;
+        setFieldValue(name, target.value as TFormData[K]);
+      },
+      onBlur: () => setFieldTouched(name as string),
+    }),
+    [values, setFieldValue, setFieldTouched]
+  );
 
-      return children(fieldApi);
-    };
-  }, [values, fieldMeta, setFieldValue]);
-
-  // Subscribe component
-  const Subscribe = useMemo(() => {
-    return function FormSubscribe<TSelected>({
-      selector,
-      children,
-    }: {
-      selector: (state: FormState<TFormData>) => TSelected;
-      children: (selected: TSelected) => JSX.Element;
-    }): JSX.Element {
-      const state: FormState<TFormData> = {
-        values,
-        isSubmitting,
-        isValid: true,
-        fieldMeta,
-      };
-      return children(selector(state));
-    };
-  }, [values, isSubmitting, fieldMeta]);
+  const getCheckboxProps = useCallback(
+    <K extends keyof TFormData>(name: K) => ({
+      checked: Boolean(values[name]),
+      onChange: (e: Event) => {
+        const target = e.target as HTMLInputElement;
+        setFieldValue(name, target.checked as TFormData[K]);
+      },
+    }),
+    [values, setFieldValue]
+  );
 
   return {
-    Field,
-    Subscribe,
+    values,
+    isSubmitting,
+    fieldMeta,
+    getFieldProps,
+    getTextAreaProps,
+    getCheckboxProps,
     handleSubmit,
     reset,
     setFieldValue,
-    state: {
-      values,
-      isSubmitting,
-      fieldMeta,
-    },
   };
 }

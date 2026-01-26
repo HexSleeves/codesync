@@ -1,5 +1,5 @@
 /**
- * Chat panel component - uses TanStack Form
+ * Chat panel component - uses custom form hook
  * Real-time chat for session participants
  */
 
@@ -76,29 +76,15 @@ export function ChatPanel({ messages, onSend, connected }: ChatPanelProps) {
         }}
         class="p-3 border-t border-border flex gap-2"
       >
-        <form.Field name="message">
-          {(field: any) => (
-            <Input
-              value={field.state.value}
-              onInput={(e) => field.handleChange((e.target as HTMLInputElement).value)}
-              onBlur={field.handleBlur}
-              placeholder={connected ? 'Type a message...' : 'Connecting...'}
-              disabled={!connected}
-              className="flex-1 text-sm"
-            />
-          )}
-        </form.Field>
-        <form.Subscribe
-          selector={(state: any) => ({
-            message: state.values.message,
-          })}
-        >
-          {({ message }: { message: string }) => (
-            <Button type="submit" size="sm" disabled={!connected || !message.trim()}>
-              Send
-            </Button>
-          )}
-        </form.Subscribe>
+        <Input
+          placeholder={connected ? 'Type a message...' : 'Connecting...'}
+          disabled={!connected}
+          className="flex-1 text-sm"
+          {...form.getFieldProps('message')}
+        />
+        <Button type="submit" size="sm" disabled={!connected || !form.values.message.trim()}>
+          Send
+        </Button>
       </form>
     </div>
   );
