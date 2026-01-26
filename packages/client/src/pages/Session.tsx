@@ -4,11 +4,11 @@
  */
 
 import type { Comment } from '@codesync/shared';
-import { useEffect, useMemo, useState } from 'hono/jsx';
+import { useCallback, useEffect, useMemo, useState } from 'hono/jsx';
 import { InlineCommentPanel } from '@/components/comment';
 import { PageError, PageLoading } from '@/components/common';
 import { DiffViewer } from '@/components/Diff';
-import { CloseIcon, MessageIcon, SidebarIcon, UsersIcon } from '@/components/icons';
+import { CloseIcon, MessageIcon, ShareIcon, SidebarIcon, UsersIcon } from '@/components/icons';
 import { AppShell, UserDropdown } from '@/components/layout';
 import {
   ChatPanel,
@@ -18,12 +18,15 @@ import {
   SessionStatusBadge,
 } from '@/components/session';
 import { Button } from '@/components/ui';
+import { KeyboardShortcutsModal, ShareSessionModal } from '@/components/modals';
 import { useAuth } from '../hooks/useAuth';
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { useComments } from '../hooks/useComments';
 import { useGitHub } from '../hooks/useGitHub';
 import { useSession } from '../hooks/useSession';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { navigate } from '../router';
+import { useSettingsStore } from '../stores/settings';
 import { CodeViewer } from './session/CodeViewer';
 
 interface SessionPageProps {
@@ -39,16 +42,53 @@ export function SessionPage({ sessionId }: SessionPageProps) {
     connect: connectGitHub,
     disconnect: disconnectGitHub,
   } = useGitHub();
+  // Get default settings from store
+  const defaultViewMode = useSettingsStore((s) => s.defaultViewMode);
+  const defaultDiffMode = useSettingsStore((s) => s.defaultDiffMode);
+
   const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'code' | 'diff'>('diff');
-  const [diffMode, setDiffMode] = useState<'unified' | 'split'>('unified');
+  const [viewMode, setViewMode] = useState<'code' | 'diff'>(defaultViewMode);
+  const [diffMode, setDiffMode] = useState<'unified' | 'split'>(defaultDiffMode);
   const [activeCommentLine, setActiveCommentLine] = useState<number | null>(null);
   const [showChat, setShowChat] = useState(false);
   const [showFileTree, setShowFileTree] = useState(true);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareToken, setShareToken] = useState<string | null>(null);
 
   // WebSocket for real-time collaboration
   const { connected, onlineUsers, cursors, chatMessages, sendCursor, sendChat } =
     useWebSocket(sessionId);
+
+  // File navigation helpers
+  const selectNextFile = useCallback(() => {
+    if (files.length === 0) return;
+    const currentIndex = files.findIndex((f) => f.id === selectedFileId);
+    const nextIndex = currentIndex < files.length - 1 ? currentIndex + 1 : 0;
+    setSelectedFileId(files[nextIndex].id);
+  }, [files, selectedFileId]);
+
+  const selectPrevFile = useCallback(() => {
+    if (files.length === 0) return;
+    const currentIndex = files.findIndex((f) => f.id === selectedFileId);
+    const prevIndex = currentIndex > 0 ? currentIndex - 1 : files.length - 1;
+    setSelectedFileId(files[prevIndex].id);
+  }, [files, selectedFileId]);
+
+  // Keyboard shortcuts
+  const { showShortcutsModal, setShowShortcutsModal } = useKeyboardShortcuts({
+    onNextFile: selectNextFile,
+    onPrevFile: selectPrevFile,
+    onToggleFileTree: () => setShowFileTree((prev) => !prev),
+    onToggleChat: () => setShowChat((prev) => !prev),
+    onToggleDiffMode: () => setDiffMode((prev) => (prev === 'unified' ? 'split' : 'unified')),
+    onToggleViewMode: () => setViewMode((prev) => (prev === 'diff' ? 'code' : 'diff')),
+    onMarkReviewed: () => {
+      if (selectedFile) {
+        markFileReviewed(selectedFile.id, !selectedFile.isReviewed);
+      }
+    },
+    enabled: !loading && !error,
+  });
 
   const selectedFile = files.find((f) => f.id === selectedFileId) || null;
   const { commentsByLine, addComment, resolveComment } = useComments(selectedFileId);
@@ -68,6 +108,13 @@ export function SessionPage({ sessionId }: SessionPageProps) {
       setSelectedFileId(files[0].id);
     }
   }, [files, selectedFileId]);
+
+  // Sync share token from session
+  useEffect(() => {
+    if (session?.shareToken) {
+      setShareToken(session.shareToken);
+    }
+  }, [session?.shareToken]);
 
   const handleLogout = async () => {
     await logout();
@@ -123,6 +170,17 @@ export function SessionPage({ sessionId }: SessionPageProps) {
 
           {/* Session status */}
           <SessionStatusBadge status={session.status} />
+
+          {/* Share button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowShareModal(true)}
+            className="gap-1.5"
+          >
+            <ShareIcon className="size-4" />
+            <span className="hidden lg:inline">Share</span>
+          </Button>
 
           {/* Online users indicator */}
           <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -286,6 +344,21 @@ export function SessionPage({ sessionId }: SessionPageProps) {
           </Button>
         )}
       </div>
+
+      {/* Keyboard shortcuts modal */}
+      <KeyboardShortcutsModal
+        open={showShortcutsModal}
+        onOpenChange={setShowShortcutsModal}
+      />
+
+      {/* Share session modal */}
+      <ShareSessionModal
+        open={showShareModal}
+        onOpenChange={setShowShareModal}
+        sessionId={sessionId}
+        shareToken={shareToken}
+        onShareTokenChange={setShareToken}
+      />
     </AppShell>
   );
 }

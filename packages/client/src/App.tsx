@@ -11,6 +11,7 @@ import { DashboardPage } from './pages/Dashboard';
 import { HomePage } from './pages/Home';
 import { LoginPage } from './pages/Login';
 import { SessionPage } from './pages/Session';
+import { SharedSessionPage } from './pages/SharedSession';
 import { Link, navigate, useRouter } from './router';
 
 /**
@@ -114,6 +115,14 @@ function matchRoute(
           <SessionPage sessionId={params.sessionId} />
         </ProtectedRoute>
       ),
+    };
+  }
+
+  // Public shared session (no auth required)
+  if (path.startsWith('/shared/') && params.shareToken) {
+    return {
+      key: `shared-${params.shareToken}`,
+      element: <SharedSessionPage token={params.shareToken} />,
     };
   }
 

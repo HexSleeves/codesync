@@ -8,6 +8,7 @@ export interface InputProps {
   disabled?: boolean;
   required?: boolean;
   autoFocus?: boolean;
+  readOnly?: boolean;
   id?: string;
   name?: string;
   onInput?: (e: Event) => void;

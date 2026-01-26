@@ -43,6 +43,12 @@ export function useRouter() {
       newParams.token = inviteMatch[1];
     }
 
+    // Match /shared/:token
+    const sharedMatch = path.match(/^\/shared\/([^/]+)/);
+    if (sharedMatch) {
+      newParams.shareToken = sharedMatch[1];
+    }
+
     setParams(newParams);
   }, [path]);
 

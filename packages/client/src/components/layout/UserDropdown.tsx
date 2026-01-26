@@ -3,7 +3,9 @@
  * Contains GitHub connection status, settings, and logout
  */
 
-import { GitHubIcon, LogOutIcon } from '@/components/icons';
+import { useState } from 'hono/jsx';
+import { GitHubIcon, LogOutIcon, SettingsIcon } from '@/components/icons';
+import { SettingsModal } from '@/components/modals/SettingsModal';
 import {
   Avatar,
   AvatarFallback,
@@ -34,6 +36,7 @@ export function UserDropdown({
   onConnectGitHub,
   onDisconnectGitHub,
 }: UserDropdownProps) {
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const initials = getInitials(name || email);
   const displayName = name || githubUsername || email.split('@')[0];
 
@@ -81,11 +84,17 @@ export function UserDropdown({
         )}
 
         <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={() => setSettingsOpen(true)}>
+          <SettingsIcon className="size-4" />
+          Settings
+        </DropdownMenuItem>
         <DropdownMenuItem onSelect={onLogout} destructive>
           <LogOutIcon className="size-4" />
           Sign out
         </DropdownMenuItem>
       </DropdownMenuContent>
+
+      <SettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} />
     </DropdownMenu>
   );
 }

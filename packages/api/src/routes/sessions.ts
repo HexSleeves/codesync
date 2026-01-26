@@ -169,4 +169,75 @@ export const sessionRoutes = new Hono<{ Variables: AuthVariables }>()
       .returning();
 
     return c.json({ session: updatedSession });
+  })
+
+  // POST /api/sessions/:id/share - Generate share token
+  .post('/:id/share', authMiddleware, async (c) => {
+    const { id } = c.req.param();
+    const userId = c.get('userId');
+
+    const access = await checkSessionOwnership(id, userId);
+
+    if (access.error === 'not_found') {
+      return c.json({ error: 'Session not found' }, 404);
+    }
+
+    if (access.error === 'access_denied') {
+      return c.json({ error: 'Not authorized' }, 403);
+    }
+
+    // Generate new share token if none exists, otherwise return existing
+    const shareToken = access.session!.shareToken || nanoid(12);
+
+    const [updatedSession] = await db
+      .update(sessions)
+      .set({ shareToken, updatedAt: new Date() })
+      .where(eq(sessions.id, id))
+      .returning();
+
+    return c.json({ shareToken: updatedSession.shareToken });
+  })
+
+  // DELETE /api/sessions/:id/share - Revoke share token
+  .delete('/:id/share', authMiddleware, async (c) => {
+    const { id } = c.req.param();
+    const userId = c.get('userId');
+
+    const access = await checkSessionOwnership(id, userId);
+
+    if (access.error === 'not_found') {
+      return c.json({ error: 'Session not found' }, 404);
+    }
+
+    if (access.error === 'access_denied') {
+      return c.json({ error: 'Not authorized' }, 403);
+    }
+
+    const [updatedSession] = await db
+      .update(sessions)
+      .set({ shareToken: null, updatedAt: new Date() })
+      .where(eq(sessions.id, id))
+      .returning();
+
+    return c.json({ success: true, session: updatedSession });
+  })
+
+  // GET /api/sessions/shared/:token - Access shared session (no auth required)
+  .get('/shared/:token', async (c) => {
+    const { token } = c.req.param();
+
+    const [session] = await db
+      .select()
+      .from(sessions)
+      .where(eq(sessions.shareToken, token))
+      .limit(1);
+
+    if (!session) {
+      return c.json({ error: 'Session not found' }, 404);
+    }
+
+    // Get files for session
+    const sessionFiles = await db.select().from(files).where(eq(files.sessionId, session.id));
+
+    return c.json({ session, files: sessionFiles });
   });
