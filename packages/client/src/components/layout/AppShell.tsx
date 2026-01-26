@@ -48,7 +48,7 @@ export function AppShell({
 
             {breadcrumbs && breadcrumbs.length > 0 && (
               <nav className="flex items-center gap-1 ml-2 min-w-0">
-                {breadcrumbs.map((crumb, index) => (
+                {breadcrumbs.map((crumb) => (
                   <div key={crumb.label} className="flex items-center gap-1 min-w-0">
                     <ChevronRightIcon className="size-4 text-muted-foreground shrink-0" />
                     {crumb.href ? (

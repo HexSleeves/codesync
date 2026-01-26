@@ -14,6 +14,7 @@ export {
   DialogTitle,
 } from './dialog';
 export { Dropdown, DropdownItem, DropdownLabel, DropdownSeparator } from './dropdown';
+export * from './dropdown-menu';
 export { Input } from './input';
 export { Label } from './label';
 export { Select, SelectOption } from './select';
@@ -21,4 +22,3 @@ export { Separator } from './separator';
 export { toast } from './sonner';
 export { Spinner } from './spinner';
 export { Textarea } from './textarea';
-export * from './dropdown-menu';

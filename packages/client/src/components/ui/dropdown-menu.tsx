@@ -6,8 +6,8 @@
 
 import type { Child } from 'hono/jsx';
 import { createContext, useContext, useEffect, useRef, useState } from 'hono/jsx';
-import { cn } from '@/lib/utils';
 import { Check, ChevronRight, Circle } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 // Context for dropdown state
 interface DropdownContextValue {
@@ -136,7 +136,7 @@ export function DropdownMenuContent({
       ref={ref}
       role="menu"
       className={cn(
-        'absolute z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md',
+        'absolute z-50 min-w-32 overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md',
         'animate-in fade-in-0 zoom-in-95',
         alignClass,
         sideClass,
@@ -261,7 +261,7 @@ export function DropdownMenuRadioGroup({
 }: DropdownMenuRadioGroupProps) {
   return (
     <RadioGroupContext.Provider value={{ value, onValueChange }}>
-      <div role="group">{children}</div>
+      <fieldset>{children}</fieldset>
     </RadioGroupContext.Provider>
   );
 }
@@ -342,12 +342,14 @@ interface DropdownMenuShortcutProps {
 }
 
 export function DropdownMenuShortcut({ children, className }: DropdownMenuShortcutProps) {
-  return <span className={cn('ml-auto text-xs tracking-widest opacity-60', className)}>{children}</span>;
+  return (
+    <span className={cn('ml-auto text-xs tracking-widest opacity-60', className)}>{children}</span>
+  );
 }
 
 // Group (just a wrapper)
 export function DropdownMenuGroup({ children }: { children: Child }) {
-  return <div role="group">{children}</div>;
+  return <fieldset>{children}</fieldset>;
 }
 
 // Sub menu context
@@ -393,7 +395,11 @@ interface DropdownMenuSubTriggerProps {
   inset?: boolean;
 }
 
-export function DropdownMenuSubTrigger({ children, className, inset }: DropdownMenuSubTriggerProps) {
+export function DropdownMenuSubTrigger({
+  children,
+  className,
+  inset,
+}: DropdownMenuSubTriggerProps) {
   const ctx = useContext(SubMenuContext);
   if (!ctx) return null;
 
@@ -430,7 +436,7 @@ export function DropdownMenuSubContent({ children, className }: DropdownMenuSubC
       onMouseEnter={() => ctx.setOpen(true)}
       onMouseLeave={() => ctx.setOpen(false)}
       className={cn(
-        'absolute left-full top-0 z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-lg',
+        'absolute left-full top-0 z-50 min-w-32 overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-lg',
         'animate-in fade-in-0 zoom-in-95 slide-in-from-left-2',
         className
       )}

@@ -144,7 +144,6 @@ export function SessionPage({ sessionId }: SessionPageProps) {
         />
       }
     >
-
       <div className="flex-1 flex overflow-hidden relative">
         {/* Left Sidebar: File Tree */}
         {showFileTree && (
@@ -165,7 +164,12 @@ export function SessionPage({ sessionId }: SessionPageProps) {
           <aside className="absolute inset-y-0 left-0 z-30 w-64 border-r border-border flex flex-col bg-card md:hidden">
             <div className="flex items-center justify-between px-3 py-2 border-b border-border">
               <span className="text-sm font-medium">Files</span>
-              <Button variant="ghost" size="sm" onClick={() => setShowFileTree(false)} aria-label="Close sidebar">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowFileTree(false)}
+                aria-label="Close sidebar"
+              >
                 <CloseIcon className="size-4" />
               </Button>
             </div>
@@ -246,7 +250,12 @@ export function SessionPage({ sessionId }: SessionPageProps) {
           <aside className="absolute md:relative inset-y-0 right-0 z-30 w-full sm:w-72 border-l border-border flex flex-col bg-card">
             <div className="flex items-center justify-between px-3 py-2 border-b border-border">
               <span className="text-sm font-medium">Chat</span>
-              <Button variant="ghost" size="sm" onClick={() => setShowChat(false)} aria-label="Close chat">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowChat(false)}
+                aria-label="Close chat"
+              >
                 <CloseIcon className="size-4" />
               </Button>
             </div>
