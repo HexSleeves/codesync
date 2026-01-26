@@ -21,3 +21,4 @@ export { Separator } from './separator';
 export { toast } from './sonner';
 export { Spinner } from './spinner';
 export { Textarea } from './textarea';
+export * from './dropdown-menu';
