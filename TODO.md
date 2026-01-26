@@ -163,7 +163,7 @@ _None - all high priority items complete!_
    - [ ] Settings modal
    - [ ] File upload drag & drop
    - [ ] TopBar with review actions (Approve, Request Changes)
-   - [ ] Toast notifications (instead of Alert banners)
+   - [x] Toast notifications with sonner (replaces Alert banners)
 
 5. **Testing & Deployment**
    - [ ] E2E tests with Playwright
@@ -246,3 +246,14 @@ Password: password123
 3. **Testing** - Add test coverage
    - E2E tests with Playwright
    - Unit tests for WebSocket handlers
+
+---
+
+## RECENTLY COMPLETED (Jan 26, 2026)
+
+- **Toast Notifications** - Replaced inline Alert banners with sonner toast system
+  - Uses React createRoot to mount sonner (since it's a React component)
+  - Auto-initializes on first toast() call
+  - Rich colors for success/error/warning variants
+  - Top-right positioning with close button
+  - Updated: Dashboard, Login, ImportPRDialog
