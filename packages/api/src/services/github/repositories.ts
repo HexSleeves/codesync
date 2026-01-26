@@ -11,9 +11,10 @@ export interface GitHubRepository {
 
 export async function getRepositories(
   octokit: Octokit,
-  owner: string
+  username: string
 ): Promise<GitHubRepository[]> {
   const { data } = await octokit.repos.listForAuthenticatedUser({
+    username,
     sort: 'updated',
     per_page: 100,
   });

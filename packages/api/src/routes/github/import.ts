@@ -5,8 +5,8 @@
 
 import { importPRSchema, validatePRUrlSchema } from '@codesync/shared';
 import { zValidator } from '@hono/zod-validator';
-import { Hono } from 'hono';
 import { eq } from 'drizzle-orm';
+import { Hono } from 'hono';
 import { nanoid } from 'nanoid';
 import { db } from '../../db/client';
 import { sessionParticipants, sessions, users } from '../../db/schema';

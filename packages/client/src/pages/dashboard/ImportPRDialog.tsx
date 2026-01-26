@@ -4,6 +4,7 @@
  */
 
 import { useEffect, useState } from 'hono/jsx';
+import { GitHubIcon } from '@/components/icons';
 import {
   Badge,
   Button,
@@ -20,7 +21,6 @@ import {
   Spinner,
   toast,
 } from '@/components/ui';
-import { GitHubIcon } from '@/components/icons';
 import { apiClient } from '../../api/client';
 
 interface PRValidation {
@@ -299,7 +299,9 @@ export function ImportPRDialog({
           <div className="flex-1 overflow-hidden flex flex-col space-y-3">
             {!githubConnected ? (
               <div className="text-center py-8">
-                <p className="text-muted-foreground mb-4">Connect your GitHub account to browse repositories</p>
+                <p className="text-muted-foreground mb-4">
+                  Connect your GitHub account to browse repositories
+                </p>
                 <Button onClick={onConnectGitHub}>
                   <GitHubIcon className="w-4 h-4 mr-2" />
                   Connect GitHub
@@ -323,7 +325,9 @@ export function ImportPRDialog({
                     <Spinner size="md" />
                   </div>
                 ) : pullRequests.length === 0 ? (
-                  <p className="text-muted-foreground text-sm text-center py-4">No pull requests found</p>
+                  <p className="text-muted-foreground text-sm text-center py-4">
+                    No pull requests found
+                  </p>
                 ) : (
                   <div className="flex-1 overflow-y-auto space-y-2">
                     {pullRequests.map((pr) => (
@@ -340,7 +344,10 @@ export function ImportPRDialog({
                                 #{pr.number} by {pr.author}
                               </p>
                             </div>
-                            <Badge variant={pr.state === 'open' ? 'success' : 'secondary'} className="shrink-0">
+                            <Badge
+                              variant={pr.state === 'open' ? 'success' : 'secondary'}
+                              className="shrink-0"
+                            >
                               {pr.state}
                             </Badge>
                           </div>
@@ -371,13 +378,17 @@ export function ImportPRDialog({
                           <p className="font-medium text-sm">{repo.full_name}</p>
                         </div>
                         {repo.private && (
-                          <Badge variant="secondary" className="text-xs">Private</Badge>
+                          <Badge variant="secondary" className="text-xs">
+                            Private
+                          </Badge>
                         )}
                       </CardContent>
                     </Card>
                   ))}
                   {filteredRepos.length === 0 && (
-                    <p className="text-muted-foreground text-sm text-center py-4">No repositories found</p>
+                    <p className="text-muted-foreground text-sm text-center py-4">
+                      No repositories found
+                    </p>
                   )}
                 </div>
               </div>
