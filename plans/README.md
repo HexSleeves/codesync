@@ -15,7 +15,9 @@ Each plan follows this structure:
 
 ## Active Plans
 
-_None currently_
+| # | Name | Status | Priority |
+|---|------|--------|----------|
+| 002 | [UI Polish - Modals](002-ui-polish-modals.md) | 🟡 Planned | Medium |
 
 ## Completed Plans
 
