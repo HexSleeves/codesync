@@ -61,20 +61,10 @@ export function useWebSocket(sessionId: string | undefined): UseWebSocketReturn 
     }
 
     // Build WebSocket URL
-    // When accessed through a proxy (like exe.dev), use the page's host
-    // Otherwise use the API URL directly
+    // Always use the same origin - Vite proxies /ws to the API server
+    // This works both in development and through exe.dev proxy
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    let wsHost: string;
-    
-    if (window.location.hostname.includes('exe.xyz')) {
-      // Using exe.dev proxy - WebSocket goes through the same proxy on port 8001
-      wsHost = window.location.hostname + ':8001';
-    } else {
-      // Local development - use API URL
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8001';
-      wsHost = apiUrl.replace(/^https?:\/\//, '');
-    }
-    
+    const wsHost = window.location.host; // Same host:port as the page
     const url = `${protocol}//${wsHost}/ws/sessions/${sessionId}?token=${token}`;
 
     console.log('[WS] Connecting to', url.replace(/token=.*/, 'token=***'));
