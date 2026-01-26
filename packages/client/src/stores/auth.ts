@@ -6,6 +6,7 @@ import type { User } from '@codesync/shared';
 import { useSyncExternalStore } from 'hono/jsx';
 import { createStore } from 'zustand/vanilla';
 import { apiCall, clearToken, getToken, setToken } from '../api/client';
+import { resetGitHubStore } from './github';
 
 interface AuthState {
   user: User | null;
@@ -97,6 +98,7 @@ export const authStore = createStore<AuthStore>()((set) => ({
   logout: async () => {
     await apiCall('POST', '/auth/logout').catch(() => {});
     clearToken();
+    resetGitHubStore();
     set({ user: null, loading: false, error: null });
   },
 

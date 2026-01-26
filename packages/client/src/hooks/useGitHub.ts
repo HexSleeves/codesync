@@ -1,61 +1,25 @@
 /**
- * GitHub connection hook
+ * GitHub connection hook - thin wrapper around Zustand store
  */
 
-import { useCallback, useEffect, useState } from 'hono/jsx';
-import { apiClient } from '../api/client';
-import { toast } from '@/components/ui/sonner';
-
-interface GitHubStatus {
-  connected: boolean;
-  username: string | null;
-}
+import { useEffect } from 'hono/jsx';
+import { githubStore, initGitHubStore, useGitHubStore } from '../stores/github';
 
 export function useGitHub() {
-  const [status, setStatus] = useState<GitHubStatus | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  const fetchStatus = useCallback(async () => {
-    try {
-      const res = await apiClient('/api/github/status');
-      if (res.ok) {
-        const data = (await res.json()) as GitHubStatus;
-        setStatus(data);
-      }
-    } catch (err) {
-      console.error('Failed to fetch GitHub status:', err);
-    } finally {
-      setLoading(false);
-    }
+  // Initialize store on mount
+  useEffect(() => {
+    initGitHubStore();
   }, []);
 
-  useEffect(() => {
-    fetchStatus();
-  }, [fetchStatus]);
+  const connected = useGitHubStore((s) => s.connected);
+  const username = useGitHubStore((s) => s.username);
+  const loading = useGitHubStore((s) => s.loading);
 
-  const connect = () => {
-    // Redirect to GitHub OAuth authorize endpoint
-    window.location.href = '/api/github/authorize';
-  };
-
-  const disconnect = async () => {
-    try {
-      const res = await apiClient('/api/github/disconnect', {
-        method: 'POST',
-      });
-      if (res.ok) {
-        setStatus({ connected: false, username: null });
-        toast.success('GitHub account disconnected');
-      }
-    } catch (err) {
-      console.error('Failed to disconnect GitHub:', err);
-      toast.error('Failed to disconnect GitHub');
-    }
-  };
+  const { connect, disconnect, fetchStatus } = githubStore.getState();
 
   return {
-    connected: status?.connected ?? false,
-    username: status?.username ?? null,
+    connected,
+    username,
     loading,
     connect,
     disconnect,
