@@ -5,17 +5,17 @@
 
 import type { Comment } from '@codesync/shared';
 import { useEffect, useMemo, useState } from 'hono/jsx';
-import { Button } from '@/components/ui';
-import { PageLoading, PageError } from '@/components/common';
-import {
-  SessionStatusBadge,
-  FileTree,
-  FileHeader,
-  OnlineUsers,
-  ChatPanel,
-} from '@/components/session';
 import { InlineCommentPanel } from '@/components/comment';
+import { PageError, PageLoading } from '@/components/common';
 import { DiffViewer } from '@/components/Diff';
+import {
+  ChatPanel,
+  FileHeader,
+  FileTree,
+  OnlineUsers,
+  SessionStatusBadge,
+} from '@/components/session';
+import { Button } from '@/components/ui';
 import { useAuth } from '../hooks/useAuth';
 import { useComments } from '../hooks/useComments';
 import { useSession } from '../hooks/useSession';
@@ -93,7 +93,7 @@ export function SessionPage({ sessionId }: SessionPageProps) {
     <div className="h-screen bg-background flex flex-col">
       <SessionHeader
         session={session}
-        userEmail={user?.email}
+        userDisplay={user?.githubUsername || user?.email}
         connected={connected}
         onlineCount={onlineUsers.length}
         showFileTree={showFileTree}
@@ -241,14 +241,14 @@ export function SessionPage({ sessionId }: SessionPageProps) {
 
 function SessionHeader({
   session,
-  userEmail,
+  userDisplay,
   connected,
   onlineCount,
   showFileTree,
   onToggleFileTree,
 }: {
   session: any;
-  userEmail?: string;
+  userDisplay?: string;
   connected: boolean;
   onlineCount: number;
   showFileTree: boolean;
@@ -283,8 +283,8 @@ function SessionHeader({
               {connected ? `${onlineCount} online` : 'Connecting...'}
             </span>
           </div>
-          <span className="text-muted-foreground text-xs sm:text-sm hidden sm:inline truncate max-w-[100px]">
-            {userEmail}
+          <span className="text-muted-foreground text-xs sm:text-sm hidden sm:inline">
+            {userDisplay}
           </span>
         </div>
       </div>
