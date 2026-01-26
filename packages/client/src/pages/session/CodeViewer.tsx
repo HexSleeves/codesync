@@ -10,8 +10,10 @@ import { Button, Textarea } from '@/components/ui';
 interface CodeViewerProps {
   file: File;
   commentsByLine: Record<number, Comment[]>;
-  onAddComment: (text: string, lineNumber?: number) => Promise<any>;
-  onResolveComment: (id: string, resolved: boolean) => Promise<unknown>;
+  /** Optional - if not provided, commenting is disabled (read-only mode) */
+  onAddComment?: (text: string, lineNumber?: number) => Promise<any>;
+  /** Optional - if not provided, resolving is disabled (read-only mode) */
+  onResolveComment?: (id: string, resolved: boolean) => Promise<unknown>;
 }
 
 export function CodeViewer({
@@ -27,11 +29,13 @@ export function CodeViewer({
   const lines = content.split('\n');
 
   const handleAddComment = async (lineNumber: number) => {
-    if (!commentText.trim()) return;
+    if (!commentText.trim() || !onAddComment) return;
     await onAddComment(commentText, lineNumber);
     setCommentText('');
     setActiveCommentLine(null);
   };
+
+  const readOnly = !onAddComment;
 
   return (
     <div className="font-mono text-sm">
@@ -52,6 +56,7 @@ export function CodeViewer({
                 hasComments={hasComments}
                 isActiveInput={isActiveInput}
                 commentText={commentText}
+                readOnly={readOnly}
                 onCommentTextChange={setCommentText}
                 onOpenCommentInput={() => setActiveCommentLine(lineNumber)}
                 onCloseCommentInput={() => setActiveCommentLine(null)}
@@ -73,11 +78,12 @@ interface CodeLineProps {
   hasComments: boolean;
   isActiveInput: boolean;
   commentText: string;
+  readOnly: boolean;
   onCommentTextChange: (text: string) => void;
   onOpenCommentInput: () => void;
   onCloseCommentInput: () => void;
   onSubmitComment: () => void;
-  onResolveComment: (id: string, resolved: boolean) => Promise<unknown>;
+  onResolveComment?: (id: string, resolved: boolean) => Promise<unknown>;
 }
 
 function CodeLine({
@@ -87,6 +93,7 @@ function CodeLine({
   hasComments,
   isActiveInput,
   commentText,
+  readOnly,
   onCommentTextChange,
   onOpenCommentInput,
   onCloseCommentInput,
@@ -97,14 +104,14 @@ function CodeLine({
     <>
       <tr className="hover:bg-accent group">
         <LineNumber number={lineNumber} />
-        <AddCommentButton onClick={onOpenCommentInput} />
+        {!readOnly && <AddCommentButton onClick={onOpenCommentInput} />}
         <LineContent content={content} />
         <CommentIndicator count={comments.length} hasComments={hasComments} />
       </tr>
 
       {hasComments && (
         <tr>
-          <td colSpan={4} className="bg-card border-l-2 border-primary">
+          <td colSpan={readOnly ? 3 : 4} className="bg-card border-l-2 border-primary">
             <div className="p-3 space-y-2">
               {comments.map((comment) => (
                 <CommentCard key={comment.id} comment={comment} onResolve={onResolveComment} />
@@ -114,7 +121,7 @@ function CodeLine({
         </tr>
       )}
 
-      {isActiveInput && (
+      {!readOnly && isActiveInput && (
         <tr>
           <td colSpan={4} className="bg-card border-l-2 border-green-500">
             <div className="p-3">

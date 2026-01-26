@@ -7,7 +7,8 @@ interface FileHeaderProps {
   diffMode: 'unified' | 'split';
   onViewModeChange: (mode: 'code' | 'diff') => void;
   onDiffModeChange: (mode: 'unified' | 'split') => void;
-  onToggleReviewed: () => void;
+  /** Optional - if not provided, reviewed button won't show (read-only mode) */
+  onToggleReviewed?: () => void;
 }
 
 export function FileHeader({
@@ -36,17 +37,19 @@ export function FileHeader({
 
         {/* Controls */}
         <div className="flex items-center gap-2 flex-wrap">
-          <Button
-            variant={file.isReviewed ? 'secondary' : 'default'}
-            size="sm"
-            onClick={onToggleReviewed}
-            className="text-xs sm:text-sm"
-          >
-            <span className="hidden sm:inline">
-              {file.isReviewed ? 'Unmark Reviewed' : 'Mark Reviewed'}
-            </span>
-            <span className="sm:hidden">{file.isReviewed ? 'Unmark' : 'Reviewed'}</span>
-          </Button>
+          {onToggleReviewed && (
+            <Button
+              variant={file.isReviewed ? 'secondary' : 'default'}
+              size="sm"
+              onClick={onToggleReviewed}
+              className="text-xs sm:text-sm"
+            >
+              <span className="hidden sm:inline">
+                {file.isReviewed ? 'Unmark Reviewed' : 'Mark Reviewed'}
+              </span>
+              <span className="sm:hidden">{file.isReviewed ? 'Unmark' : 'Reviewed'}</span>
+            </Button>
+          )}
           <Select
             value={viewMode}
             onChange={(e) =>
