@@ -5,7 +5,35 @@
 
 import type { CursorMessage, OnlineUser, ServerMessage, WSChatMessage } from '@codesync/shared';
 import { useCallback, useEffect, useRef, useState } from 'hono/jsx';
-import { getToken } from '../api/client';
+import { apiCall, getToken } from '../api/client';
+import { toast } from '@/components/ui/sonner';
+
+// =============================================================================
+// Utils
+// =============================================================================
+
+/**
+ * Generate a consistent color for a user based on their ID
+ */
+function getUserColor(userId: string): string {
+  const colors = [
+    '#ef4444', // red
+    '#f97316', // orange
+    '#eab308', // yellow
+    '#22c55e', // green
+    '#14b8a6', // teal
+    '#3b82f6', // blue
+    '#8b5cf6', // violet
+    '#ec4899', // pink
+  ];
+
+  let hash = 0;
+  for (let i = 0; i < userId.length; i++) {
+    hash = (hash << 5) - hash + userId.charCodeAt(i);
+    hash = hash & hash;
+  }
+  return colors[Math.abs(hash) % colors.length];
+}
 
 // =============================================================================
 // Types
@@ -16,6 +44,7 @@ interface WebSocketState {
   onlineUsers: OnlineUser[];
   cursors: Map<string, CursorMessage>;
   chatMessages: WSChatMessage[];
+  chatHistoryLoaded: boolean;
 }
 
 interface UseWebSocketReturn {
@@ -41,7 +70,51 @@ export function useWebSocket(sessionId: string | undefined): UseWebSocketReturn 
     onlineUsers: [],
     cursors: new Map(),
     chatMessages: [],
+    chatHistoryLoaded: false,
   });
+
+  const chatHistoryLoadedRef = useRef(false);
+
+  /**
+   * Load chat history from REST API
+   */
+  const loadChatHistory = useCallback(async () => {
+    if (!sessionId || chatHistoryLoadedRef.current) return;
+
+    try {
+      console.log('[WS] Loading chat history...');
+      const data = await apiCall<{
+        messages: Array<{
+          id: string;
+          text: string;
+          createdAt: string;
+          author: { id: string; name: string; email: string } | null;
+        }>;
+      }>('GET', `/sessions/${sessionId}/chat`);
+
+      // Convert to WSChatMessage format
+      const historyMessages: WSChatMessage[] = data.messages.map((msg) => ({
+        type: 'chat' as const,
+        id: msg.id,
+        userId: msg.author?.id || 'unknown',
+        userName: msg.author?.name || msg.author?.email || 'Unknown',
+        color: getUserColor(msg.author?.id || 'unknown'),
+        text: msg.text,
+        createdAt: msg.createdAt,
+      }));
+
+      console.log('[WS] Loaded', historyMessages.length, 'chat messages');
+      chatHistoryLoadedRef.current = true;
+
+      setState((s) => ({
+        ...s,
+        chatMessages: historyMessages,
+        chatHistoryLoaded: true,
+      }));
+    } catch (err) {
+      console.error('[WS] Failed to load chat history:', err);
+    }
+  }, [sessionId]);
 
   /**
    * Connect to WebSocket server
@@ -76,6 +149,11 @@ export function useWebSocket(sessionId: string | undefined): UseWebSocketReturn 
       console.log('[WS] Connected');
       reconnectAttempts.current = 0;
       setState((s) => ({ ...s, connected: true }));
+
+      // Load chat history on first connection
+      if (!chatHistoryLoadedRef.current) {
+        loadChatHistory();
+      }
     };
 
     ws.onmessage = (event) => {
@@ -137,6 +215,7 @@ export function useWebSocket(sessionId: string | undefined): UseWebSocketReturn 
         }, delay);
       } else {
         console.warn('[WS] Max reconnection attempts reached');
+        toast.error('Connection lost. Please refresh the page.');
       }
     };
 
