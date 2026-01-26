@@ -105,7 +105,7 @@ export function SessionPage({ sessionId }: SessionPageProps) {
         {/* On desktop: always visible. On mobile: shown when showFileTree is true */}
         <aside
           className={`
-            w-64 border-r border-border flex flex-col bg-card
+            w-64 border-r border-border flex-col bg-card
             hidden md:flex
           `}
         >

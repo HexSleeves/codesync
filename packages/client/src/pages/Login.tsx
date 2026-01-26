@@ -80,7 +80,7 @@ export function LoginPage() {
             >
               {isRegister && (
                 <form.Field name="name">
-                  {(field: any) => (
+                  {(field) => (
                     <div className="space-y-2">
                       <Label htmlFor="name">Name</Label>
                       <Input

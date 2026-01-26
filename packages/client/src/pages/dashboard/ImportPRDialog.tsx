@@ -250,7 +250,7 @@ export function ImportPRDialog({
             className="space-y-4 flex-1"
           >
             <form.Field name="prUrl">
-              {(field: any) => (
+              {(field) => (
                 <div className="space-y-2">
                   <Label htmlFor="prUrl">Pull Request URL</Label>
                   <div className="flex gap-2">
