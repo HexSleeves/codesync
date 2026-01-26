@@ -5,6 +5,7 @@
 import type { Comment } from '@codesync/shared';
 import { useCallback, useEffect, useState } from 'hono/jsx';
 import { apiCall } from '../api/client';
+import { toast } from '@/components/ui/sonner';
 
 export function useComments(fileId: string | null) {
   const [comments, setComments] = useState<Comment[]>([]);
@@ -25,6 +26,7 @@ export function useComments(fileId: string | null) {
       setComments(comments);
     } catch (err) {
       console.error('Failed to load comments:', err);
+      toast.error('Failed to load comments');
     } finally {
       setLoading(false);
     }
@@ -43,9 +45,11 @@ export function useComments(fileId: string | null) {
         parentId,
       });
       setComments((c) => [...c, comment]);
+      toast.success('Comment added');
       return comment;
     } catch (err) {
       console.error('Failed to add comment:', err);
+      toast.error('Failed to add comment');
     }
   };
 
@@ -59,8 +63,10 @@ export function useComments(fileId: string | null) {
             : comment
         )
       );
+      toast.success(resolved ? 'Comment resolved' : 'Comment reopened');
     } catch (err) {
       console.error('Failed to resolve comment:', err);
+      toast.error('Failed to update comment');
     }
   };
 
@@ -68,8 +74,10 @@ export function useComments(fileId: string | null) {
     try {
       await apiCall('DELETE', `/comments/${commentId}`);
       setComments((c) => c.filter((comment) => comment.id !== commentId));
+      toast.success('Comment deleted');
     } catch (err) {
       console.error('Failed to delete comment:', err);
+      toast.error('Failed to delete comment');
     }
   };
 

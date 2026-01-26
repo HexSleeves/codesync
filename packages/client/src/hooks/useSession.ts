@@ -5,6 +5,7 @@
 import type { File, Session } from '@codesync/shared';
 import { useCallback, useEffect, useState } from 'hono/jsx';
 import { apiCall } from '../api/client';
+import { toast } from '@/components/ui/sonner';
 
 interface SessionState {
   session: Session | null;
@@ -61,8 +62,10 @@ export function useSession(sessionId: string | undefined) {
         updates
       );
       setState((s) => ({ ...s, session }));
+      toast.success('Session updated');
     } catch (err) {
       console.error('Failed to update session:', err);
+      toast.error('Failed to update session');
     }
   };
 
@@ -75,9 +78,11 @@ export function useSession(sessionId: string | undefined) {
         file
       );
       setState((s) => ({ ...s, files: [...s.files, newFile] }));
+      toast.success('File added');
       return newFile;
     } catch (err) {
       console.error('Failed to add file:', err);
+      toast.error('Failed to add file');
     }
   };
 
@@ -88,8 +93,10 @@ export function useSession(sessionId: string | undefined) {
         ...s,
         files: s.files.map((f) => (f.id === fileId ? { ...f, isReviewed: reviewed } : f)),
       }));
+      toast.success(reviewed ? 'File marked as reviewed' : 'File unmarked');
     } catch (err) {
       console.error('Failed to mark file reviewed:', err);
+      toast.error('Failed to update file status');
     }
   };
 
@@ -116,6 +123,7 @@ export function useSessions() {
       setSessions(sessions);
     } catch (err) {
       console.error('Failed to load sessions:', err);
+      toast.error('Failed to load sessions');
     } finally {
       setLoading(false);
     }
@@ -133,9 +141,11 @@ export function useSessions() {
     try {
       const { session } = await apiCall<{ session: Session }>('POST', '/sessions', data);
       setSessions((s) => [session, ...s]);
+      toast.success('Session created');
       return session;
     } catch (err) {
       console.error('Failed to create session:', err);
+      toast.error('Failed to create session');
       throw err;
     }
   };
@@ -144,8 +154,10 @@ export function useSessions() {
     try {
       await apiCall('DELETE', `/sessions/${id}`);
       setSessions((s) => s.filter((session) => session.id !== id));
+      toast.success('Session deleted');
     } catch (err) {
       console.error('Failed to delete session:', err);
+      toast.error('Failed to delete session');
     }
   };
 

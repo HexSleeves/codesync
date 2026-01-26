@@ -4,6 +4,7 @@
 
 import { useCallback, useEffect, useState } from 'hono/jsx';
 import { apiClient } from '../api/client';
+import { toast } from '@/components/ui/sonner';
 
 interface GitHubStatus {
   connected: boolean;
@@ -44,9 +45,11 @@ export function useGitHub() {
       });
       if (res.ok) {
         setStatus({ connected: false, username: null });
+        toast.success('GitHub account disconnected');
       }
     } catch (err) {
       console.error('Failed to disconnect GitHub:', err);
+      toast.error('Failed to disconnect GitHub');
     }
   };
 

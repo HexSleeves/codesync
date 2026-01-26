@@ -15,6 +15,7 @@ import {
   Input,
   Label,
   Textarea,
+  toast,
 } from '@/components/ui';
 
 interface NewSessionDialogProps {
@@ -37,6 +38,7 @@ export function NewSessionDialog({ open, onOpenChange, onCreate }: NewSessionDia
       resetForm();
     } catch (err) {
       console.error(err);
+      toast.error('Failed to create session');
     } finally {
       setLoading(false);
     }
