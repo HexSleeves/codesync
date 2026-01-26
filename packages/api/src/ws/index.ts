@@ -5,7 +5,6 @@
 
 import type { CursorMessage, OnlineUser, WSChatMessage, WSConnectionData } from '@codesync/shared';
 import type { ServerWebSocket } from 'bun';
-import { eq } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { db } from '../db/client';
 import { chatMessages } from '../db/schema';

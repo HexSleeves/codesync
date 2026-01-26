@@ -4,9 +4,10 @@
  * Since Sonner's Toaster component is React-based and won't work with Hono JSX-DOM,
  * we initialize it manually via DOM manipulation and only export the toast function.
  */
-import { Toaster as SonnerToaster, toast } from 'sonner';
+
 import { createElement } from 'react';
 import { createRoot } from 'react-dom/client';
+import { Toaster as SonnerToaster, toast } from 'sonner';
 
 let initialized = false;
 

@@ -4,14 +4,14 @@
 
 import type { Comment, File } from '@codesync/shared';
 import { useState } from 'hono/jsx';
-import { Button, Textarea } from '@/components/ui';
 import { CommentCard } from '@/components/comment';
+import { Button, Textarea } from '@/components/ui';
 
 interface CodeViewerProps {
   file: File;
   commentsByLine: Record<number, Comment[]>;
   onAddComment: (text: string, lineNumber?: number) => Promise<any>;
-  onResolveComment: (id: string, resolved: boolean) => Promise<void>;
+  onResolveComment: (id: string, resolved: boolean) => Promise<unknown>;
 }
 
 export function CodeViewer({
@@ -77,7 +77,7 @@ interface CodeLineProps {
   onOpenCommentInput: () => void;
   onCloseCommentInput: () => void;
   onSubmitComment: () => void;
-  onResolveComment: (id: string, resolved: boolean) => Promise<void>;
+  onResolveComment: (id: string, resolved: boolean) => Promise<unknown>;
 }
 
 function CodeLine({

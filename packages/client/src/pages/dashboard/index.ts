@@ -1,2 +1,2 @@
-export { NewSessionDialog } from './NewSessionDialog';
 export { ImportPRDialog } from './ImportPRDialog';
+export { NewSessionDialog } from './NewSessionDialog';

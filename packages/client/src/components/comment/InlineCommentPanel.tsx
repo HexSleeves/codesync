@@ -1,14 +1,14 @@
 import type { Comment } from '@codesync/shared';
 import { Button } from '@/components/ui';
-import { CommentList } from './CommentList';
 import { CommentForm } from './CommentForm';
+import { CommentList } from './CommentList';
 
 interface InlineCommentPanelProps {
   lineNumber: number;
   comments: Comment[];
   onSubmit: (text: string) => Promise<void>;
   onClose: () => void;
-  onResolve: (id: string, resolved: boolean) => void;
+  onResolve: (id: string, resolved: boolean) => void | Promise<any>;
 }
 
 export function InlineCommentPanel({

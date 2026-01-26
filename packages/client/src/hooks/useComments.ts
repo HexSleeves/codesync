@@ -1,104 +1,118 @@
 /**
  * Comments hook - manages file comments
+ * Uses TanStack Query for server state
  */
 
 import type { Comment } from '@codesync/shared';
-import { useCallback, useEffect, useState } from 'hono/jsx';
-import { apiCall } from '../api/client';
+import { useMemo } from 'hono/jsx';
 import { toast } from '@/components/ui/sonner';
+import { apiCall } from '../api/client';
+import { queryClient, useMutation, useQuery } from '../lib/query';
 
 export function useComments(fileId: string | null) {
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [loading, setLoading] = useState(false);
+  const {
+    data,
+    isLoading: loading,
+    refetch,
+  } = useQuery({
+    queryKey: ['comments', fileId],
+    queryFn: async () => {
+      if (!fileId) return { comments: [] };
+      return apiCall<{ comments: Comment[] }>('GET', `/files/${fileId}/comments`);
+    },
+    enabled: !!fileId,
+  });
 
-  const fetchComments = useCallback(async () => {
-    if (!fileId) {
-      setComments([]);
-      return;
-    }
+  const comments = data?.comments ?? [];
 
-    setLoading(true);
-    try {
-      const { comments } = await apiCall<{ comments: Comment[] }>(
-        'GET',
-        `/files/${fileId}/comments`
-      );
-      setComments(comments);
-    } catch (err) {
-      console.error('Failed to load comments:', err);
-      toast.error('Failed to load comments');
-    } finally {
-      setLoading(false);
-    }
-  }, [fileId]);
-
-  useEffect(() => {
-    fetchComments();
-  }, [fetchComments]);
-
-  const addComment = async (text: string, lineNumber?: number, parentId?: string) => {
-    if (!fileId) return;
-    try {
-      const { comment } = await apiCall<{ comment: Comment }>('POST', `/files/${fileId}/comments`, {
+  const addCommentMutation = useMutation({
+    mutationFn: async ({
+      text,
+      lineNumber,
+      parentId,
+    }: {
+      text: string;
+      lineNumber?: number;
+      parentId?: string;
+    }) => {
+      if (!fileId) throw new Error('No file ID');
+      return apiCall<{ comment: Comment }>('POST', `/files/${fileId}/comments`, {
         text,
         lineNumber,
         parentId,
       });
-      setComments((c) => [...c, comment]);
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(['comments', fileId], (old: any) => ({
+        comments: [...(old?.comments || []), data.comment],
+      }));
       toast.success('Comment added');
-      return comment;
-    } catch (err) {
-      console.error('Failed to add comment:', err);
+    },
+    onError: () => {
       toast.error('Failed to add comment');
-    }
-  };
+    },
+  });
 
-  const resolveComment = async (commentId: string, resolved: boolean) => {
-    try {
+  const resolveCommentMutation = useMutation({
+    mutationFn: async ({ commentId, resolved }: { commentId: string; resolved: boolean }) => {
       await apiCall(resolved ? 'POST' : 'DELETE', `/comments/${commentId}/resolve`);
-      setComments((c) =>
-        c.map((comment) =>
-          comment.id === commentId || comment.threadId === commentId
-            ? { ...comment, isResolved: resolved }
-            : comment
-        )
-      );
+      return { commentId, resolved };
+    },
+    onSuccess: ({ commentId, resolved }) => {
+      queryClient.setQueryData(['comments', fileId], (old: any) => ({
+        comments: old?.comments?.map((c: Comment) =>
+          c.id === commentId || c.threadId === commentId ? { ...c, isResolved: resolved } : c
+        ),
+      }));
       toast.success(resolved ? 'Comment resolved' : 'Comment reopened');
-    } catch (err) {
-      console.error('Failed to resolve comment:', err);
+    },
+    onError: () => {
       toast.error('Failed to update comment');
-    }
-  };
+    },
+  });
 
-  const deleteComment = async (commentId: string) => {
-    try {
+  const deleteCommentMutation = useMutation({
+    mutationFn: async (commentId: string) => {
       await apiCall('DELETE', `/comments/${commentId}`);
-      setComments((c) => c.filter((comment) => comment.id !== commentId));
+      return commentId;
+    },
+    onSuccess: (commentId) => {
+      queryClient.setQueryData(['comments', fileId], (old: any) => ({
+        comments: old?.comments?.filter((c: Comment) => c.id !== commentId),
+      }));
       toast.success('Comment deleted');
-    } catch (err) {
-      console.error('Failed to delete comment:', err);
+    },
+    onError: () => {
       toast.error('Failed to delete comment');
-    }
-  };
+    },
+  });
 
   // Group comments by line number
-  const commentsByLine = comments.reduce(
-    (acc, comment) => {
-      const line = comment.lineNumber ?? 0;
-      if (!acc[line]) acc[line] = [];
-      acc[line].push(comment);
-      return acc;
-    },
-    {} as Record<number, Comment[]>
-  );
+  const commentsByLine = useMemo(() => {
+    return comments.reduce(
+      (acc, comment) => {
+        const line = comment.lineNumber ?? 0;
+        if (!acc[line]) acc[line] = [];
+        acc[line].push(comment);
+        return acc;
+      },
+      {} as Record<number, Comment[]>
+    );
+  }, [comments]);
 
   return {
     comments,
     commentsByLine,
     loading,
-    refetch: fetchComments,
-    addComment,
-    resolveComment,
-    deleteComment,
+    refetch,
+    addComment: async (text: string, lineNumber?: number, parentId?: string) => {
+      return addCommentMutation.mutateAsync({ text, lineNumber, parentId });
+    },
+    resolveComment: async (commentId: string, resolved: boolean) => {
+      return resolveCommentMutation.mutateAsync({ commentId, resolved });
+    },
+    deleteComment: async (commentId: string) => {
+      return deleteCommentMutation.mutateAsync(commentId);
+    },
   };
 }

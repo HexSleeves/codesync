@@ -1,5 +1,5 @@
 /**
- * GitHub PR import dialog
+ * GitHub PR import dialog - uses TanStack Form
  * Supports both URL entry and repository browsing
  */
 
@@ -21,6 +21,7 @@ import {
   Spinner,
   toast,
 } from '@/components/ui';
+import { useForm } from '@/lib/form';
 import { apiClient } from '../../api/client';
 
 interface PRValidation {
@@ -69,6 +70,10 @@ interface ImportPRDialogProps {
 
 type ImportMode = 'url' | 'browse';
 
+interface PRUrlFormValues {
+  prUrl: string;
+}
+
 export function ImportPRDialog({
   open,
   onOpenChange,
@@ -77,8 +82,6 @@ export function ImportPRDialog({
   onConnectGitHub,
 }: ImportPRDialogProps) {
   const [mode, setMode] = useState<ImportMode>('url');
-  const [prUrl, setPrUrl] = useState('');
-  const [loading, setLoading] = useState(false);
   const [validating, setValidating] = useState(false);
   const [validation, setValidation] = useState<PRValidation | null>(null);
 
@@ -89,6 +92,36 @@ export function ImportPRDialog({
   const [loadingRepos, setLoadingRepos] = useState(false);
   const [loadingPRs, setLoadingPRs] = useState(false);
   const [repoSearch, setRepoSearch] = useState('');
+
+  const form = useForm<PRUrlFormValues>({
+    defaultValues: {
+      prUrl: '',
+    },
+    onSubmit: async ({ value }) => {
+      if (!value.prUrl.trim()) return;
+
+      try {
+        const res = await apiClient('/api/github/import', {
+          method: 'POST',
+          body: JSON.stringify({ prUrl: value.prUrl }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          toast.error(data.message || data.error || 'Failed to import PR');
+          return;
+        }
+
+        toast.success('PR imported successfully!');
+        await onImport(data.session.id);
+        form.reset();
+        setValidation(null);
+      } catch (_err) {
+        toast.error('Failed to import PR');
+      }
+    },
+  });
 
   // Fetch repositories when switching to browse mode
   useEffect(() => {
@@ -107,7 +140,7 @@ export function ImportPRDialog({
       } else {
         toast.error('Failed to load repositories');
       }
-    } catch (err) {
+    } catch (_err) {
       toast.error('Failed to load repositories');
     } finally {
       setLoadingRepos(false);
@@ -127,7 +160,7 @@ export function ImportPRDialog({
       } else {
         toast.error('Failed to load pull requests');
       }
-    } catch (err) {
+    } catch (_err) {
       toast.error('Failed to load pull requests');
     } finally {
       setLoadingPRs(false);
@@ -136,7 +169,7 @@ export function ImportPRDialog({
 
   const handleSelectPR = (pr: GitHubPullRequest) => {
     if (selectedRepo) {
-      setPrUrl(pr.html_url);
+      form.setFieldValue('prUrl', pr.html_url);
       setMode('url');
       // Auto-validate
       handleValidateUrl(pr.html_url);
@@ -170,36 +203,6 @@ export function ImportPRDialog({
       toast.error('Failed to validate PR URL');
     } finally {
       setValidating(false);
-    }
-  };
-
-  const handleValidate = () => handleValidateUrl(prUrl);
-
-  const handleImport = async (e: Event) => {
-    e.preventDefault();
-    if (!prUrl.trim()) return;
-
-    setLoading(true);
-
-    try {
-      const res = await apiClient('/api/github/import', {
-        method: 'POST',
-        body: JSON.stringify({ prUrl }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        toast.error(data.message || data.error || 'Failed to import PR');
-        return;
-      }
-
-      toast.success('PR imported successfully!');
-      await onImport(data.session.id);
-    } catch (_err) {
-      toast.error('Failed to import PR');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -238,35 +241,47 @@ export function ImportPRDialog({
         </div>
 
         {mode === 'url' ? (
-          <form onSubmit={handleImport} className="space-y-4 flex-1">
-            <div className="space-y-2">
-              <Label htmlFor="prUrl">Pull Request URL</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="prUrl"
-                  type="url"
-                  value={prUrl}
-                  onInput={(e) => {
-                    setPrUrl((e.target as HTMLInputElement).value);
-                    setValidation(null);
-                  }}
-                  placeholder="https://github.com/owner/repo/pull/123"
-                  required
-                  className="flex-1"
-                />
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={handleValidate}
-                  disabled={!prUrl.trim() || validating}
-                >
-                  {validating ? 'Checking...' : 'Validate'}
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Supports formats: https://github.com/owner/repo/pull/123 or owner/repo#123
-              </p>
-            </div>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              form.handleSubmit();
+            }}
+            className="space-y-4 flex-1"
+          >
+            <form.Field name="prUrl">
+              {(field: any) => (
+                <div className="space-y-2">
+                  <Label htmlFor="prUrl">Pull Request URL</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="prUrl"
+                      type="url"
+                      value={field.state.value}
+                      onInput={(e) => {
+                        field.handleChange((e.target as HTMLInputElement).value);
+                        setValidation(null);
+                      }}
+                      onBlur={field.handleBlur}
+                      placeholder="https://github.com/owner/repo/pull/123"
+                      required
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => handleValidateUrl(field.state.value)}
+                      disabled={!field.state.value.trim() || validating}
+                    >
+                      {validating ? 'Checking...' : 'Validate'}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Supports formats: https://github.com/owner/repo/pull/123 or owner/repo#123
+                  </p>
+                </div>
+              )}
+            </form.Field>
 
             {validation && (
               <PRValidationResult
@@ -276,24 +291,33 @@ export function ImportPRDialog({
               />
             )}
 
-            <DialogFooter className="gap-2">
-              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={loading || !prUrl.trim() || (validation?.needsAuth ?? false)}
-              >
-                {loading ? (
-                  <>
-                    <Spinner size="sm" className="mr-2" />
-                    Importing...
-                  </>
-                ) : (
-                  'Import PR'
-                )}
-              </Button>
-            </DialogFooter>
+            <form.Subscribe
+              selector={(state: any) => ({
+                isSubmitting: state.isSubmitting,
+                prUrl: state.values.prUrl,
+              })}
+            >
+              {({ isSubmitting, prUrl }: { isSubmitting: boolean; prUrl: string }) => (
+                <DialogFooter className="gap-2">
+                  <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting || !prUrl.trim() || (validation?.needsAuth ?? false)}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Spinner size="sm" className="mr-2" />
+                        Importing...
+                      </>
+                    ) : (
+                      'Import PR'
+                    )}
+                  </Button>
+                </DialogFooter>
+              )}
+            </form.Subscribe>
           </form>
         ) : (
           <div className="flex-1 overflow-hidden flex flex-col space-y-3">

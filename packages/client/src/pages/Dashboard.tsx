@@ -3,18 +3,17 @@
  */
 
 import { useEffect, useState } from 'hono/jsx';
-import { Button, Spinner, toast } from '@/components/ui';
-import { GitHubIcon } from '@/components/icons';
 import { EmptyState } from '@/components/common';
-import { PageHeader, UserMenu, GitHubStatus } from '@/components/layout';
+import { GitHubIcon } from '@/components/icons';
+import { GitHubStatus, PageHeader, UserMenu } from '@/components/layout';
 import { SessionCard } from '@/components/session';
-import { apiClient } from '../api/client';
+import { Button, Spinner, toast } from '@/components/ui';
 import { useAuth } from '../hooks/useAuth';
 import { useGitHub } from '../hooks/useGitHub';
 import { useSessions } from '../hooks/useSession';
 import { navigate } from '../router';
-import { NewSessionDialog } from './dashboard/NewSessionDialog';
 import { ImportPRDialog } from './dashboard/ImportPRDialog';
+import { NewSessionDialog } from './dashboard/NewSessionDialog';
 
 export function DashboardPage() {
   const { user, logout } = useAuth();

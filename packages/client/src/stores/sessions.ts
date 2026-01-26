@@ -29,7 +29,7 @@ type SessionsStore = SessionsState & SessionsActions;
 
 let initialized = false;
 
-export const sessionsStore = createStore<SessionsStore>()((set, get) => ({
+export const sessionsStore = createStore<SessionsStore>()((set, _get) => ({
   // State
   sessions: [],
   loading: true,

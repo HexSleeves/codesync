@@ -1,11 +1,16 @@
 /**
- * Chat panel component
+ * Chat panel component - uses TanStack Form
  * Real-time chat for session participants
  */
 
 import type { WSChatMessage } from '@codesync/shared';
-import { useEffect, useRef, useState } from 'hono/jsx';
+import { useEffect, useRef } from 'hono/jsx';
+import { useForm } from '@/lib/form';
 import { Button, Input } from '../ui';
+
+interface ChatFormValues {
+  message: string;
+}
 
 interface ChatPanelProps {
   messages: WSChatMessage[];
@@ -14,21 +19,24 @@ interface ChatPanelProps {
 }
 
 export function ChatPanel({ messages, onSend, connected }: ChatPanelProps) {
-  const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const form = useForm<ChatFormValues>({
+    defaultValues: {
+      message: '',
+    },
+    onSubmit: async ({ value }) => {
+      if (value.message.trim() && connected) {
+        onSend(value.message.trim());
+        form.reset();
+      }
+    },
+  });
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages.length]);
-
-  const handleSubmit = (e: Event) => {
-    e.preventDefault();
-    if (input.trim() && connected) {
-      onSend(input.trim());
-      setInput('');
-    }
-  };
 
   const formatTime = (isoString: string) => {
     const date = new Date(isoString);
@@ -60,17 +68,37 @@ export function ChatPanel({ messages, onSend, connected }: ChatPanelProps) {
       </div>
 
       {/* Input */}
-      <form onSubmit={handleSubmit} class="p-3 border-t border-border flex gap-2">
-        <Input
-          value={input}
-          onInput={(e) => setInput((e.target as HTMLInputElement).value)}
-          placeholder={connected ? 'Type a message...' : 'Connecting...'}
-          disabled={!connected}
-          className="flex-1 text-sm"
-        />
-        <Button type="submit" size="sm" disabled={!connected || !input.trim()}>
-          Send
-        </Button>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          form.handleSubmit();
+        }}
+        class="p-3 border-t border-border flex gap-2"
+      >
+        <form.Field name="message">
+          {(field: any) => (
+            <Input
+              value={field.state.value}
+              onInput={(e) => field.handleChange((e.target as HTMLInputElement).value)}
+              onBlur={field.handleBlur}
+              placeholder={connected ? 'Type a message...' : 'Connecting...'}
+              disabled={!connected}
+              className="flex-1 text-sm"
+            />
+          )}
+        </form.Field>
+        <form.Subscribe
+          selector={(state: any) => ({
+            message: state.values.message,
+          })}
+        >
+          {({ message }: { message: string }) => (
+            <Button type="submit" size="sm" disabled={!connected || !message.trim()}>
+              Send
+            </Button>
+          )}
+        </form.Subscribe>
       </form>
     </div>
   );

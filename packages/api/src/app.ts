@@ -15,6 +15,7 @@ import { commentRoutes } from './routes/comments';
 import { fileRoutes } from './routes/files';
 import { githubRoutes } from './routes/github/index';
 import { sessionRoutes } from './routes/sessions';
+
 // WebSocket handling is done in index.ts via Bun.serve()
 
 const app = new Hono()

@@ -1,5 +1,13 @@
-import { useState } from 'hono/jsx';
+/**
+ * Comment form - uses TanStack Form
+ */
+
 import { Button, Input, Textarea } from '@/components/ui';
+import { useForm } from '@/lib/form';
+
+interface CommentFormValues {
+  text: string;
+}
 
 interface CommentFormProps {
   onSubmit: (text: string) => Promise<void>;
@@ -16,56 +24,93 @@ export function CommentForm({
   submitLabel = 'Add Comment',
   variant = 'block',
 }: CommentFormProps) {
-  const [text, setText] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-
-  const handleSubmit = async (e: Event) => {
-    e.preventDefault();
-    if (!text.trim()) return;
-    setSubmitting(true);
-    try {
-      await onSubmit(text);
-      setText('');
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  const form = useForm<CommentFormValues>({
+    defaultValues: {
+      text: '',
+    },
+    onSubmit: async ({ value }) => {
+      if (!value.text.trim()) return;
+      await onSubmit(value.text);
+      form.reset();
+    },
+  });
 
   if (variant === 'inline') {
     return (
-      <form onSubmit={handleSubmit} className="flex gap-3">
-        <Input
-          type="text"
-          value={text}
-          onInput={(e) => setText((e.target as HTMLInputElement).value)}
-          placeholder={placeholder}
-          className="flex-1"
-        />
-        <Button type="submit" disabled={!text.trim() || submitting}>
-          {submitting ? 'Adding...' : submitLabel}
-        </Button>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          form.handleSubmit();
+        }}
+        className="flex gap-3"
+      >
+        <form.Field name="text">
+          {(field: any) => (
+            <Input
+              type="text"
+              value={field.state.value}
+              onInput={(e) => field.handleChange((e.target as HTMLInputElement).value)}
+              onBlur={field.handleBlur}
+              placeholder={placeholder}
+              className="flex-1"
+            />
+          )}
+        </form.Field>
+        <form.Subscribe
+          selector={(state: any) => ({
+            isSubmitting: state.isSubmitting,
+            text: state.values.text,
+          })}
+        >
+          {({ isSubmitting, text }: { isSubmitting: boolean; text: string }) => (
+            <Button type="submit" disabled={!text.trim() || isSubmitting}>
+              {isSubmitting ? 'Adding...' : submitLabel}
+            </Button>
+          )}
+        </form.Subscribe>
       </form>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <Textarea
-        value={text}
-        onInput={(e) => setText((e.target as HTMLTextAreaElement).value)}
-        placeholder={placeholder}
-        rows={3}
-      />
-      <div className="flex justify-end gap-2 mt-2">
-        {onCancel && (
-          <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
-            Cancel
-          </Button>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        form.handleSubmit();
+      }}
+    >
+      <form.Field name="text">
+        {(field: any) => (
+          <Textarea
+            value={field.state.value}
+            onInput={(e) => field.handleChange((e.target as HTMLTextAreaElement).value)}
+            onBlur={field.handleBlur}
+            placeholder={placeholder}
+            rows={3}
+          />
         )}
-        <Button type="submit" size="sm" disabled={!text.trim() || submitting}>
-          {submitting ? 'Adding...' : submitLabel}
-        </Button>
-      </div>
+      </form.Field>
+      <form.Subscribe
+        selector={(state: any) => ({
+          isSubmitting: state.isSubmitting,
+          text: state.values.text,
+        })}
+      >
+        {({ isSubmitting, text }: { isSubmitting: boolean; text: string }) => (
+          <div className="flex justify-end gap-2 mt-2">
+            {onCancel && (
+              <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
+                Cancel
+              </Button>
+            )}
+            <Button type="submit" size="sm" disabled={!text.trim() || isSubmitting}>
+              {isSubmitting ? 'Adding...' : submitLabel}
+            </Button>
+          </div>
+        )}
+      </form.Subscribe>
     </form>
   );
 }

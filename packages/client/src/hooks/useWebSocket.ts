@@ -5,8 +5,8 @@
 
 import type { CursorMessage, OnlineUser, ServerMessage, WSChatMessage } from '@codesync/shared';
 import { useCallback, useEffect, useRef, useState } from 'hono/jsx';
-import { apiCall, getToken } from '../api/client';
 import { toast } from '@/components/ui/sonner';
+import { apiCall, getToken } from '../api/client';
 
 // =============================================================================
 // Utils

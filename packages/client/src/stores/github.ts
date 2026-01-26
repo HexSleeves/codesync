@@ -23,7 +23,7 @@ type GitHubStore = GitHubState & GitHubActions;
 
 let initialized = false;
 
-export const githubStore = createStore<GitHubStore>()((set, get) => ({
+export const githubStore = createStore<GitHubStore>()((set, _get) => ({
   // State
   connected: false,
   username: null,

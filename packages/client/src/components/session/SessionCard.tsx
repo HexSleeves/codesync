@@ -1,5 +1,5 @@
 import type { Session } from '@codesync/shared';
-import { Badge, Button, Card, CardContent, CardDescription, CardHeader } from '@/components/ui';
+import { Button, Card, CardContent, CardDescription, CardHeader } from '@/components/ui';
 import { Link } from '@/router';
 import { SessionStatusBadge } from './SessionStatusBadge';
 

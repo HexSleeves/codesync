@@ -12,6 +12,8 @@ export interface InputProps {
   name?: string;
   onInput?: (e: Event) => void;
   onChange?: (e: Event) => void;
+  onBlur?: (e: Event) => void;
+  onFocus?: (e: Event) => void;
 }
 
 export function Input({ className, type = 'text', ...props }: InputProps) {

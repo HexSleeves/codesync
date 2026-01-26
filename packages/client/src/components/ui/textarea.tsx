@@ -11,6 +11,8 @@ export interface TextareaProps {
   name?: string;
   onInput?: (e: Event) => void;
   onChange?: (e: Event) => void;
+  onBlur?: (e: Event) => void;
+  onFocus?: (e: Event) => void;
 }
 
 export function Textarea({ className, rows = 3, ...props }: TextareaProps) {
