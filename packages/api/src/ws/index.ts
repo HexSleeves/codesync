@@ -3,12 +3,7 @@
  * Handles cursors, presence, and chat
  */
 
-import type {
-  CursorMessage,
-  OnlineUser,
-  WSChatMessage,
-  WSConnectionData,
-} from '@codesync/shared';
+import type { CursorMessage, OnlineUser, WSChatMessage, WSConnectionData } from '@codesync/shared';
 import type { ServerWebSocket } from 'bun';
 import { eq } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
@@ -67,11 +62,7 @@ export function getUserColor(userId: string): string {
 /**
  * Broadcast message to all connections in session except one
  */
-function broadcast(
-  sessionId: string,
-  message: object,
-  excludeUserId?: string
-): void {
+function broadcast(sessionId: string, message: object, excludeUserId?: string): void {
   const session = sessions.get(sessionId);
   if (!session) return;
 
@@ -164,10 +155,7 @@ export const wsHandlers = {
   /**
    * Called when a message is received
    */
-  async message(
-    ws: ServerWebSocket<WSConnectionData>,
-    message: string | Buffer
-  ): Promise<void> {
+  async message(ws: ServerWebSocket<WSConnectionData>, message: string | Buffer): Promise<void> {
     const { sessionId, userId, userName, color } = ws.data;
 
     try {

@@ -98,7 +98,9 @@ export function SplitDiff({
                 onLineClick={onLineClick}
                 onLineHover={onLineHover}
                 language={language}
-                cursors={pair.left?.oldLineNumber ? cursorsByLine.get(pair.left.oldLineNumber) : undefined}
+                cursors={
+                  pair.left?.oldLineNumber ? cursorsByLine.get(pair.left.oldLineNumber) : undefined
+                }
               />
             </div>
             {/* Right side (new) */}
@@ -110,7 +112,11 @@ export function SplitDiff({
                 onLineClick={onLineClick}
                 onLineHover={onLineHover}
                 language={language}
-                cursors={pair.right?.newLineNumber ? cursorsByLine.get(pair.right.newLineNumber) : undefined}
+                cursors={
+                  pair.right?.newLineNumber
+                    ? cursorsByLine.get(pair.right.newLineNumber)
+                    : undefined
+                }
               />
             </div>
           </div>
@@ -143,9 +149,7 @@ function SplitDiffLine({
 
   const isHunkHeader = line.isHunkHeader;
   if (isHunkHeader) {
-    return (
-      <div className="flex bg-primary/10 px-2 py-1 text-primary text-xs">{line.content}</div>
-    );
+    return <div className="flex bg-primary/10 px-2 py-1 text-primary text-xs">{line.content}</div>;
   }
 
   const bgColor =

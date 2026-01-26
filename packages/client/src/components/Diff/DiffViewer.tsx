@@ -30,7 +30,10 @@ export function DiffViewer({
   currentUserId,
 }: DiffViewerProps) {
   const hunks = useMemo(() => computeHunks(file), [file]);
-  const language = useMemo(() => getLanguageFromFilename(file.name || file.path), [file.name, file.path]);
+  const language = useMemo(
+    () => getLanguageFromFilename(file.name || file.path),
+    [file.name, file.path]
+  );
 
   // Filter cursors for this file
   const fileCursors = useMemo(() => {

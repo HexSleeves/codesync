@@ -10,10 +10,7 @@ import { nanoid } from 'nanoid';
 import { db } from '../db/client';
 import { files, sessionParticipants, sessions } from '../db/schema';
 import { type AuthVariables, authMiddleware, optionalAuthMiddleware } from '../middleware/auth';
-import {
-  checkSessionAccess,
-  checkSessionOwnership,
-} from '../services/session/access';
+import { checkSessionAccess, checkSessionOwnership } from '../services/session/access';
 
 export const sessionRoutes = new Hono<{ Variables: AuthVariables }>()
   // GET /api/sessions - List sessions for current user

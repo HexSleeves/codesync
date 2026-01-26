@@ -14,7 +14,12 @@ export function UserMenu({ email, onLogout, children }: UserMenuProps) {
       <span className="text-muted-foreground text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none">
         {email}
       </span>
-      <Button variant="ghost" size="sm" onClick={onLogout} className="text-xs sm:text-sm px-2 sm:px-4">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={onLogout}
+        className="text-xs sm:text-sm px-2 sm:px-4"
+      >
         Sign Out
       </Button>
     </div>

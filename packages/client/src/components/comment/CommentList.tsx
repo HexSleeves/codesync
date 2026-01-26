@@ -8,7 +8,7 @@ interface CommentListProps {
 
 export function CommentList({ comments, onResolve }: CommentListProps) {
   if (comments.length === 0) return null;
-  
+
   return (
     <div className="space-y-2">
       {comments.map((comment) => (

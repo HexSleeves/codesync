@@ -3,22 +3,7 @@
  */
 
 import { useEffect, useState } from 'hono/jsx';
-import {
-  Alert,
-  AlertDescription,
-  Button,
-  Checkbox,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  Input,
-  Label,
-  Spinner,
-  Textarea,
-} from '@/components/ui';
+import { Button, Spinner, toast } from '@/components/ui';
 import { GitHubIcon } from '@/components/icons';
 import { EmptyState } from '@/components/common';
 import { PageHeader, UserMenu, GitHubStatus } from '@/components/layout';
@@ -43,10 +28,6 @@ export function DashboardPage() {
   } = useGitHub();
   const [showNewForm, setShowNewForm] = useState(false);
   const [showImportForm, setShowImportForm] = useState(false);
-  const [notification, setNotification] = useState<{
-    type: 'success' | 'error';
-    message: string;
-  } | null>(null);
 
   // Handle OAuth callback query params
   useEffect(() => {
@@ -55,7 +36,7 @@ export function DashboardPage() {
     const githubError = params.get('github_error');
 
     if (githubConnectedParam === 'true') {
-      setNotification({ type: 'success', message: 'GitHub account connected successfully!' });
+      toast.success('GitHub account connected successfully!');
       refreshGitHub();
       window.history.replaceState({}, '', '/dashboard');
     } else if (githubError) {
@@ -66,28 +47,21 @@ export function DashboardPage() {
         token_error: 'Failed to get access token from GitHub',
         server_error: 'Server error during GitHub connection',
       };
-      setNotification({
-        type: 'error',
-        message: errorMessages[githubError] || `GitHub error: ${githubError}`,
-      });
+      toast.error(errorMessages[githubError] || `GitHub error: ${githubError}`);
       window.history.replaceState({}, '', '/dashboard');
     }
   }, [refreshGitHub]);
-
-  // Auto-dismiss notifications
-  useEffect(() => {
-    if (notification) {
-      const timer = setTimeout(() => setNotification(null), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [notification]);
 
   const handleLogout = async () => {
     await logout();
     navigate('/login');
   };
 
-  const handleCreateSession = async (data: { title: string; description?: string; isPublic?: boolean }) => {
+  const handleCreateSession = async (data: {
+    title: string;
+    description?: string;
+    isPublic?: boolean;
+  }) => {
     const session = await createSession(data);
     setShowNewForm(false);
     navigate(`/session/${session.id}`);
@@ -113,13 +87,11 @@ export function DashboardPage() {
       </PageHeader>
 
       <main className="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
-        <NotificationBanner notification={notification} onDismiss={() => setNotification(null)} />
-
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
           <h1 className="text-xl sm:text-2xl font-bold text-foreground">Your Sessions</h1>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
-            <Button 
-              variant="secondary" 
+            <Button
+              variant="secondary"
               onClick={() => setShowImportForm(true)}
               className="w-full sm:w-auto justify-center"
             >
@@ -127,7 +99,7 @@ export function DashboardPage() {
               <span className="hidden sm:inline">Import from GitHub</span>
               <span className="sm:hidden">Import PR</span>
             </Button>
-            <Button 
+            <Button
               onClick={() => setShowNewForm(true)}
               className="w-full sm:w-auto justify-center"
             >
@@ -158,27 +130,6 @@ export function DashboardPage() {
         />
       </main>
     </div>
-  );
-}
-
-function NotificationBanner({
-  notification,
-  onDismiss,
-}: {
-  notification: { type: 'success' | 'error'; message: string } | null;
-  onDismiss: () => void;
-}) {
-  if (!notification) return null;
-
-  return (
-    <Alert variant={notification.type === 'error' ? 'destructive' : 'default'} className="mb-6">
-      <AlertDescription className="flex items-center justify-between">
-        <span>{notification.message}</span>
-        <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={onDismiss}>
-          ✕
-        </Button>
-      </AlertDescription>
-    </Alert>
   );
 }
 

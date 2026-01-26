@@ -4,8 +4,6 @@
 
 import { useState } from 'hono/jsx';
 import {
-  Alert,
-  AlertDescription,
   Badge,
   Button,
   Card,
@@ -19,6 +17,7 @@ import {
   Input,
   Label,
   Spinner,
+  toast,
 } from '@/components/ui';
 import { GitHubIcon } from '@/components/icons';
 import { apiClient } from '../../api/client';
@@ -60,14 +59,13 @@ export function ImportPRDialog({
   const [prUrl, setPrUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [validating, setValidating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
   const [validation, setValidation] = useState<PRValidation | null>(null);
 
   const handleValidate = async () => {
     if (!prUrl.trim()) return;
 
     setValidating(true);
-    setError(null);
     setValidation(null);
 
     try {
@@ -78,14 +76,17 @@ export function ImportPRDialog({
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error || 'Failed to validate PR URL');
+        toast.error(data.error || 'Failed to validate PR URL');
         return;
       }
 
       const data = (await res.json()) as PRValidation;
       setValidation(data);
+      if (data.needsAuth) {
+        toast.warning('GitHub authentication required to import this PR');
+      }
     } catch (_err) {
-      setError('Failed to validate PR URL');
+      toast.error('Failed to validate PR URL');
     } finally {
       setValidating(false);
     }
@@ -96,7 +97,6 @@ export function ImportPRDialog({
     if (!prUrl.trim()) return;
 
     setLoading(true);
-    setError(null);
 
     try {
       const res = await apiClient('/api/github/import', {
@@ -107,13 +107,14 @@ export function ImportPRDialog({
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.message || data.error || 'Failed to import PR');
+        toast.error(data.message || data.error || 'Failed to import PR');
         return;
       }
 
+      toast.success('PR imported successfully!');
       await onImport(data.session.id);
     } catch (_err) {
-      setError('Failed to import PR');
+      toast.error('Failed to import PR');
     } finally {
       setLoading(false);
     }
@@ -160,13 +161,13 @@ export function ImportPRDialog({
             </p>
           </div>
 
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
+          {validation && (
+            <PRValidationResult
+              validation={validation}
+              githubConnected={githubConnected}
+              onConnectGitHub={onConnectGitHub}
+            />
           )}
-
-          {validation && <PRValidationResult validation={validation} githubConnected={githubConnected} onConnectGitHub={onConnectGitHub} />}
 
           <DialogFooter className="gap-2">
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
@@ -267,9 +268,7 @@ function PRDetails({ prData }: { prData: NonNullable<PRValidation['prData']> }) 
         </p>
         <p>
           <span className="text-muted-foreground/70">Status:</span>{' '}
-          <Badge variant={prData.state === 'open' ? 'success' : 'secondary'}>
-            {prData.state}
-          </Badge>
+          <Badge variant={prData.state === 'open' ? 'success' : 'secondary'}>{prData.state}</Badge>
         </p>
       </div>
     </div>

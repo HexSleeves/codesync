@@ -45,13 +45,13 @@ export function FileHeader({
             <span className="hidden sm:inline">
               {file.isReviewed ? 'Unmark Reviewed' : 'Mark Reviewed'}
             </span>
-            <span className="sm:hidden">
-              {file.isReviewed ? 'Unmark' : 'Reviewed'}
-            </span>
+            <span className="sm:hidden">{file.isReviewed ? 'Unmark' : 'Reviewed'}</span>
           </Button>
           <Select
             value={viewMode}
-            onChange={(e) => onViewModeChange((e.target as HTMLSelectElement).value as 'code' | 'diff')}
+            onChange={(e) =>
+              onViewModeChange((e.target as HTMLSelectElement).value as 'code' | 'diff')
+            }
             className="w-24 sm:w-32 text-xs sm:text-sm"
           >
             <SelectOption value="diff">Diff</SelectOption>
@@ -60,7 +60,9 @@ export function FileHeader({
           {viewMode === 'diff' && (
             <Select
               value={diffMode}
-              onChange={(e) => onDiffModeChange((e.target as HTMLSelectElement).value as 'unified' | 'split')}
+              onChange={(e) =>
+                onDiffModeChange((e.target as HTMLSelectElement).value as 'unified' | 'split')
+              }
               className="w-20 sm:w-28 text-xs sm:text-sm"
             >
               <SelectOption value="unified">Unified</SelectOption>

@@ -19,3 +19,4 @@ export { Select, SelectOption } from './select';
 export { Separator } from './separator';
 export { Spinner } from './spinner';
 export { Textarea } from './textarea';
+export { toast } from './sonner';

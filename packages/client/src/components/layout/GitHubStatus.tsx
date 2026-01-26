@@ -30,7 +30,12 @@ export function GitHubStatus({ connected, username, onConnect, onDisconnect }: G
   }
 
   return (
-    <Button variant="secondary" size="sm" onClick={onConnect} className="text-xs sm:text-sm whitespace-nowrap">
+    <Button
+      variant="secondary"
+      size="sm"
+      onClick={onConnect}
+      className="text-xs sm:text-sm whitespace-nowrap"
+    >
       <GitHubIcon className="w-4 h-4 mr-1 sm:mr-2 shrink-0" />
       <span className="hidden sm:inline">Connect GitHub</span>
       <span className="sm:hidden">GitHub</span>

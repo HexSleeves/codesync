@@ -107,11 +107,7 @@ function CodeLine({
           <td colSpan={4} className="bg-card border-l-2 border-primary">
             <div className="p-3 space-y-2">
               {comments.map((comment) => (
-                <CommentCard
-                  key={comment.id}
-                  comment={comment}
-                  onResolve={onResolveComment}
-                />
+                <CommentCard key={comment.id} comment={comment} onResolve={onResolveComment} />
               ))}
             </div>
           </td>
@@ -132,11 +128,7 @@ function CodeLine({
                 <Button variant="ghost" size="sm" onClick={onCloseCommentInput}>
                   Cancel
                 </Button>
-                <Button
-                  size="sm"
-                  onClick={onSubmitComment}
-                  disabled={!commentText.trim()}
-                >
+                <Button size="sm" onClick={onSubmitComment} disabled={!commentText.trim()}>
                   Add Comment
                 </Button>
               </div>

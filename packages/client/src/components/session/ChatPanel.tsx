@@ -47,15 +47,10 @@ export function ChatPanel({ messages, onSend, connected }: ChatPanelProps) {
           messages.map((msg) => (
             <div key={msg.id} class="text-sm">
               <div class="flex items-baseline gap-2">
-                <span
-                  class="font-medium text-xs"
-                  style={{ color: msg.color }}
-                >
+                <span class="font-medium text-xs" style={{ color: msg.color }}>
                   {msg.userName}
                 </span>
-                <span class="text-[10px] text-muted-foreground">
-                  {formatTime(msg.createdAt)}
-                </span>
+                <span class="text-[10px] text-muted-foreground">{formatTime(msg.createdAt)}</span>
               </div>
               <p class="text-foreground mt-0.5 break-words">{msg.text}</p>
             </div>
@@ -65,10 +60,7 @@ export function ChatPanel({ messages, onSend, connected }: ChatPanelProps) {
       </div>
 
       {/* Input */}
-      <form
-        onSubmit={handleSubmit}
-        class="p-3 border-t border-border flex gap-2"
-      >
+      <form onSubmit={handleSubmit} class="p-3 border-t border-border flex gap-2">
         <Input
           value={input}
           onInput={(e) => setInput((e.target as HTMLInputElement).value)}
@@ -76,11 +68,7 @@ export function ChatPanel({ messages, onSend, connected }: ChatPanelProps) {
           disabled={!connected}
           className="flex-1 text-sm"
         />
-        <Button
-          type="submit"
-          size="sm"
-          disabled={!connected || !input.trim()}
-        >
+        <Button type="submit" size="sm" disabled={!connected || !input.trim()}>
           Send
         </Button>
       </form>

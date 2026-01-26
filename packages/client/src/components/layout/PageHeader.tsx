@@ -15,9 +15,7 @@ export function PageHeader({ children, showLogo = true }: PageHeaderProps) {
             CodeSync
           </Link>
         )}
-        <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-shrink">
-          {children}
-        </div>
+        <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-shrink">{children}</div>
       </div>
     </header>
   );

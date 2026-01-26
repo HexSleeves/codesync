@@ -9,12 +9,12 @@ interface CommentFormProps {
   variant?: 'inline' | 'block';
 }
 
-export function CommentForm({ 
-  onSubmit, 
-  onCancel, 
+export function CommentForm({
+  onSubmit,
+  onCancel,
   placeholder = 'Add a comment...',
   submitLabel = 'Add Comment',
-  variant = 'block'
+  variant = 'block',
 }: CommentFormProps) {
   const [text, setText] = useState('');
   const [submitting, setSubmitting] = useState(false);

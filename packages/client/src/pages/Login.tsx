@@ -2,12 +2,12 @@
  * Login page component
  */
 
-import { useState } from 'hono/jsx';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useState, useEffect } from 'hono/jsx';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { toast } from '@/components/ui/sonner';
 import { useAuth } from '../hooks/useAuth';
 import { Link, navigate } from '../router';
 
@@ -18,6 +18,13 @@ export function LoginPage() {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Show toast when auth error changes
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
@@ -30,6 +37,7 @@ export function LoginPage() {
     setLoading(false);
 
     if (result.success) {
+      toast.success(isRegister ? 'Account created!' : 'Welcome back!');
       navigate('/dashboard');
     }
   };
@@ -52,12 +60,6 @@ export function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {error && (
-              <Alert variant="destructive" className="mb-4">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
             <form onSubmit={handleSubmit} className="space-y-4">
               {isRegister && (
                 <div className="space-y-2">

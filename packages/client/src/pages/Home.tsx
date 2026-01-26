@@ -19,15 +19,21 @@ export function HomePage() {
           <div className="flex gap-2 sm:gap-4">
             {isAuthenticated ? (
               <Link href="/dashboard">
-                <Button size="sm" className="sm:text-base">Dashboard</Button>
+                <Button size="sm" className="sm:text-base">
+                  Dashboard
+                </Button>
               </Link>
             ) : (
               <>
                 <Link href="/login">
-                  <Button variant="ghost" size="sm" className="sm:text-base">Sign In</Button>
+                  <Button variant="ghost" size="sm" className="sm:text-base">
+                    Sign In
+                  </Button>
                 </Link>
                 <Link href="/login">
-                  <Button size="sm" className="sm:text-base">Get Started</Button>
+                  <Button size="sm" className="sm:text-base">
+                    Get Started
+                  </Button>
                 </Link>
               </>
             )}
@@ -47,7 +53,9 @@ export function HomePage() {
           </p>
           <div className="flex gap-4 justify-center">
             <Link href={isAuthenticated ? '/dashboard' : '/login'}>
-              <Button size="lg" className="text-sm sm:text-base">Start Reviewing</Button>
+              <Button size="lg" className="text-sm sm:text-base">
+                Start Reviewing
+              </Button>
             </Link>
           </div>
         </div>

@@ -11,9 +11,7 @@ export function CommentCard({ comment, onResolve }: CommentCardProps) {
     <Card className={comment.isResolved ? 'opacity-60' : ''}>
       <CardContent className="p-2">
         <div className="flex items-center justify-between mb-1">
-          <span className="text-xs text-muted-foreground">
-            {comment.author?.name || 'Unknown'}
-          </span>
+          <span className="text-xs text-muted-foreground">{comment.author?.name || 'Unknown'}</span>
           <Button
             variant="ghost"
             size="sm"
@@ -24,9 +22,7 @@ export function CommentCard({ comment, onResolve }: CommentCardProps) {
           </Button>
         </div>
         <p
-          className={`text-sm ${
-            comment.isResolved ? 'text-muted-foreground' : 'text-foreground'
-          }`}
+          className={`text-sm ${comment.isResolved ? 'text-muted-foreground' : 'text-foreground'}`}
         >
           {comment.text}
         </p>

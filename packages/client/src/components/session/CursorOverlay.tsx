@@ -37,10 +37,7 @@ export function CursorOverlay({
           }}
         >
           {/* Cursor line */}
-          <div
-            class="w-0.5 h-5 rounded-full"
-            style={{ backgroundColor: cursor.color }}
-          />
+          <div class="w-0.5 h-5 rounded-full" style={{ backgroundColor: cursor.color }} />
           {/* User name tag */}
           <span
             class="text-[10px] px-1.5 py-0.5 rounded-r ml-0 text-white whitespace-nowrap"

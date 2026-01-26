@@ -38,14 +38,8 @@ export function SessionPage({ sessionId }: SessionPageProps) {
   const [showFileTree, setShowFileTree] = useState(false);
 
   // WebSocket for real-time collaboration
-  const {
-    connected,
-    onlineUsers,
-    cursors,
-    chatMessages,
-    sendCursor,
-    sendChat,
-  } = useWebSocket(sessionId);
+  const { connected, onlineUsers, cursors, chatMessages, sendCursor, sendChat } =
+    useWebSocket(sessionId);
 
   const selectedFile = files.find((f) => f.id === selectedFileId) || null;
   const { commentsByLine, addComment, resolveComment } = useComments(selectedFileId);
@@ -130,11 +124,7 @@ export function SessionPage({ sessionId }: SessionPageProps) {
           <aside className="absolute inset-y-0 left-0 z-30 w-64 border-r border-border flex flex-col bg-card md:hidden">
             <div className="flex items-center justify-between px-3 py-2 border-b border-border">
               <span className="text-sm font-medium">Files</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowFileTree(false)}
-              >
+              <Button variant="ghost" size="sm" onClick={() => setShowFileTree(false)}>
                 ✕
               </Button>
             </div>
@@ -213,24 +203,16 @@ export function SessionPage({ sessionId }: SessionPageProps) {
         {/* Right Sidebar: Chat - Slide-out on mobile */}
         {showChat && (
           <aside className="absolute md:relative inset-y-0 right-0 z-30 w-full sm:w-72 border-l border-border flex flex-col bg-card">
-          <div className="flex items-center justify-between px-3 py-2 border-b border-border">
-            <span className="text-sm font-medium">Chat</span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowChat(false)}
-            >
-              ✕
-            </Button>
-          </div>
-          <div className="flex-1 overflow-hidden">
-            <ChatPanel
-              messages={chatMessages}
-              onSend={sendChat}
-              connected={connected}
-            />
-          </div>
-        </aside>
+            <div className="flex items-center justify-between px-3 py-2 border-b border-border">
+              <span className="text-sm font-medium">Chat</span>
+              <Button variant="ghost" size="sm" onClick={() => setShowChat(false)}>
+                ✕
+              </Button>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <ChatPanel messages={chatMessages} onSend={sendChat} connected={connected} />
+            </div>
+          </aside>
         )}
 
         {/* Overlay for mobile when chat is open */}
@@ -278,12 +260,7 @@ function SessionHeader({
         {/* Left side */}
         <div className="flex items-center gap-1 sm:gap-3 min-w-0 flex-1">
           {/* Mobile file tree toggle */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="md:hidden px-2"
-            onClick={onToggleFileTree}
-          >
+          <Button variant="ghost" size="sm" className="md:hidden px-2" onClick={onToggleFileTree}>
             ☰
           </Button>
           <Link href="/dashboard">
@@ -301,9 +278,7 @@ function SessionHeader({
         <div className="flex items-center gap-2 sm:gap-4 shrink-0">
           {/* Connection status indicator */}
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <div
-              className={`w-2 h-2 rounded-full ${connected ? 'bg-green-500' : 'bg-red-500'}`}
-            />
+            <div className={`w-2 h-2 rounded-full ${connected ? 'bg-green-500' : 'bg-red-500'}`} />
             <span className="hidden sm:inline">
               {connected ? `${onlineCount} online` : 'Connecting...'}
             </span>

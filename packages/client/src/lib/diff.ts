@@ -201,10 +201,6 @@ function groupIntoHunks(
 }
 
 function finalizeHunk(hunk: DiffHunk): void {
-  hunk.oldLines = hunk.lines.filter(
-    (l) => l.type === 'context' || l.type === 'remove'
-  ).length;
-  hunk.newLines = hunk.lines.filter(
-    (l) => l.type === 'context' || l.type === 'add'
-  ).length;
+  hunk.oldLines = hunk.lines.filter((l) => l.type === 'context' || l.type === 'remove').length;
+  hunk.newLines = hunk.lines.filter((l) => l.type === 'context' || l.type === 'add').length;
 }
