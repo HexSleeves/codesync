@@ -40,9 +40,10 @@ Password: password123
 
 ## Recent Changes (Jan 26, 2026)
 
-### 1. TanStack Form Migration
-- Replaced `react-hook-form` with `@tanstack/react-form`
-- Created `lib/form.tsx` wrapper for Hono JSX compatibility
+### 1. Custom Form Hook Implementation
+- Created custom `useForm` hook in `lib/form.tsx` for Hono JSX compatibility
+- TanStack React Form was incompatible (uses React hooks internally)
+- Simple API with `getFieldProps`, `getTextAreaProps`, `getCheckboxProps`
 - Added `onBlur` and `onFocus` props to Input and Textarea components
 - Converted all forms:
   - `LoginPage` - login/register form
@@ -51,6 +52,7 @@ Password: password123
   - `CommentForm` - inline/block comment form
   - `ChatPanel` - real-time chat input
 - Removed unused `react-hook-form` and `@hookform/resolvers` dependencies
+- Bundle size reduced by ~44KB
 
 ---
 
@@ -198,7 +200,7 @@ codesync/
 | Auth | JWT (HTTP-only cookies) |
 | Real-time | Bun WebSocket + custom handlers |
 | Syntax Highlighting | Prism.js |
-| Form Management | TanStack Form |
+| Form Management | Custom useForm hook |
 
 ---
 
