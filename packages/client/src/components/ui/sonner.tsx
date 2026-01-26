@@ -28,7 +28,7 @@ export function initToaster() {
   const root = createRoot(container);
   root.render(
     createElement(SonnerToaster, {
-      position: 'top-right',
+      position: 'bottom-right',
       richColors: true,
       closeButton: true,
       className: 'toaster group',
@@ -52,28 +52,22 @@ export function initToaster() {
 // Wrap toast functions to auto-init
 const wrappedToast = Object.assign(
   (message: string, options?: Parameters<typeof toast>[1]) => {
-    initToaster();
     return toast(message, options);
   },
   {
     success: (message: string, options?: Parameters<typeof toast.success>[1]) => {
-      initToaster();
       return toast.success(message, options);
     },
     error: (message: string, options?: Parameters<typeof toast.error>[1]) => {
-      initToaster();
       return toast.error(message, options);
     },
     warning: (message: string, options?: Parameters<typeof toast.warning>[1]) => {
-      initToaster();
       return toast.warning(message, options);
     },
     info: (message: string, options?: Parameters<typeof toast.info>[1]) => {
-      initToaster();
       return toast.info(message, options);
     },
     loading: (message: string, options?: Parameters<typeof toast.loading>[1]) => {
-      initToaster();
       return toast.loading(message, options);
     },
     promise: toast.promise,

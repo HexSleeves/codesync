@@ -68,6 +68,7 @@ export function useSession(sessionId: string | undefined) {
         ...old,
         files: old?.files?.map((f: File) => (f.id === fileId ? { ...f, isReviewed: reviewed } : f)),
       }));
+      console.log('onSuccess', reviewed);
       toast.success(reviewed ? 'File marked as reviewed' : 'File unmarked');
     },
     onError: () => {
