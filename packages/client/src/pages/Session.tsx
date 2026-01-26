@@ -35,7 +35,7 @@ export function SessionPage({ sessionId }: SessionPageProps) {
   const [diffMode, setDiffMode] = useState<'unified' | 'split'>('unified');
   const [activeCommentLine, setActiveCommentLine] = useState<number | null>(null);
   const [showChat, setShowChat] = useState(false);
-  const [showFileTree, setShowFileTree] = useState(false);
+  const [showFileTree, setShowFileTree] = useState(true); // Default to visible on desktop
 
   // WebSocket for real-time collaboration
   const { connected, onlineUsers, cursors, chatMessages, sendCursor, sendChat } =
@@ -96,28 +96,29 @@ export function SessionPage({ sessionId }: SessionPageProps) {
         userDisplay={user?.githubUsername || user?.email}
         connected={connected}
         onlineCount={onlineUsers.length}
-        showFileTree={showFileTree}
         onToggleFileTree={() => setShowFileTree(!showFileTree)}
       />
 
       <div className="flex-1 flex overflow-hidden relative">
         {/* Left Sidebar: Online Users + File Tree */}
-        {/* On desktop: always visible. On mobile: shown when showFileTree is true */}
-        <aside
-          className={`
-            w-64 border-r border-border flex-col bg-card
-            hidden md:flex
-          `}
-        >
-          <OnlineUsers users={onlineUsers} connected={connected} />
-          <div className="flex-1 overflow-hidden">
-            <FileTree
-              files={files}
-              selectedFileId={selectedFileId}
-              onFileSelect={setSelectedFileId}
-            />
-          </div>
-        </aside>
+        {/* On desktop: shown when showFileTree is true. On mobile: shown when showFileTree is true */}
+        {showFileTree && (
+          <aside
+            className={`
+              w-64 border-r border-border flex-col bg-card
+              hidden md:flex
+            `}
+          >
+            <OnlineUsers users={onlineUsers} connected={connected} />
+            <div className="flex-1 overflow-hidden">
+              <FileTree
+                files={files}
+                selectedFileId={selectedFileId}
+                onFileSelect={setSelectedFileId}
+              />
+            </div>
+          </aside>
+        )}
 
         {/* Mobile File Tree Drawer */}
         {showFileTree && (
@@ -244,14 +245,12 @@ function SessionHeader({
   userDisplay,
   connected,
   onlineCount,
-  showFileTree,
   onToggleFileTree,
 }: {
   session: any;
   userDisplay?: string;
   connected: boolean;
   onlineCount: number;
-  showFileTree: boolean;
   onToggleFileTree: () => void;
 }) {
   return (
@@ -259,8 +258,8 @@ function SessionHeader({
       <div className="flex items-center justify-between gap-2">
         {/* Left side */}
         <div className="flex items-center gap-1 sm:gap-3 min-w-0 flex-1">
-          {/* Mobile file tree toggle */}
-          <Button variant="ghost" size="sm" className="md:hidden px-2" onClick={onToggleFileTree}>
+          {/* File tree toggle - visible on all screen sizes */}
+          <Button variant="ghost" size="sm" className="px-2" onClick={onToggleFileTree}>
             ☰
           </Button>
           <Link href="/dashboard">

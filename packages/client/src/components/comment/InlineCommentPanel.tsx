@@ -8,7 +8,7 @@ interface InlineCommentPanelProps {
   comments: Comment[];
   onSubmit: (text: string) => Promise<void>;
   onClose: () => void;
-  onResolve: (id: string, resolved: boolean) => void | Promise<any>;
+  onResolve: (id: string, resolved: boolean) => undefined | Promise<any>;
 }
 
 export function InlineCommentPanel({

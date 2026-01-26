@@ -2,7 +2,6 @@
  * New session creation dialog - uses custom form hook
  */
 
-import { useForm } from '@/lib/form';
 import {
   Button,
   Checkbox,
@@ -17,6 +16,7 @@ import {
   Textarea,
   toast,
 } from '@/components/ui';
+import { useForm } from '@/lib/form';
 
 interface NewSessionFormValues {
   title: string;

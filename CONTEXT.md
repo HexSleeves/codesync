@@ -1,6 +1,6 @@
 # Agent Context Dump
 
-**Last Updated:** Jan 26, 2026  
+**Last Updated:** Jan 26, 2026
 **Last Task:** Replaced react-hook-form with @tanstack/react-form
 
 ---
@@ -25,9 +25,9 @@ cd packages/client && nohup bun run dev > /tmp/client.log 2>&1 &
 
 ### Live URLs
 
-- **Frontend**: https://noon-disk.exe.xyz:5173/
-- **API**: https://noon-disk.exe.xyz:8001/
-- **Health Check**: https://noon-disk.exe.xyz:8001/health
+- **Frontend**: <https://noon-disk.exe.xyz:5173/>
+- **API**: <https://noon-disk.exe.xyz:8001/>
+- **Health Check**: <https://noon-disk.exe.xyz:8001/health>
 
 ### Test Account
 
@@ -41,6 +41,7 @@ Password: password123
 ## Recent Changes (Jan 26, 2026)
 
 ### 1. Custom Form Hook Implementation
+
 - Created custom `useForm` hook in `lib/form.tsx` for Hono JSX compatibility
 - TanStack React Form was incompatible (uses React hooks internally)
 - Simple API with `getFieldProps`, `getTextAreaProps`, `getCheckboxProps`
@@ -59,6 +60,7 @@ Password: password123
 ## Previous Changes (Jan 25, 2026)
 
 ### 1. Mobile-First Responsive Design
+
 - Updated all client components to use mobile-first approach
 - **PageHeader**: Wraps items with gap on mobile
 - **UserMenu**: Truncated email, smaller buttons on mobile
@@ -73,6 +75,7 @@ Password: password123
 - **Home page**: Responsive hero text and feature grid
 
 ### 2. API Refactoring (Previous)
+
 - Split monolithic `github.ts` (658 lines) into domain modules:
   - `routes/github/oauth.ts` - OAuth flow
   - `routes/github/import.ts` - PR import
@@ -83,18 +86,19 @@ Password: password123
 - Added `utils/language.ts` for language detection
 
 ### 2. WebSocket Real-time (Plan 001 - COMPLETE)
+
 - **Backend**: `packages/api/src/ws/index.ts`
   - JWT-authenticated WebSocket connections
   - Session state management (connections, cursors)
   - Cursor position broadcasting
   - Real-time chat with DB persistence
   - User presence (join/leave)
-  
+
 - **Shared**: `packages/shared/src/ws-types.ts`
   - `CursorMessage`, `PresenceMessage`, `WSChatMessage`
   - `ServerMessage`, `ClientMessage` union types
-  
-- **Client**: 
+
+- **Client**:
   - `hooks/useWebSocket.ts` - WebSocket hook with auto-reconnect
   - `components/session/OnlineUsers.tsx` - Online user avatars
   - `components/session/ChatPanel.tsx` - Real-time chat
@@ -103,6 +107,7 @@ Password: password123
   - Updated `DiffViewer`, `UnifiedDiff`, `SplitDiff` for cursors
 
 ### 3. Documentation
+
 - Created comprehensive `README.md` with screenshots
 - Added `plans/` directory for tracking implementation plans
 - Added `LICENSE` (MIT)
@@ -207,6 +212,7 @@ codesync/
 ## Key Files to Know
 
 ### Backend
+
 - `packages/api/src/index.ts` - Server entry, WebSocket upgrade logic
 - `packages/api/src/ws/index.ts` - WebSocket handlers (cursors, chat, presence)
 - `packages/api/src/config.ts` - All environment variables
@@ -214,6 +220,7 @@ codesync/
 - `packages/api/src/db/schema.ts` - Database schema
 
 ### Frontend
+
 - `packages/client/src/pages/Session.tsx` - Main code review UI
 - `packages/client/src/hooks/useWebSocket.ts` - WebSocket connection hook
 - `packages/client/src/stores/auth.ts` - Auth state management
@@ -221,6 +228,7 @@ codesync/
 - `packages/client/src/lib/form.tsx` - TanStack Form wrapper for Hono JSX
 
 ### Shared
+
 - `packages/shared/src/ws-types.ts` - WebSocket message types
 - `packages/shared/src/types.ts` - Domain types
 - `packages/shared/src/schemas.ts` - Zod validation schemas

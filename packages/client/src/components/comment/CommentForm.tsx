@@ -2,8 +2,8 @@
  * Comment form - uses custom form hook
  */
 
-import { useForm } from '@/lib/form';
 import { Button, Input, Textarea } from '@/components/ui';
+import { useForm } from '@/lib/form';
 
 interface CommentFormValues {
   text: string;
