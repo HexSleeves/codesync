@@ -36,6 +36,13 @@ export interface PRDetails {
 }
 
 /**
+ * Create an authenticated Octokit instance
+ */
+export function createOctokit(token: string): Octokit {
+  return new Octokit({ auth: token });
+}
+
+/**
  * Get user's GitHub access token from database
  */
 export async function getGitHubToken(userId: string): Promise<string | null> {
@@ -44,13 +51,6 @@ export async function getGitHubToken(userId: string): Promise<string | null> {
     columns: { githubAccessToken: true },
   });
   return user?.githubAccessToken ?? null;
-}
-
-/**
- * Create an authenticated Octokit instance
- */
-export function createOctokit(token: string): Octokit {
-  return new Octokit({ auth: token });
 }
 
 /**

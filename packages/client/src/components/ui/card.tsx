@@ -4,11 +4,15 @@ import { cn } from '@/lib/utils';
 export interface CardProps {
   className?: string;
   children?: Child;
+  onClick?: () => void;
 }
 
-export function Card({ className, children }: CardProps) {
+export function Card({ className, children, onClick }: CardProps) {
   return (
-    <div className={cn('rounded-xl border bg-card text-card-foreground shadow', className)}>
+    <div
+      className={cn('rounded-xl border bg-card text-card-foreground shadow', className)}
+      onClick={onClick}
+    >
       {children}
     </div>
   );

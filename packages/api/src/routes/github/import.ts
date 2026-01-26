@@ -6,10 +6,12 @@
 import { importPRSchema, validatePRUrlSchema } from '@codesync/shared';
 import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
+import { eq } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { db } from '../../db/client';
-import { sessionParticipants, sessions } from '../../db/schema';
+import { sessionParticipants, sessions, users } from '../../db/schema';
 import { type AuthVariables, authMiddleware } from '../../middleware/auth';
+import { getPullRequests, getRepositories } from '../../services';
 import { processPRFiles } from '../../services/github/file-processor';
 import {
   createOctokit,
@@ -96,6 +98,55 @@ export const importRoutes = new Hono<{ Variables: AuthVariables }>()
 
       console.error('GitHub validation error:', error);
       return c.json({ error: 'Failed to validate PR URL' }, 500);
+    }
+  })
+
+  .get('/repositories', authMiddleware, async (c) => {
+    const userId = c.get('userId');
+
+    const token = await getGitHubToken(userId);
+    if (!token) {
+      return c.json({ error: 'GitHub authentication required' }, 401);
+    }
+
+    // Get GitHub username from user record
+    const user = await db
+      .select({ githubUsername: users.githubUsername })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1)
+      .then((rows) => rows[0]);
+
+    if (!user?.githubUsername) {
+      return c.json({ error: 'GitHub account not connected' }, 400);
+    }
+
+    try {
+      const octokit = createOctokit(token);
+      const repositories = await getRepositories(octokit, user.githubUsername);
+      return c.json({ repositories });
+    } catch (error) {
+      console.error('Failed to fetch repositories:', error);
+      return c.json({ error: 'Failed to fetch repositories' }, 500);
+    }
+  })
+
+  .get('/repositories/:owner/:repo/pulls', authMiddleware, async (c) => {
+    const userId = c.get('userId');
+    const { owner, repo } = c.req.param();
+
+    const token = await getGitHubToken(userId);
+    if (!token) {
+      return c.json({ error: 'GitHub authentication required' }, 401);
+    }
+
+    try {
+      const octokit = createOctokit(token);
+      const pullRequests = await getPullRequests(octokit, owner, repo);
+      return c.json({ pullRequests });
+    } catch (error) {
+      console.error('Failed to fetch pull requests:', error);
+      return c.json({ error: 'Failed to fetch pull requests' }, 500);
     }
   })
 
