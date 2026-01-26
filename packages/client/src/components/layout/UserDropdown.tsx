@@ -3,8 +3,17 @@
  * Contains GitHub connection status, settings, and logout
  */
 
-import { Avatar, AvatarFallback, Dropdown, DropdownItem, DropdownLabel, DropdownSeparator } from '@/components/ui';
 import { GitHubIcon, LogOutIcon } from '@/components/icons';
+import {
+  Avatar,
+  AvatarFallback,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui';
 
 interface UserDropdownProps {
   email: string;
@@ -29,62 +38,55 @@ export function UserDropdown({
   const displayName = name || githubUsername || email.split('@')[0];
 
   return (
-    <Dropdown
-      align="end"
-      trigger={
-        <button
-          type="button"
-          className="flex items-center gap-2 rounded-full hover:bg-accent p-0.5 pr-2"
-          aria-label="User menu"
-        >
-          <Avatar className="size-8">
-            <AvatarFallback className="text-xs bg-primary/10 text-primary">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-          <span className="text-sm text-foreground hidden sm:block max-w-24 truncate">
-            {displayName}
-          </span>
-        </button>
-      }
-    >
-      <DropdownLabel>
-        <div className="flex flex-col">
-          <span className="font-medium text-foreground">{displayName}</span>
-          <span className="text-xs text-muted-foreground">{email}</span>
-        </div>
-      </DropdownLabel>
-      <DropdownSeparator />
+    <DropdownMenu>
+      <DropdownMenuTrigger className="flex items-center gap-2 rounded-full hover:bg-accent p-0.5 pr-2">
+        <Avatar className="size-8">
+          <AvatarFallback className="text-xs bg-primary/10 text-primary">{initials}</AvatarFallback>
+        </Avatar>
+        <span className="text-sm text-foreground hidden sm:block max-w-24 truncate">
+          {displayName}
+        </span>
+      </DropdownMenuTrigger>
 
-      {/* GitHub Connection Status */}
-      {githubConnected ? (
-        <>
-          <div className="px-2 py-1.5 flex items-center gap-2 text-sm">
-            <GitHubIcon className="size-4" />
-            <span className="text-muted-foreground">@{githubUsername}</span>
+      <DropdownMenuContent align="end">
+        <DropdownMenuLabel>
+          <div className="flex flex-col">
+            <span className="font-medium text-foreground">{displayName}</span>
+            <span className="text-xs text-muted-foreground font-normal">{email}</span>
           </div>
-          {onDisconnectGitHub && (
-            <DropdownItem onClick={onDisconnectGitHub}>
-              <GitHubIcon className="size-4" />
-              Disconnect GitHub
-            </DropdownItem>
-          )}
-        </>
-      ) : (
-        onConnectGitHub && (
-          <DropdownItem onClick={onConnectGitHub}>
-            <GitHubIcon className="size-4" />
-            Connect GitHub
-          </DropdownItem>
-        )
-      )}
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
 
-      <DropdownSeparator />
-      <DropdownItem onClick={onLogout} destructive>
-        <LogOutIcon className="size-4" />
-        Sign out
-      </DropdownItem>
-    </Dropdown>
+        {/* GitHub Connection Status */}
+        {githubConnected ? (
+          <>
+            <div className="px-2 py-1.5 flex items-center gap-2 text-sm">
+              <GitHubIcon className="size-4" />
+              <span className="text-muted-foreground">@{githubUsername}</span>
+            </div>
+            {onDisconnectGitHub && (
+              <DropdownMenuItem onSelect={onDisconnectGitHub}>
+                <GitHubIcon className="size-4" />
+                Disconnect GitHub
+              </DropdownMenuItem>
+            )}
+          </>
+        ) : (
+          onConnectGitHub && (
+            <DropdownMenuItem onSelect={onConnectGitHub}>
+              <GitHubIcon className="size-4" />
+              Connect GitHub
+            </DropdownMenuItem>
+          )
+        )}
+
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={onLogout} destructive>
+          <LogOutIcon className="size-4" />
+          Sign out
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
