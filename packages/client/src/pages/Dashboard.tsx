@@ -64,7 +64,9 @@ export function DashboardPage() {
   }) => {
     const session = await createSession(data);
     setShowNewForm(false);
-    navigate(`/session/${session.id}`);
+    if (session) {
+      navigate(`/session/${session.id}`);
+    }
   };
 
   const handleImport = async (sessionId: string) => {

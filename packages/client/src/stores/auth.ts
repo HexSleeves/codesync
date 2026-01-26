@@ -7,6 +7,7 @@ import { useSyncExternalStore } from 'hono/jsx';
 import { createStore } from 'zustand/vanilla';
 import { apiCall, clearToken, getToken, setToken } from '../api/client';
 import { resetGitHubStore } from './github';
+import { resetSessionsStore } from './sessions';
 
 interface AuthState {
   user: User | null;
@@ -99,6 +100,7 @@ export const authStore = createStore<AuthStore>()((set) => ({
     await apiCall('POST', '/auth/logout').catch(() => {});
     clearToken();
     resetGitHubStore();
+    resetSessionsStore();
     set({ user: null, loading: false, error: null });
   },
 
