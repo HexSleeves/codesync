@@ -8,12 +8,7 @@ import { PageError, PageLoading } from '@/components/common';
 import { MessageIcon } from '@/components/icons';
 import { AppShell, UserDropdown } from '@/components/layout';
 import { KeyboardShortcutsModal, ShareSessionModal } from '@/components/modals';
-import {
-  ChatSidebar,
-  FileTreeSidebar,
-  MainContent,
-  SessionControls,
-} from '@/components/session';
+import { ChatSidebar, FileTreeSidebar, MainContent, SessionControls } from '@/components/session';
 import { Button } from '@/components/ui';
 import { useAuth } from '../hooks/useAuth';
 import { useComments } from '../hooks/useComments';
@@ -177,7 +172,9 @@ export function SessionPage({ sessionId }: SessionPageProps) {
             diffMode={diffMode}
             onViewModeChange={setViewMode}
             onDiffModeChange={setDiffMode}
-            onToggleReviewed={() => selectedFile && markFileReviewed(selectedFile.id, !selectedFile.isReviewed)}
+            onToggleReviewed={() =>
+              selectedFile && markFileReviewed(selectedFile.id, !selectedFile.isReviewed)
+            }
             commentsByLine={commentsByLine}
             activeCommentLine={activeCommentLine}
             onLineClick={setActiveCommentLine}

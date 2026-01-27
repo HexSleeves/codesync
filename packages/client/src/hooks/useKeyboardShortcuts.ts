@@ -3,7 +3,7 @@
  * Handles navigation, toggles, and modal shortcuts
  */
 
-import { useCallback, useEffect, useState } from 'hono/jsx';
+import { useEffect, useRef, useState } from 'hono/jsx';
 
 export interface KeyboardShortcutOptions {
   /** Navigate to next file */
@@ -25,30 +25,36 @@ export interface KeyboardShortcutOptions {
 }
 
 export function useKeyboardShortcuts(options: KeyboardShortcutOptions = {}) {
-  const {
-    onNextFile,
-    onPrevFile,
-    onToggleFileTree,
-    onToggleChat,
-    onToggleDiffMode,
-    onToggleViewMode,
-    onMarkReviewed,
-    enabled = true,
-  } = options;
-
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
+  
+  // Use refs to avoid recreating the event handler when callbacks change
+  const optionsRef = useRef<KeyboardShortcutOptions>(options);
+  optionsRef.current = options;
+  
+  const modalRef = useRef(showShortcutsModal);
+  modalRef.current = showShortcutsModal;
 
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const opts = optionsRef.current;
+      if (!opts) return;
+      
+      const { 
+        enabled = true,
+        onNextFile,
+        onPrevFile,
+        onToggleFileTree,
+        onToggleChat,
+        onToggleDiffMode,
+        onToggleViewMode,
+        onMarkReviewed,
+      } = opts;
+      
       if (!enabled) return;
 
       // Ignore if user is typing in an input or textarea
       const target = e.target as HTMLElement;
-      if (
-        target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.isContentEditable
-      ) {
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
         return;
       }
 
@@ -64,7 +70,7 @@ export function useKeyboardShortcuts(options: KeyboardShortcutOptions = {}) {
           break;
 
         case 'Escape':
-          if (showShortcutsModal) {
+          if (modalRef.current) {
             e.preventDefault();
             setShowShortcutsModal(false);
           }
@@ -121,24 +127,11 @@ export function useKeyboardShortcuts(options: KeyboardShortcutOptions = {}) {
           }
           break;
       }
-    },
-    [
-      enabled,
-      showShortcutsModal,
-      onNextFile,
-      onPrevFile,
-      onToggleFileTree,
-      onToggleChat,
-      onToggleDiffMode,
-      onToggleViewMode,
-      onMarkReviewed,
-    ]
-  );
+    };
 
-  useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [handleKeyDown]);
+  }, []); // Empty deps - handler is stable, reads from refs
 
   return {
     showShortcutsModal,

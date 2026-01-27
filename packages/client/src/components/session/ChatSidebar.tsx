@@ -20,27 +20,11 @@ interface ChatSidebarProps {
   connected: boolean;
 }
 
-export function ChatSidebar({
-  open,
-  onClose,
-  messages,
-  onSend,
-  connected,
-}: ChatSidebarProps) {
+export function ChatSidebar({ open, onClose, messages, onSend, connected }: ChatSidebarProps) {
   return (
-    <Sidebar
-      open={open}
-      onClose={onClose}
-      side="right"
-      title="Chat"
-      width="w-full sm:w-72"
-    >
+    <Sidebar open={open} onClose={onClose} side="right" title="Chat" width="w-full sm:w-72">
       <div className="flex-1 overflow-hidden">
-        <ChatPanel
-          messages={messages}
-          onSend={onSend}
-          connected={connected}
-        />
+        <ChatPanel messages={messages} onSend={onSend} connected={connected} />
       </div>
     </Sidebar>
   );

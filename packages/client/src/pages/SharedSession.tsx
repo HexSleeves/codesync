@@ -87,9 +87,7 @@ export function SharedSessionPage({ token }: SharedSessionPageProps) {
           files={files}
           selectedFileId={selectedFileId}
           onFileSelect={setSelectedFileId}
-          headerContent={
-            <span className="text-sm font-medium text-muted-foreground">Files</span>
-          }
+          headerContent={<span className="text-sm font-medium text-muted-foreground">Files</span>}
         />
 
         {/* Main Content */}
@@ -154,12 +152,7 @@ function SharedSessionHeader({
 
         {/* Center: Controls */}
         <div className="hidden md:flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onToggleFileTree}
-            className="gap-1.5"
-          >
+          <Button variant="ghost" size="sm" onClick={onToggleFileTree} className="gap-1.5">
             <SidebarIcon className="size-4" />
             <span className="hidden lg:inline">Files</span>
           </Button>

@@ -2,13 +2,7 @@
  * Keyboard shortcuts modal - displays available shortcuts
  */
 
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui';
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle } from '@/components/ui';
 
 interface Shortcut {
   keys: string[];
@@ -99,13 +93,13 @@ export function KeyboardShortcutsModal({ open, onOpenChange }: KeyboardShortcuts
           <DialogTitle>Keyboard Shortcuts</DialogTitle>
         </DialogHeader>
         <DialogClose onClick={() => onOpenChange(false)} />
-        
+
         <div className="mt-4 max-h-[60vh] overflow-y-auto pr-2">
           {shortcutGroups.map((group, i) => (
             <ShortcutSection key={i} group={group} />
           ))}
         </div>
-        
+
         <div className="mt-4 pt-4 border-t border-border">
           <p className="text-xs text-muted-foreground text-center">
             Press <KeyboardKey>?</KeyboardKey> anytime to see this help

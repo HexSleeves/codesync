@@ -85,7 +85,7 @@ function saveSettings(settings: SettingsState): void {
  */
 function applyTheme(theme: Theme): void {
   const root = document.documentElement;
-  
+
   if (theme === 'system') {
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     root.classList.toggle('dark', prefersDark);
@@ -100,7 +100,7 @@ function applyTheme(theme: Theme): void {
 function applyFontSize(fontSize: FontSize): void {
   const root = document.documentElement;
   root.classList.remove('text-sm', 'text-base', 'text-lg');
-  
+
   switch (fontSize) {
     case 'sm':
       root.classList.add('text-sm');
@@ -198,7 +198,7 @@ export function initSettings(): void {
   const state = settingsStore.getState();
   applyTheme(state.theme);
   applyFontSize(state.fontSize);
-  
+
   // Listen for system theme changes
   if (state.theme === 'system') {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');

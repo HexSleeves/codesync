@@ -50,32 +50,18 @@ export function FileTreeSidebar({
   };
 
   return (
-    <Sidebar
-      open={open}
-      onClose={onClose}
-      side="left"
-      title="Files"
-      width="w-64"
-    >
+    <Sidebar open={open} onClose={onClose} side="left" title="Files" width="w-64">
       {/* Online users (if provided) */}
-      {onlineUsers && (
-        <OnlineUsers users={onlineUsers} connected={connected ?? false} />
-      )}
-      
+      {onlineUsers && <OnlineUsers users={onlineUsers} connected={connected ?? false} />}
+
       {/* Optional header content */}
       {headerContent && !onlineUsers && (
-        <div className="px-3 py-2 border-b border-border">
-          {headerContent}
-        </div>
+        <div className="px-3 py-2 border-b border-border">{headerContent}</div>
       )}
-      
+
       {/* File tree */}
       <div className="flex-1 overflow-hidden">
-        <FileTree
-          files={files}
-          selectedFileId={selectedFileId}
-          onFileSelect={handleFileSelect}
-        />
+        <FileTree files={files} selectedFileId={selectedFileId} onFileSelect={handleFileSelect} />
       </div>
     </Sidebar>
   );

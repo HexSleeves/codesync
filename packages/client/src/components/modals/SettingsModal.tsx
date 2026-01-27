@@ -19,8 +19,8 @@ import {
   type DiffMode,
   type FontSize,
   type Theme,
-  type ViewMode,
   useSettingsStore,
+  type ViewMode,
 } from '@/stores/settings';
 
 interface SettingsModalProps {

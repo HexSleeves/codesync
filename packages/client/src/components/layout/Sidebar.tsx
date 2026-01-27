@@ -39,9 +39,7 @@ export function Sidebar({
 }: SidebarProps) {
   if (!open) return null;
 
-  const sideClasses = side === 'left' 
-    ? 'left-0 border-r' 
-    : 'right-0 border-l';
+  const sideClasses = side === 'left' ? 'left-0 border-r' : 'right-0 border-l';
 
   return (
     <>
@@ -84,10 +82,7 @@ export function Sidebar({
       </aside>
 
       {/* Mobile Overlay */}
-      <div
-        className="fixed inset-0 bg-black/50 z-20 md:hidden"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 bg-black/50 z-20 md:hidden" onClick={onClose} />
     </>
   );
 }

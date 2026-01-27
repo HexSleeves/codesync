@@ -49,12 +49,7 @@ export function SessionControls({
       <SessionStatusBadge status={status} />
 
       {/* Share button */}
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={onShare}
-        className="gap-1.5"
-      >
+      <Button variant="outline" size="sm" onClick={onShare} className="gap-1.5">
         <ShareIcon className="size-4" />
         <span className="hidden lg:inline">Share</span>
       </Button>
@@ -73,9 +68,7 @@ interface OnlineUsersIndicatorProps {
 export function OnlineUsersIndicator({ connected, count }: OnlineUsersIndicatorProps) {
   return (
     <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-      <div
-        className={`size-2 rounded-full ${connected ? 'bg-green-500' : 'bg-red-500'}`}
-      />
+      <div className={`size-2 rounded-full ${connected ? 'bg-green-500' : 'bg-red-500'}`} />
       <UsersIcon className="size-4" />
       <span className="tabular-nums">{count}</span>
     </div>

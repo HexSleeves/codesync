@@ -3,6 +3,7 @@
  */
 
 import { useState } from 'hono/jsx';
+import { apiCall } from '@/api/client';
 import { CheckIcon, CopyIcon, LinkIcon } from '@/components/icons';
 import {
   Button,
@@ -15,7 +16,6 @@ import {
   Input,
   toast,
 } from '@/components/ui';
-import { apiCall } from '@/api/client';
 
 interface ShareSessionModalProps {
   open: boolean;
@@ -40,7 +40,10 @@ export function ShareSessionModal({
   const handleGenerateLink = async () => {
     setLoading(true);
     try {
-      const response = await apiCall<{ shareToken: string }>('POST', `/sessions/${sessionId}/share`);
+      const response = await apiCall<{ shareToken: string }>(
+        'POST',
+        `/sessions/${sessionId}/share`
+      );
       onShareTokenChange(response.shareToken);
       toast.success('Share link generated!');
     } catch (err) {
@@ -102,12 +105,7 @@ export function ShareSessionModal({
                     className="pl-9 pr-10 text-sm font-mono bg-muted"
                   />
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCopyLink}
-                  className="shrink-0"
-                >
+                <Button variant="outline" size="sm" onClick={handleCopyLink} className="shrink-0">
                   {copied ? (
                     <CheckIcon className="size-4 text-green-500" />
                   ) : (
@@ -138,11 +136,7 @@ export function ShareSessionModal({
 
         <DialogFooter className="gap-2">
           {shareToken && (
-            <Button
-              variant="destructive"
-              onClick={handleRevokeLink}
-              disabled={loading}
-            >
+            <Button variant="destructive" onClick={handleRevokeLink} disabled={loading}>
               {loading ? 'Revoking...' : 'Revoke Link'}
             </Button>
           )}
