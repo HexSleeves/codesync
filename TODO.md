@@ -162,7 +162,7 @@ _None - all high priority items complete!_
    - [x] Share session button/modal
    - [x] Settings modal
    - [ ] File upload drag & drop
-   - [ ] TopBar with review actions (Approve, Request Changes)
+   - [x] TopBar with review actions (Approve, Request Changes)
    - [x] Toast notifications with sonner (replaces Alert banners)
 
 5. **Testing & Deployment**
@@ -250,6 +250,12 @@ Password: password123
 ---
 
 ## RECENTLY COMPLETED (Jan 26, 2026)
+
+- **Review Workflow** (Jan 27)
+  - Session status transitions: draft → in_review → approved → merged
+  - ReviewActions component with context-specific buttons
+  - Tracks who/when for each status change (reviewStartedBy, approvedBy, mergedBy)
+  - Database migration for new columns
 
 - **UI Polish Modals** (Jan 26) - Implemented by 3 parallel agents
   - Keyboard Shortcuts Modal: Press `?` to show shortcuts, `j/k` for file nav, `f/c/d/v/m` for toggles
