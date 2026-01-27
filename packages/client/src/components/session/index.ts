@@ -12,5 +12,6 @@ export { FileTreeSidebar } from './FileTreeSidebar';
 export { MainContent } from './MainContent';
 export { OnlineUsers } from './OnlineUsers';
 export { OnlineUsersIndicator, SessionControls } from './SessionControls';
+export { ReviewActions } from './ReviewActions';
 export { SessionCard } from './SessionCard';
 export { SessionStatusBadge } from './SessionStatusBadge';

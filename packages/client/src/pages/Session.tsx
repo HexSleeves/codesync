@@ -25,7 +25,7 @@ interface SessionPageProps {
 
 export function SessionPage({ sessionId }: SessionPageProps) {
   const { user, logout } = useAuth();
-  const { session, files, loading, error, markFileReviewed } = useSession(sessionId);
+  const { session, files, loading, error, markFileReviewed, setSession } = useSession(sessionId);
   const {
     connected: githubConnected,
     username: githubUsername,
@@ -132,12 +132,14 @@ export function SessionPage({ sessionId }: SessionPageProps) {
       breadcrumbs={[{ label: session.title }]}
       headerCenter={
         <SessionControls
-          status={session.status}
+          session={session}
           showFileTree={showFileTree}
           onToggleFileTree={() => setShowFileTree(!showFileTree)}
           onShare={() => setShowShareModal(true)}
+          onSessionChange={setSession}
           connected={connected}
           onlineUsers={onlineUsers}
+          currentUserId={user?.id}
         />
       }
       headerRight={

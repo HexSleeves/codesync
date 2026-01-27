@@ -1,21 +1,24 @@
+import type { SessionStatus } from '@codesync/shared';
 import { Badge } from '@/components/ui';
 
-const statusVariants: Record<string, 'secondary' | 'warning' | 'success' | 'default'> = {
-  draft: 'secondary',
-  in_review: 'warning',
-  approved: 'success',
-  merged: 'default',
+const statusConfig: Record<SessionStatus, { label: string; variant: 'secondary' | 'warning' | 'success' | 'default' }> = {
+  draft: { label: 'Draft', variant: 'secondary' },
+  in_review: { label: 'In Review', variant: 'warning' },
+  approved: { label: 'Approved', variant: 'success' },
+  merged: { label: 'Merged', variant: 'default' },
 };
 
 interface SessionStatusBadgeProps {
-  status: string;
+  status: SessionStatus;
   className?: string;
 }
 
 export function SessionStatusBadge({ status, className }: SessionStatusBadgeProps) {
+  const config = statusConfig[status] || statusConfig.draft;
+  
   return (
-    <Badge variant={statusVariants[status] || 'secondary'} className={className}>
-      {status.replace('_', ' ')}
+    <Badge variant={config.variant} className={className}>
+      {config.label}
     </Badge>
   );
 }

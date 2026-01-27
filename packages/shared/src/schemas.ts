@@ -38,7 +38,13 @@ export const updateSessionSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   description: z.string().max(1000).optional(),
   isPublic: z.boolean().optional(),
-  status: z.enum(['draft', 'in_review', 'approved', 'merged']).optional(),
+});
+
+// Session status transition schema
+export const sessionStatusSchema = z.enum(['draft', 'in_review', 'approved', 'merged']);
+
+export const updateSessionStatusSchema = z.object({
+  status: sessionStatusSchema,
 });
 
 // File schemas

@@ -38,6 +38,13 @@ export const sessions = pgTable('sessions', {
     .notNull(),
   source: jsonb('source').$type<SessionSource>(),
   settings: jsonb('settings').$type<SessionSettings>(),
+  // Review workflow tracking
+  reviewStartedAt: timestamp('review_started_at'),
+  reviewStartedBy: text('review_started_by').references(() => users.id),
+  approvedAt: timestamp('approved_at'),
+  approvedBy: text('approved_by').references(() => users.id),
+  mergedAt: timestamp('merged_at'),
+  mergedBy: text('merged_by').references(() => users.id),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

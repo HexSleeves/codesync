@@ -1,38 +1,44 @@
 /**
  * Session Controls - Header controls for session page
- * Includes sidebar toggle, status badge, share button, online users
+ * Includes sidebar toggle, review actions, share button, online users
  */
 
-import type { OnlineUser } from '@codesync/shared';
+import type { OnlineUser, Session } from '@codesync/shared';
 import { ShareIcon, SidebarIcon, UsersIcon } from '@/components/icons';
 import { Button } from '@/components/ui';
-import { SessionStatusBadge } from './SessionStatusBadge';
+import { ReviewActions } from './ReviewActions';
 
 interface SessionControlsProps {
-  /** Session status */
-  status: 'draft' | 'in_review' | 'approved' | 'merged';
+  /** Full session object (for review actions) */
+  session: Session;
   /** Whether file tree sidebar is visible */
   showFileTree: boolean;
   /** Toggle file tree visibility */
   onToggleFileTree: () => void;
   /** Open share modal */
   onShare: () => void;
+  /** Callback when session status changes */
+  onSessionChange: (session: Session) => void;
   /** WebSocket connection status */
   connected: boolean;
-  /** Online users count */
+  /** Online users */
   onlineUsers: OnlineUser[];
+  /** Current user ID */
+  currentUserId?: string;
 }
 
 export function SessionControls({
-  status,
+  session,
   showFileTree,
   onToggleFileTree,
   onShare,
+  onSessionChange,
   connected,
   onlineUsers,
+  currentUserId,
 }: SessionControlsProps) {
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-2 sm:gap-3">
       {/* Sidebar toggle */}
       <Button
         variant="ghost"
@@ -45,8 +51,12 @@ export function SessionControls({
         <span className="hidden lg:inline">Files</span>
       </Button>
 
-      {/* Session status */}
-      <SessionStatusBadge status={status} />
+      {/* Review actions (status + transition buttons) */}
+      <ReviewActions
+        session={session}
+        onStatusChange={onSessionChange}
+        currentUserId={currentUserId}
+      />
 
       {/* Share button */}
       <Button variant="outline" size="sm" onClick={onShare} className="gap-1.5">

@@ -68,7 +68,6 @@ export function useSession(sessionId: string | undefined) {
         ...old,
         files: old?.files?.map((f: File) => (f.id === fileId ? { ...f, isReviewed: reviewed } : f)),
       }));
-      console.log('onSuccess', reviewed);
       toast.success(reviewed ? 'File marked as reviewed' : 'File unmarked');
     },
     onError: () => {
@@ -76,12 +75,21 @@ export function useSession(sessionId: string | undefined) {
     },
   });
 
+  // Update session in cache (used by ReviewActions)
+  const setSession = (session: Session) => {
+    queryClient.setQueryData(['session', sessionId], (old: any) => ({
+      ...old,
+      session,
+    }));
+  };
+
   return {
     session: data?.session ?? null,
     files: data?.files ?? [],
     loading,
     error: error ? String(error) : null,
     refetch,
+    setSession,
     updateSession: (updates: Partial<Session>) => updateSessionMutation.mutate(updates),
     addFile: (file: Omit<File, 'id' | 'sessionId' | 'createdAt'>) => addFileMutation.mutate(file),
     markFileReviewed: (fileId: string, reviewed: boolean) =>

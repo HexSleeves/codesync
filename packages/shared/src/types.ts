@@ -12,6 +12,8 @@ export interface User {
   createdAt: Date;
 }
 
+export type SessionStatus = 'draft' | 'in_review' | 'approved' | 'merged';
+
 export interface Session {
   id: string;
   title: string;
@@ -19,11 +21,22 @@ export interface Session {
   createdBy: string;
   isPublic: boolean;
   shareToken: string | null;
-  status: 'draft' | 'in_review' | 'approved' | 'merged';
+  status: SessionStatus;
   source: SessionSource | null;
   settings: SessionSettings | null;
+  // Review workflow tracking
+  reviewStartedAt: Date | null;
+  reviewStartedBy: string | null;
+  approvedAt: Date | null;
+  approvedBy: string | null;
+  mergedAt: Date | null;
+  mergedBy: string | null;
   createdAt: Date;
   updatedAt: Date;
+  // Joined data (populated by API)
+  reviewer?: User | null;
+  approver?: User | null;
+  merger?: User | null;
 }
 
 export interface SessionSource {
