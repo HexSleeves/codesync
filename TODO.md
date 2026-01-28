@@ -22,9 +22,10 @@ bun run dev
 ```
 
 ### Access URLs
-- **Local Client**: http://localhost:5173
-- **Local API**: http://localhost:8001
-- **Public**: https://noon-disk.exe.xyz:5173/
+
+- **Local Client**: <http://localhost:5173>
+- **Local API**: <http://localhost:8001>
+- **Public**: <https://noon-disk.exe.xyz:5173/>
 
 ### Tech Stack
 
@@ -163,40 +164,40 @@ codesync/
 
 ### New Features
 
-5. **Comment Threads**
+1. **Comment Threads**
    - Reply to comments (threaded discussions)
    - Collapse/expand threads
    - Thread resolution
 
-6. **Multi-File Selection**
+2. **Multi-File Selection**
    - Batch mark files as reviewed
    - File filtering/search
    - File grouping by directory
 
-7. **Review Templates**
+3. **Review Templates**
    - Save comment templates ("LGTM", "Needs tests", etc.)
    - Quick-insert common phrases
 
-8. **Activity Feed**
+4. **Activity Feed**
    - Show recent activity on session (who commented, reviewed, etc.)
    - Notifications for mentions
 
 ### Infrastructure
 
-9. **Testing**
+1. **Testing**
    - [ ] E2E tests with Playwright
    - [ ] Unit tests for API routes
    - [ ] WebSocket handler tests
    - [ ] Load testing
 
-10. **Production Deployment**
+2. **Production Deployment**
     - [ ] Systemd service files
     - [ ] Environment configuration
     - [ ] Database backups
     - [ ] SSL/TLS setup
     - [ ] Monitoring/logging
 
-11. **CI/CD**
+3. **CI/CD**
     - [ ] GitHub Actions workflow
     - [ ] Auto-deploy on push
     - [ ] Type checking in CI
@@ -236,11 +237,13 @@ codesync/
 ## KNOWN ISSUES
 
 1. **Disk Space**: VM can fill up. Clear caches:
+
    ```bash
    rm -rf ~/.cache/* ~/.bun/install/cache/*
    ```
 
 2. **Port Conflicts**: Kill existing processes:
+
    ```bash
    fuser -k 8001/tcp 5173/tcp
    ```
