@@ -90,12 +90,12 @@ export function useSession(sessionId: string | undefined) {
   };
 
   return {
-    session: data?.session ?? null,
-    files: data?.files ?? [],
     loading,
-    error: error ? String(error) : null,
     refetch,
     setSession,
+    files: data?.files ?? [],
+    session: data?.session ?? null,
+    error: error ? String(error) : null,
     updateSession: (updates: Partial<Session>) => updateSessionMutation.mutate(updates),
     addFile: (file: Omit<File, 'id' | 'sessionId' | 'createdAt'>) => addFileMutation.mutate(file),
     markFileReviewed: (fileId: string, reviewed: boolean) =>

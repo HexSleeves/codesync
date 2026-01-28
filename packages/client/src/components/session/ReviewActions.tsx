@@ -5,9 +5,9 @@
 
 import type { Session, SessionStatus, User } from '@codesync/shared';
 import { useState } from 'hono/jsx';
+import { apiCall } from '@/api/client';
 import { CheckIcon, CloseIcon } from '@/components/icons';
 import { Button, Spinner, toast } from '@/components/ui';
-import { apiCall } from '@/api/client';
 
 interface ReviewActionsProps {
   session: Session;
@@ -26,10 +26,11 @@ const statusInfo: Record<SessionStatus, { label: string; color: string }> = {
 };
 
 // Available actions per status
-const statusActions: Record<SessionStatus, { status: SessionStatus; label: string; variant: 'default' | 'secondary' | 'destructive' }[]> = {
-  draft: [
-    { status: 'in_review', label: 'Start Review', variant: 'default' },
-  ],
+const statusActions: Record<
+  SessionStatus,
+  { status: SessionStatus; label: string; variant: 'default' | 'secondary' | 'destructive' }[]
+> = {
+  draft: [{ status: 'in_review', label: 'Start Review', variant: 'default' }],
   in_review: [
     { status: 'approved', label: 'Approve', variant: 'default' },
     { status: 'draft', label: 'Request Changes', variant: 'secondary' },
@@ -38,9 +39,7 @@ const statusActions: Record<SessionStatus, { status: SessionStatus; label: strin
     { status: 'merged', label: 'Mark Merged', variant: 'default' },
     { status: 'in_review', label: 'Reopen Review', variant: 'secondary' },
   ],
-  merged: [
-    { status: 'approved', label: 'Unmerge', variant: 'secondary' },
-  ],
+  merged: [{ status: 'approved', label: 'Unmerge', variant: 'secondary' }],
 };
 
 export function ReviewActions({ session, onStatusChange, currentUserId }: ReviewActionsProps) {
@@ -89,9 +88,7 @@ export function ReviewActions({ session, onStatusChange, currentUserId }: Review
             <CloseIcon className="size-4" />
           ) : null}
           <span className="hidden sm:inline">{action.label}</span>
-          <span className="sm:hidden">
-            {action.label.split(' ')[0]}
-          </span>
+          <span className="sm:hidden">{action.label.split(' ')[0]}</span>
         </Button>
       ))}
     </div>
