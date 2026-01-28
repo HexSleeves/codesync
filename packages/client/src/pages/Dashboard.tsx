@@ -2,14 +2,15 @@
  * Dashboard page - list and create sessions
  */
 
-import { useEffect, useState } from 'hono/jsx';
+import { useState } from 'hono/jsx';
 import { EmptyState } from '@/components/common';
 import { GitHubIcon } from '@/components/icons';
 import { AppShell, UserDropdown } from '@/components/layout';
 import { SessionCard } from '@/components/session';
-import { Button, Spinner, toast } from '@/components/ui';
+import { Button, Spinner } from '@/components/ui';
 import { useAuth } from '../hooks/useAuth';
 import { useGitHub } from '../hooks/useGitHub';
+import { useOAuthCallback } from '../hooks/useOAuthCallback';
 import { useSessions } from '../hooks/useSession';
 import { navigate } from '../router';
 import { ImportPRDialog } from './dashboard/ImportPRDialog';
@@ -29,27 +30,9 @@ export function DashboardPage() {
   const [showImportForm, setShowImportForm] = useState(false);
 
   // Handle OAuth callback query params
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const githubConnectedParam = params.get('github_connected');
-    const githubError = params.get('github_error');
-
-    if (githubConnectedParam === 'true') {
-      toast.success('GitHub account connected successfully!');
-      refreshGitHub();
-      window.history.replaceState({}, '', '/dashboard');
-    } else if (githubError) {
-      const errorMessages: Record<string, string> = {
-        missing_params: 'OAuth callback missing parameters',
-        invalid_state: 'Invalid OAuth state - please try again',
-        session_expired: 'Session expired - please login and try again',
-        token_error: 'Failed to get access token from GitHub',
-        server_error: 'Server error during GitHub connection',
-      };
-      toast.error(errorMessages[githubError] || `GitHub error: ${githubError}`);
-      window.history.replaceState({}, '', '/dashboard');
-    }
-  }, [refreshGitHub]);
+  useOAuthCallback({
+    onSuccess: refreshGitHub,
+  });
 
   const handleLogout = async () => {
     await logout();

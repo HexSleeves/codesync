@@ -4,7 +4,7 @@
  */
 
 import type { Comment } from '@codesync/shared';
-import { useMemo } from 'hono/jsx';
+import { useCallback, useMemo } from 'hono/jsx';
 import { toast } from '@/components/ui/sonner';
 import { apiCall } from '../api/client';
 import { queryClient, useMutation, useQuery } from '../lib/query';
@@ -101,23 +101,38 @@ export function useComments(fileId: string | null) {
     );
   }, [comments]);
 
-  return {
-    comments,
-    commentsByLine,
-    loading,
-    refetch,
-    addComment: async (text: string, lineNumber?: number, parentId?: string) => {
+  const addComment = useCallback(
+    async (text: string, lineNumber?: number, parentId?: string) => {
       if (!fileId) {
         toast.error('No file selected');
         return;
       }
       return addCommentMutation.mutateAsync({ targetFileId: fileId, text, lineNumber, parentId });
     },
-    resolveComment: async (commentId: string, resolved: boolean) => {
+    [fileId, addCommentMutation]
+  );
+
+  const resolveComment = useCallback(
+    async (commentId: string, resolved: boolean) => {
       return resolveCommentMutation.mutateAsync({ commentId, resolved });
     },
-    deleteComment: async (commentId: string) => {
+    [resolveCommentMutation]
+  );
+
+  const deleteComment = useCallback(
+    async (commentId: string) => {
       return deleteCommentMutation.mutateAsync(commentId);
     },
+    [deleteCommentMutation]
+  );
+
+  return {
+    comments,
+    commentsByLine,
+    loading,
+    refetch,
+    addComment,
+    resolveComment,
+    deleteComment,
   };
 }

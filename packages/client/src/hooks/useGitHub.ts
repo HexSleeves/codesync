@@ -11,9 +11,12 @@ export function useGitHub() {
     initGitHubStore();
   }, []);
 
-  const connected = useGitHubStore((s) => s.connected);
-  const username = useGitHubStore((s) => s.username);
-  const loading = useGitHubStore((s) => s.loading);
+  // Use single combined selector to avoid multiple subscriptions
+  const { connected, username, loading } = useGitHubStore((s) => ({
+    connected: s.connected,
+    username: s.username,
+    loading: s.loading,
+  }));
 
   const { connect, disconnect, fetchStatus } = githubStore.getState();
 

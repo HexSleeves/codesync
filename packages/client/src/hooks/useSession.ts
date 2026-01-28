@@ -4,6 +4,7 @@
  */
 
 import type { File, Session } from '@codesync/shared';
+import { useCallback } from 'hono/jsx';
 import { toast } from '@/components/ui/sonner';
 import { apiCall } from '../api/client';
 import { invalidateQueries, queryClient, useMutation, useQuery } from '../lib/query';
@@ -79,15 +80,39 @@ export function useSession(sessionId: string | undefined) {
   });
 
   // Update session in cache (used by ReviewActions after status change)
-  const setSession = (session: Session) => {
-    // Update current session cache
-    queryClient.setQueryData(['session', sessionId], (old: any) => ({
-      ...old,
-      session,
-    }));
-    // Invalidate sessions list so dashboard shows updated status
-    invalidateQueries(['sessions']);
-  };
+  const setSession = useCallback(
+    (session: Session) => {
+      // Update current session cache
+      queryClient.setQueryData(['session', sessionId], (old: any) => ({
+        ...old,
+        session,
+      }));
+      // Invalidate sessions list so dashboard shows updated status
+      invalidateQueries(['sessions']);
+    },
+    [sessionId]
+  );
+
+  const updateSession = useCallback(
+    (updates: Partial<Session>) => {
+      updateSessionMutation.mutate(updates);
+    },
+    [updateSessionMutation]
+  );
+
+  const addFile = useCallback(
+    (file: Omit<File, 'id' | 'sessionId' | 'createdAt'>) => {
+      addFileMutation.mutate(file);
+    },
+    [addFileMutation]
+  );
+
+  const markFileReviewed = useCallback(
+    (fileId: string, reviewed: boolean) => {
+      markFileReviewedMutation.mutate({ fileId, reviewed });
+    },
+    [markFileReviewedMutation]
+  );
 
   return {
     loading,
@@ -96,10 +121,9 @@ export function useSession(sessionId: string | undefined) {
     files: data?.files ?? [],
     session: data?.session ?? null,
     error: error ? String(error) : null,
-    updateSession: (updates: Partial<Session>) => updateSessionMutation.mutate(updates),
-    addFile: (file: Omit<File, 'id' | 'sessionId' | 'createdAt'>) => addFileMutation.mutate(file),
-    markFileReviewed: (fileId: string, reviewed: boolean) =>
-      markFileReviewedMutation.mutate({ fileId, reviewed }),
+    updateSession,
+    addFile,
+    markFileReviewed,
   };
 }
 

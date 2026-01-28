@@ -162,18 +162,20 @@ export function useWebSocket(sessionId: string | undefined): UseWebSocketReturn 
 
         switch (message.type) {
           case 'presence':
-            setState((s) => ({
-              ...s,
-              onlineUsers: message.onlineUsers,
-            }));
-            // If someone left, remove their cursor
-            if (message.action === 'leave') {
-              setState((s) => {
+            // Batch state updates into single setState call
+            setState((s) => {
+              const newState = {
+                ...s,
+                onlineUsers: message.onlineUsers,
+              };
+              // If someone left, remove their cursor in the same update
+              if (message.action === 'leave') {
                 const cursors = new Map(s.cursors);
                 cursors.delete(message.userId);
-                return { ...s, cursors };
-              });
-            }
+                newState.cursors = cursors;
+              }
+              return newState;
+            });
             break;
 
           case 'cursor':
@@ -222,7 +224,7 @@ export function useWebSocket(sessionId: string | undefined): UseWebSocketReturn 
     ws.onerror = (err) => {
       console.error('[WS] Error:', err);
     };
-  }, [sessionId]);
+  }, [sessionId, loadChatHistory]);
 
   /**
    * Connect on mount, cleanup on unmount

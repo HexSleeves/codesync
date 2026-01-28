@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils';
 import {
   type DiffMode,
   type FontSize,
+  settingsStore,
   type Theme,
   useSettingsStore,
   type ViewMode,
@@ -29,22 +30,36 @@ interface SettingsModalProps {
 }
 
 export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
-  const theme = useSettingsStore((s) => s.theme);
-  const fontSize = useSettingsStore((s) => s.fontSize);
-  const defaultDiffMode = useSettingsStore((s) => s.defaultDiffMode);
-  const defaultViewMode = useSettingsStore((s) => s.defaultViewMode);
-  const showLineNumbers = useSettingsStore((s) => s.showLineNumbers);
-  const soundEnabled = useSettingsStore((s) => s.soundEnabled);
-  const desktopNotifications = useSettingsStore((s) => s.desktopNotifications);
+  // Use single combined selector for all state values (reduces from 7 subscriptions to 1)
+  const {
+    theme,
+    fontSize,
+    defaultDiffMode,
+    defaultViewMode,
+    showLineNumbers,
+    soundEnabled,
+    desktopNotifications,
+  } = useSettingsStore((s) => ({
+    theme: s.theme,
+    fontSize: s.fontSize,
+    defaultDiffMode: s.defaultDiffMode,
+    defaultViewMode: s.defaultViewMode,
+    showLineNumbers: s.showLineNumbers,
+    soundEnabled: s.soundEnabled,
+    desktopNotifications: s.desktopNotifications,
+  }));
 
-  const setTheme = useSettingsStore((s) => s.setTheme);
-  const setFontSize = useSettingsStore((s) => s.setFontSize);
-  const setDefaultDiffMode = useSettingsStore((s) => s.setDefaultDiffMode);
-  const setDefaultViewMode = useSettingsStore((s) => s.setDefaultViewMode);
-  const setShowLineNumbers = useSettingsStore((s) => s.setShowLineNumbers);
-  const setSoundEnabled = useSettingsStore((s) => s.setSoundEnabled);
-  const setDesktopNotifications = useSettingsStore((s) => s.setDesktopNotifications);
-  const resetSettings = useSettingsStore((s) => s.resetSettings);
+  // Access actions via getState() - no subscription needed (actions are stable)
+  const {
+    setTheme,
+    setFontSize,
+    setDefaultDiffMode,
+    setDefaultViewMode,
+    setShowLineNumbers,
+    setSoundEnabled,
+    setDesktopNotifications,
+    resetSettings,
+  } = settingsStore.getState();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

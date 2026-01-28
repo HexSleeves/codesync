@@ -3,7 +3,7 @@
  */
 
 import type { User } from '@codesync/shared';
-import { useSyncExternalStore } from 'hono/jsx';
+import { useRef, useSyncExternalStore } from 'hono/jsx';
 import { createStore } from 'zustand/vanilla';
 import { apiCall, clearToken, getToken, setToken } from '../api/client';
 import { resetGitHubStore } from './github';
@@ -108,13 +108,52 @@ export const authStore = createStore<AuthStore>()((set) => ({
 }));
 
 /**
+ * Shallow equality check for store selectors
+ */
+function shallowEqual<T>(a: T, b: T): boolean {
+  if (Object.is(a, b)) return true;
+  if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) {
+    return false;
+  }
+  const keysA = Object.keys(a) as Array<keyof T>;
+  const keysB = Object.keys(b) as Array<keyof T>;
+  if (keysA.length !== keysB.length) return false;
+  for (const key of keysA) {
+    if (!keysB.includes(key) || !Object.is(a[key], b[key])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
  * Hook to use auth store with Hono JSX-DOM
- * Uses useSyncExternalStore for compatibility
+ * Uses useSyncExternalStore for compatibility with shallow equality checking
  */
 export function useAuthStore<T>(selector: (state: AuthStore) => T): T {
+  const cache = useRef<{ value: T; hasValue: boolean }>({ value: undefined as T, hasValue: false });
+
   return useSyncExternalStore(
-    authStore.subscribe,
-    () => selector(authStore.getState()),
+    (onStoreChange) => {
+      // Create a custom subscribe that only notifies when selected value changes
+      let currentValue = selector(authStore.getState());
+      return authStore.subscribe((state) => {
+        const nextValue = selector(state);
+        if (!shallowEqual(currentValue, nextValue)) {
+          currentValue = nextValue;
+          onStoreChange();
+        }
+      });
+    },
+    () => {
+      const nextValue = selector(authStore.getState());
+      const cached = cache.current;
+      if (cached?.hasValue && shallowEqual(cached.value, nextValue)) {
+        return cached.value;
+      }
+      cache.current = { value: nextValue, hasValue: true };
+      return nextValue;
+    },
     () => selector(authStore.getState())
   );
 }
