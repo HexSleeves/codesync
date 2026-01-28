@@ -1,123 +1,76 @@
 /**
- * Sessions store using Zustand vanilla (compatible with Hono JSX-DOM)
+ * Sessions hooks using TanStack Query
  * Manages the list of user's sessions
  */
 
 import type { Session } from '@codesync/shared';
-import { useSyncExternalStore } from 'hono/jsx';
-import { createStore } from 'zustand/vanilla';
 import { toast } from '@/components/ui/sonner';
 import { apiCall } from '../api/client';
-
-interface SessionsState {
-  sessions: Session[];
-  loading: boolean;
-}
-
-interface SessionsActions {
-  fetchSessions: () => Promise<void>;
-  createSession: (data: {
-    title: string;
-    description?: string;
-    isPublic?: boolean;
-  }) => Promise<Session | undefined>;
-  deleteSession: (id: string) => Promise<void>;
-  addSession: (session: Session) => void;
-}
-
-type SessionsStore = SessionsState & SessionsActions;
-
-let initialized = false;
-
-export const sessionsStore = createStore<SessionsStore>()((set, _get) => ({
-  // State
-  sessions: [],
-  loading: true,
-
-  // Actions
-  fetchSessions: async () => {
-    set({ loading: true });
-    try {
-      const { sessions } = await apiCall<{ sessions: Session[] }>('GET', '/sessions');
-      set({ sessions, loading: false });
-    } catch (err) {
-      console.error('Failed to load sessions:', err);
-      toast.error('Failed to load sessions');
-      set({ loading: false });
-    }
-  },
-
-  createSession: async (data) => {
-    try {
-      const { session } = await apiCall<{ session: Session }>('POST', '/sessions', data);
-      set((s) => ({ sessions: [session, ...s.sessions] }));
-      toast.success('Session created');
-      return session;
-    } catch (err) {
-      console.error('Failed to create session:', err);
-      toast.error('Failed to create session');
-      throw err;
-    }
-  },
-
-  deleteSession: async (id) => {
-    try {
-      await apiCall('DELETE', `/sessions/${id}`);
-      set((s) => ({ sessions: s.sessions.filter((session) => session.id !== id) }));
-      toast.success('Session deleted');
-    } catch (err) {
-      console.error('Failed to delete session:', err);
-      toast.error('Failed to delete session');
-    }
-  },
-
-  // Add a session to the list (e.g., after GitHub import)
-  addSession: (session) => {
-    set((s) => ({ sessions: [session, ...s.sessions] }));
-  },
-}));
+import { queryClient, useMutation, useQuery } from '../lib/query';
 
 /**
- * Hook to use sessions store with Hono JSX-DOM
- */
-export function useSessionsStore<T>(selector: (state: SessionsStore) => T): T {
-  return useSyncExternalStore(
-    sessionsStore.subscribe,
-    () => selector(sessionsStore.getState()),
-    () => selector(sessionsStore.getState())
-  );
-}
-
-// Initialize on first use
-export function initSessionsStore() {
-  if (initialized) return;
-  initialized = true;
-  sessionsStore.getState().fetchSessions();
-}
-
-// Reset for logout
-export function resetSessionsStore() {
-  initialized = false;
-  sessionsStore.setState({ sessions: [], loading: true });
-}
-
-/**
- * Convenience hook matching the old useSessions API
+ * Hook to fetch and manage user's sessions list
  */
 export function useSessions() {
-  // Initialize on mount
-  initSessionsStore();
+  const {
+    data,
+    isLoading: loading,
+    refetch,
+  } = useQuery({
+    queryKey: ['sessions'],
+    queryFn: async () => {
+      return apiCall<{ sessions: Session[] }>('GET', '/sessions');
+    },
+  });
 
-  const sessions = useSessionsStore((s) => s.sessions);
-  const loading = useSessionsStore((s) => s.loading);
+  const createSessionMutation = useMutation({
+    mutationFn: async (data: { title: string; description?: string; isPublic?: boolean }) => {
+      return apiCall<{ session: Session }>('POST', '/sessions', data);
+    },
+    onSuccess: (result) => {
+      // Add to cache
+      queryClient.setQueryData(['sessions'], (old: { sessions: Session[] } | undefined) => ({
+        sessions: [result.session, ...(old?.sessions || [])],
+      }));
+      toast.success('Session created');
+    },
+    onError: () => {
+      toast.error('Failed to create session');
+    },
+  });
 
-  const { fetchSessions, createSession, deleteSession } = sessionsStore.getState();
+  const deleteSessionMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await apiCall('DELETE', `/sessions/${id}`);
+      return id;
+    },
+    onSuccess: (deletedId) => {
+      // Remove from cache
+      queryClient.setQueryData(['sessions'], (old: { sessions: Session[] } | undefined) => ({
+        sessions: old?.sessions.filter((s) => s.id !== deletedId) || [],
+      }));
+      toast.success('Session deleted');
+    },
+    onError: () => {
+      toast.error('Failed to delete session');
+    },
+  });
 
   return {
-    sessions,
+    sessions: data?.sessions ?? [],
     loading,
-    refetch: fetchSessions,
-    createSession,
-    deleteSession,
+    refetch,
+    createSession: async (data: { title: string; description?: string; isPublic?: boolean }) => {
+      const result = await createSessionMutation.mutateAsync(data);
+      return result.session;
+    },
+    deleteSession: (id: string) => deleteSessionMutation.mutate(id),
   };
+}
+
+/**
+ * Reset sessions cache (called on logout)
+ */
+export function resetSessionsStore() {
+  queryClient.removeQueries({ queryKey: ['sessions'] });
 }
