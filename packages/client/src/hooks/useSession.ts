@@ -6,7 +6,7 @@
 import type { File, Session } from '@codesync/shared';
 import { toast } from '@/components/ui/sonner';
 import { apiCall } from '../api/client';
-import { queryClient, useMutation, useQuery } from '../lib/query';
+import { invalidateQueries, queryClient, useMutation, useQuery } from '../lib/query';
 
 export function useSession(sessionId: string | undefined) {
   const {
@@ -28,7 +28,10 @@ export function useSession(sessionId: string | undefined) {
       if (!sessionId) throw new Error('No session ID');
       return apiCall<{ session: Session }>('PATCH', `/sessions/${sessionId}`, updates);
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
+      // Invalidate sessions list so dashboard reflects changes
+      await invalidateQueries(['sessions']);
+
       // Update cache
       queryClient.setQueryData(['session', sessionId], (old: any) => ({
         ...old,
@@ -75,12 +78,15 @@ export function useSession(sessionId: string | undefined) {
     },
   });
 
-  // Update session in cache (used by ReviewActions)
+  // Update session in cache (used by ReviewActions after status change)
   const setSession = (session: Session) => {
+    // Update current session cache
     queryClient.setQueryData(['session', sessionId], (old: any) => ({
       ...old,
       session,
     }));
+    // Invalidate sessions list so dashboard shows updated status
+    invalidateQueries(['sessions']);
   };
 
   return {
