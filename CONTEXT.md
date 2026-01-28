@@ -1,7 +1,7 @@
 # Agent Context Dump
 
-**Last Updated:** Jan 26, 2026
-**Last Task:** Replaced react-hook-form with @tanstack/react-form
+**Last Updated:** Jan 28, 2026
+**Last Task:** Implemented GitHub Review Sync (plan 003)
 
 ---
 
@@ -38,7 +38,30 @@ Password: password123
 
 ---
 
-## Recent Changes (Jan 26, 2026)
+## Recent Changes (Jan 28, 2026)
+
+### 1. GitHub Review Sync (Plan 003)
+
+- Submit CodeSync reviews directly to GitHub PRs
+- New database columns: `github_review_id`, `github_synced_at` (sessions), `github_comment_id`, `synced_at` (comments)
+- New services:
+  - `services/github/diff-mapper.ts` - Maps file line numbers to diff positions
+  - `services/github/review-sync.ts` - GitHub review submission API
+- New routes:
+  - `POST /github/sessions/:id/submit-review` - Submit review to GitHub
+  - `GET /github/sessions/:id/sync-status` - Get sync status
+- New UI components:
+  - `SubmitReviewButton` - Button + confirmation dialog for GitHub submission
+  - GitHub sync indicator on comments
+  - `useGitHubSync` hook for sync status
+- Features:
+  - Maps session status to GitHub review action (approved → APPROVE)
+  - Tracks synced vs unsynced comments
+  - Error handling for GitHub API errors
+
+---
+
+## Previous Changes (Jan 26, 2026)
 
 ### 1. Custom Form Hook Implementation
 

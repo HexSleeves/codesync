@@ -15,9 +15,7 @@ Each plan follows this structure:
 
 ## Active Plans
 
-| # | Name | Status | Priority |
-|---|------|--------|----------|
-| 003 | [GitHub Review Sync](003-github-review-sync.md) | 🟡 Planned | Medium |
+_No active plans._
 
 ## Completed Plans
 
@@ -25,6 +23,7 @@ Each plan follows this structure:
 |---|------|--------|----------|
 | 001 | [WebSocket Real-time](001-websocket-realtime.md) | 🟢 Complete | High |
 | 002 | [UI Polish - Modals](002-ui-polish-modals.md) | 🟢 Complete | Medium |
+| 003 | [GitHub Review Sync](003-github-review-sync.md) | 🟢 Complete | Medium |
 
 ## How to Create a New Plan
 

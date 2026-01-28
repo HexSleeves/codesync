@@ -249,7 +249,16 @@ Password: password123
 
 ---
 
-## RECENTLY COMPLETED (Jan 26, 2026)
+## RECENTLY COMPLETED (Jan 28, 2026)
+
+- **GitHub Review Sync** (Jan 28) - Plan 003
+  - Submit CodeSync reviews to GitHub PRs with one click
+  - New API endpoints: POST /github/sessions/:id/submit-review, GET /github/sessions/:id/sync-status
+  - Diff line mapping to GitHub positions
+  - Session approval status maps to GitHub APPROVE action
+  - Comment sync tracking (prevents duplicate posts)
+  - SubmitReviewButton with confirmation dialog
+  - GitHub icon indicator on synced comments
 
 - **Review Workflow** (Jan 27)
   - Session status transitions: draft → in_review → approved → merged
