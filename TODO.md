@@ -1,8 +1,8 @@
 # CodeSync Migration TODO
 
-## Current State (Jan 25, 2026)
+## Current State (Jan 28, 2026)
 
-Migrating from Meteor.js to Hono full-stack SPA. Core functionality complete.
+**Migration from Meteor.js to Hono is COMPLETE.** All core features implemented.
 
 ### Running the App
 
@@ -137,42 +137,99 @@ codesync/
 
 ---
 
-## ❌ NOT MIGRATED
+## 🎯 NEXT FEATURES (Pick One)
 
-### HIGH PRIORITY
+### Polish & UX
 
-_None - all high priority items complete!_
+1. **Light Theme Support**
+   - Settings modal has theme toggle but light theme needs testing/polish
+   - Verify all components look good in light mode
+   - System theme detection already implemented
 
-### MEDIUM PRIORITY
+2. **File Upload Drag & Drop**
+   - Allow dragging files into session to add them
+   - Support for code files, images, etc.
+   - Progress indicator for uploads
 
-2. **Enhanced Chat Features**
-   - [x] Load chat history on session open
-   - [ ] Typing indicators
-   - [ ] Message reactions
+3. **Enhanced Cursors**
+   - [ ] Cursor debouncing/throttling (reduce WebSocket traffic)
+   - [ ] Smooth cursor animations (CSS transitions)
+   - [ ] Click to follow/jump to another user's cursor
 
-3. **Enhanced Cursor Features**
-   - [ ] Cursor debouncing/throttling
-   - [ ] Smooth cursor animations
-   - [ ] Click to follow cursor
+4. **Enhanced Chat**
+   - [ ] Typing indicators ("User is typing...")
+   - [ ] Message reactions (emoji)
+   - [ ] @mentions with autocomplete
 
-### LOW PRIORITY
+### New Features
 
-4. **UI Polish**
-   - [x] Keyboard shortcuts modal (? key)
-   - [x] Share session button/modal
-   - [x] Settings modal
-   - [ ] File upload drag & drop
-   - [x] TopBar with review actions (Approve, Request Changes)
-   - [x] Toast notifications with sonner (replaces Alert banners)
+5. **Comment Threads**
+   - Reply to comments (threaded discussions)
+   - Collapse/expand threads
+   - Thread resolution
 
-5. **Testing & Deployment**
+6. **Multi-File Selection**
+   - Batch mark files as reviewed
+   - File filtering/search
+   - File grouping by directory
+
+7. **Review Templates**
+   - Save comment templates ("LGTM", "Needs tests", etc.)
+   - Quick-insert common phrases
+
+8. **Activity Feed**
+   - Show recent activity on session (who commented, reviewed, etc.)
+   - Notifications for mentions
+
+### Infrastructure
+
+9. **Testing**
    - [ ] E2E tests with Playwright
    - [ ] Unit tests for API routes
+   - [ ] WebSocket handler tests
    - [ ] Load testing
-   - [ ] Data migration scripts (MongoDB → PostgreSQL)
-   - [ ] CI/CD setup
-   - [ ] Production deployment (Cloudflare Workers or Bun server)
-   - [ ] Documentation
+
+10. **Production Deployment**
+    - [ ] Systemd service files
+    - [ ] Environment configuration
+    - [ ] Database backups
+    - [ ] SSL/TLS setup
+    - [ ] Monitoring/logging
+
+11. **CI/CD**
+    - [ ] GitHub Actions workflow
+    - [ ] Auto-deploy on push
+    - [ ] Type checking in CI
+    - [ ] Lint checking in CI
+
+---
+
+## 🧹 CLEANUP TASKS
+
+1. **Remove Old Meteor Code**
+   - `imports/` directory contains legacy Meteor code
+   - Can be deleted once migration is verified complete
+   - ~50+ files, ~10k lines of code
+
+2. **Type Safety Improvements**
+   - Add stricter TypeScript settings
+   - Fix any remaining `any` types
+   - Add return types to all functions
+
+3. **Code Organization**
+   - Move shared utilities to `packages/shared`
+   - Consolidate duplicate code
+   - Add JSDoc comments to public APIs
+
+4. **Performance**
+   - Audit bundle size
+   - Lazy load heavy components (Prism.js, etc.)
+   - Optimize WebSocket message frequency
+
+5. **Accessibility**
+   - Add ARIA labels
+   - Keyboard navigation improvements
+   - Screen reader testing
 
 ---
 
@@ -236,20 +293,37 @@ Password: password123
 
 ---
 
-## NEXT STEPS (Suggested Order)
+## ✅ MIGRATION COMPLETE
 
-1. ~~**Load Chat History** - Load previous messages when opening session~~ ✅
-2. **UI Polish** - Final touches
-   - Keyboard shortcuts
-   - Share functionality  
-   - Toast notifications
-3. **Testing** - Add test coverage
-   - E2E tests with Playwright
-   - Unit tests for WebSocket handlers
+All planned features from the Meteor → Hono migration are now implemented:
+
+- [x] Authentication (JWT)
+- [x] Session CRUD
+- [x] File management
+- [x] Diff viewer (unified + split)
+- [x] Syntax highlighting
+- [x] Inline comments
+- [x] Real-time collaboration (WebSocket)
+- [x] User presence
+- [x] Real-time chat
+- [x] Cursor broadcasting
+- [x] GitHub OAuth
+- [x] GitHub PR import
+- [x] GitHub review sync (push reviews to PRs)
+- [x] Review workflow (draft → in_review → approved → merged)
+- [x] Keyboard shortcuts
+- [x] Share sessions
+- [x] User settings
+- [x] Toast notifications
+- [x] Mobile responsive design
 
 ---
 
 ## RECENTLY COMPLETED (Jan 28, 2026)
+
+- **Comment Mutation Fix** (Jan 28)
+  - Fixed closure issue in useComments hook
+  - Pass fileId as mutation argument instead of capturing from closure
 
 - **GitHub Review Sync** (Jan 28) - Plan 003
   - Submit CodeSync reviews to GitHub PRs with one click
