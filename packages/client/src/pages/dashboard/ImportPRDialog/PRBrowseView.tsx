@@ -40,7 +40,9 @@ export function PRBrowseView({
   if (!githubConnected) {
     return (
       <div className="text-center py-8">
-        <p className="text-muted-foreground mb-4">Connect your GitHub account to browse repositories</p>
+        <p className="text-muted-foreground mb-4">
+          Connect your GitHub account to browse repositories
+        </p>
         <Button onClick={onConnectGitHub}>
           <GitHubIcon className="w-4 h-4 mr-2" />
           Connect GitHub

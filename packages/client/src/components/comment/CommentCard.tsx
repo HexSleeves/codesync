@@ -13,7 +13,9 @@ export function CommentCard({ comment, onResolve }: CommentCardProps) {
       <CardContent className="p-2">
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">{comment.author?.name || 'Unknown'}</span>
+            <span className="text-xs text-muted-foreground">
+              {comment.author?.name || 'Unknown'}
+            </span>
             {comment.syncedAt && (
               <span
                 className="inline-flex items-center gap-1 text-xs text-muted-foreground"

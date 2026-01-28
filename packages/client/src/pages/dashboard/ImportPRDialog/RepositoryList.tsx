@@ -58,9 +58,7 @@ export function RepositoryList({
           </Card>
         ))}
         {filteredRepos.length === 0 && (
-          <p className="text-muted-foreground text-sm text-center py-4">
-            No repositories found
-          </p>
+          <p className="text-muted-foreground text-sm text-center py-4">No repositories found</p>
         )}
       </div>
     </div>

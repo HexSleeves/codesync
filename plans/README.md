@@ -15,7 +15,9 @@ Each plan follows this structure:
 
 ## Active Plans
 
-_No active plans._
+| # | Name | Status | Priority |
+|---|------|--------|----------|
+| 004 | [CI/CD Pipeline](004-cicd-pipeline.md) | 🟡 Planned | High |
 
 ## Completed Plans
 

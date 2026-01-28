@@ -23,9 +23,7 @@ export function PRList({ pullRequests, loading, repoName, onSelectPR, onBack }: 
   }
 
   if (pullRequests.length === 0) {
-    return (
-      <p className="text-muted-foreground text-sm text-center py-4">No pull requests found</p>
-    );
+    return <p className="text-muted-foreground text-sm text-center py-4">No pull requests found</p>;
   }
 
   return (
@@ -51,10 +49,7 @@ export function PRList({ pullRequests, loading, repoName, onSelectPR, onBack }: 
                     #{pr.number} by {pr.author}
                   </p>
                 </div>
-                <Badge
-                  variant={pr.state === 'open' ? 'success' : 'secondary'}
-                  className="shrink-0"
-                >
+                <Badge variant={pr.state === 'open' ? 'success' : 'secondary'} className="shrink-0">
                   {pr.state}
                 </Badge>
               </div>

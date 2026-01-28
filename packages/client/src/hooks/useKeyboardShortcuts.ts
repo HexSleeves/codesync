@@ -26,11 +26,11 @@ export interface KeyboardShortcutOptions {
 
 export function useKeyboardShortcuts(options: KeyboardShortcutOptions = {}) {
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
-  
+
   // Use refs to avoid recreating the event handler when callbacks change
   const optionsRef = useRef<KeyboardShortcutOptions>(options);
   optionsRef.current = options;
-  
+
   const modalRef = useRef(showShortcutsModal);
   modalRef.current = showShortcutsModal;
 
@@ -38,8 +38,8 @@ export function useKeyboardShortcuts(options: KeyboardShortcutOptions = {}) {
     const handleKeyDown = (e: KeyboardEvent) => {
       const opts = optionsRef.current;
       if (!opts) return;
-      
-      const { 
+
+      const {
         enabled = true,
         onNextFile,
         onPrevFile,
@@ -49,7 +49,7 @@ export function useKeyboardShortcuts(options: KeyboardShortcutOptions = {}) {
         onToggleViewMode,
         onMarkReviewed,
       } = opts;
-      
+
       if (!enabled) return;
 
       // Ignore if user is typing in an input or textarea
