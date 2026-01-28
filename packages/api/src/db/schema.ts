@@ -45,6 +45,9 @@ export const sessions = pgTable('sessions', {
   approvedBy: text('approved_by').references(() => users.id),
   mergedAt: timestamp('merged_at'),
   mergedBy: text('merged_by').references(() => users.id),
+  // GitHub sync tracking
+  githubReviewId: text('github_review_id'),
+  githubSyncedAt: timestamp('github_synced_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -87,6 +90,9 @@ export const comments = pgTable('comments', {
   parentId: text('parent_id'),
   threadId: text('thread_id'),
   isResolved: boolean('is_resolved').default(false).notNull(),
+  // GitHub sync tracking
+  githubCommentId: text('github_comment_id'),
+  syncedAt: timestamp('synced_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 

@@ -1,9 +1,9 @@
 # Plan 003: GitHub Review Sync (One-Way Push)
 
-**Status**: 📋 Planned  
-**Created**: Jan 27, 2026  
-**Estimated**: 4-6 hours  
-**Priority**: Medium  
+**Status**: 🟡 In Progress
+**Created**: Jan 27, 2026
+**Estimated**: 4-6 hours
+**Priority**: Medium
 
 ---
 
@@ -62,7 +62,7 @@ interface Comment {
   syncedAt?: Date;           // When it was synced
 }
 
-// Add to sessions table  
+// Add to sessions table
 interface Session {
   // ... existing fields
   githubReviewId?: string;   // GitHub review ID after submission
@@ -146,7 +146,7 @@ interface SubmitReviewParams {
 
 export async function submitGitHubReview(params: SubmitReviewParams) {
   const octokit = new Octokit({ auth: params.accessToken });
-  
+
   // Create a pending review with comments
   const { data: review } = await octokit.pulls.createReview({
     owner: params.owner,
@@ -162,7 +162,7 @@ export async function submitGitHubReview(params: SubmitReviewParams) {
       side: c.side || 'RIGHT',
     })),
   });
-  
+
   return review;
 }
 ```
@@ -170,6 +170,7 @@ export async function submitGitHubReview(params: SubmitReviewParams) {
 #### 2.2 Handle diff line mapping
 
 GitHub requires the line number in the **diff**, not the file. Need to map:
+
 - CodeSync `lineNumber` (line in new file) → GitHub `line` (position in diff)
 
 **File**: `packages/api/src/services/github/diff-mapper.ts`
@@ -185,13 +186,13 @@ export function mapLineToDiffPosition(
   side: 'old' | 'new'
 ): number | null {
   let position = 0;
-  
+
   for (const hunk of hunks) {
     position++; // Hunk header line (@@ -x,y +a,b @@)
-    
+
     for (const line of hunk.lines) {
       position++;
-      
+
       if (side === 'new' && line.newLineNumber === lineNumber) {
         return position;
       }
@@ -200,7 +201,7 @@ export function mapLineToDiffPosition(
       }
     }
   }
-  
+
   return null; // Line not in diff
 }
 ```
@@ -222,19 +223,19 @@ export const githubSyncRoutes = new Hono()
   .post('/sessions/:id/submit-review', authMiddleware, async (c) => {
     const { id } = c.req.param();
     const userId = c.get('userId');
-    
+
     // 1. Get session with GitHub source info
     const session = await getSession(id);
     if (!session.source?.type === 'github') {
       return c.json({ error: 'Session not imported from GitHub' }, 400);
     }
-    
+
     // 2. Get user's GitHub token
     const user = await getUser(userId);
     if (!user.githubAccessToken) {
       return c.json({ error: 'GitHub not connected' }, 400);
     }
-    
+
     // 3. Validate session status
     if (session.status === 'draft') {
       return c.json({ error: 'Start review before submitting' }, 400);
@@ -242,25 +243,25 @@ export const githubSyncRoutes = new Hono()
     if (session.status === 'merged') {
       return c.json({ error: 'PR already merged' }, 400);
     }
-    
+
     // 4. Get unsynced comments
     const comments = await getUnsyncedComments(id);
-    
+
     // 5. Get files for diff mapping
     const files = await getSessionFiles(id);
-    
+
     // 6. Map comments to GitHub format
     const reviewComments = [];
     for (const comment of comments) {
       const file = files.find(f => f.id === comment.fileId);
       if (!file || !comment.lineNumber) continue;
-      
+
       const position = mapLineToDiffPosition(
         file.hunks,
         comment.lineNumber,
         'new'
       );
-      
+
       if (position) {
         reviewComments.push({
           path: file.path,
@@ -269,14 +270,14 @@ export const githubSyncRoutes = new Hono()
         });
       }
     }
-    
+
     // 7. Determine review event
     let event: 'APPROVE' | 'REQUEST_CHANGES' | 'COMMENT' = 'COMMENT';
     if (session.status === 'approved') {
       event = 'APPROVE';
     }
     // Could add REQUEST_CHANGES based on a flag
-    
+
     // 8. Submit to GitHub
     const review = await submitGitHubReview({
       accessToken: user.githubAccessToken,
@@ -287,16 +288,16 @@ export const githubSyncRoutes = new Hono()
       event,
       comments: reviewComments,
     });
-    
+
     // 9. Mark comments as synced
     await markCommentsSynced(comments.map(c => c.id));
-    
+
     // 10. Update session with review ID
     await updateSession(id, {
       githubReviewId: String(review.id),
       githubSyncedAt: new Date(),
     });
-    
+
     return c.json({
       success: true,
       reviewId: review.id,
@@ -344,15 +345,15 @@ export function SubmitReviewButton({
 }: SubmitReviewButtonProps) {
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
-  
+
   // Don't show for non-GitHub sessions
   if (session.source?.type !== 'github') return null;
-  
+
   // Don't allow for draft or merged
   if (session.status === 'draft' || session.status === 'merged') {
     return null;
   }
-  
+
   const handleSubmit = async () => {
     setLoading(true);
     try {
@@ -365,9 +366,9 @@ export function SubmitReviewButton({
       setLoading(false);
     }
   };
-  
+
   const reviewAction = session.status === 'approved' ? 'Approve' : 'Comment';
-  
+
   return (
     <>
       <Button
@@ -380,7 +381,7 @@ export function SubmitReviewButton({
         <GitHubIcon className="size-4" />
         <span className="hidden lg:inline">Submit to GitHub</span>
       </Button>
-      
+
       <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
         <DialogContent>
           <DialogHeader>
@@ -389,7 +390,7 @@ export function SubmitReviewButton({
               This will post your review to the GitHub PR.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-3 py-4">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Action:</span>
@@ -406,7 +407,7 @@ export function SubmitReviewButton({
               </div>
             )}
           </div>
-          
+
           <DialogFooter>
             <Button variant="ghost" onClick={() => setShowConfirm(false)}>
               Cancel
@@ -453,7 +454,7 @@ export function useGitHubSync(sessionId: string) {
       invalidateQueries(['session', sessionId]);
     },
   });
-  
+
   return {
     submitToGitHub: submitMutation.mutateAsync,
     isSubmitting: submitMutation.isPending,
@@ -498,6 +499,7 @@ In SessionControls or header, show when last synced.
 #### 6.2 Partial success handling
 
 If some comments fail to post:
+
 - Still submit the review with successful comments
 - Mark only successful comments as synced
 - Show warning with count of failed comments
@@ -530,6 +532,7 @@ If some comments fail to post:
 ## Testing Checklist
 
 ### Happy Path
+
 - [ ] Import PR from GitHub
 - [ ] Add comments on various lines
 - [ ] Approve session
@@ -539,6 +542,7 @@ If some comments fail to post:
 - [ ] Verify comments marked as synced in CodeSync
 
 ### Edge Cases
+
 - [ ] Submit with no comments (just approval)
 - [ ] Comment on line not in diff (should skip gracefully)
 - [ ] Submit same review twice (should only post new comments)
@@ -547,6 +551,7 @@ If some comments fail to post:
 - [ ] Special characters in comments
 
 ### Error Cases
+
 - [ ] GitHub token expired
 - [ ] No write permission to repo
 - [ ] PR already merged

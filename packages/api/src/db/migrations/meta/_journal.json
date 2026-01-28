@@ -15,6 +15,13 @@
       "when": 1769540227517,
       "tag": "0001_fearless_satana",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1769574778247,
+      "tag": "0002_hard_molecule_man",
+      "breakpoints": true
     }
   ]
 }

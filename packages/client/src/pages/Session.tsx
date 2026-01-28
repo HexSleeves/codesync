@@ -13,6 +13,7 @@ import { Button } from '@/components/ui';
 import { useAuth } from '../hooks/useAuth';
 import { useComments } from '../hooks/useComments';
 import { useGitHub } from '../hooks/useGitHub';
+import { useGitHubSync } from '../hooks/useGitHubSync';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { useSession } from '../hooks/useSession';
 import { useWebSocket } from '../hooks/useWebSocket';
@@ -54,6 +55,9 @@ export function SessionPage({ sessionId }: SessionPageProps) {
   // Comments for selected file
   const selectedFile = files.find((f) => f.id === selectedFileId) || null;
   const { commentsByLine, addComment, resolveComment } = useComments(selectedFileId);
+
+  // GitHub sync status (for GitHub-imported sessions)
+  const { syncStatus, refresh: refreshSyncStatus } = useGitHubSync(sessionId);
 
   // File navigation helpers
   const selectNextFile = useCallback(() => {
@@ -136,10 +140,14 @@ export function SessionPage({ sessionId }: SessionPageProps) {
           showFileTree={showFileTree}
           onToggleFileTree={() => setShowFileTree(!showFileTree)}
           onShare={() => setShowShareModal(true)}
-          onSessionChange={setSession}
+          onSessionChange={(s) => {
+            setSession(s);
+            refreshSyncStatus(); // Refresh sync status when session changes
+          }}
           connected={connected}
           onlineUsers={onlineUsers}
           currentUserId={user?.id}
+          unsyncedCommentCount={syncStatus?.unsyncedComments ?? 0}
         />
       }
       headerRight={

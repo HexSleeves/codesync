@@ -1,12 +1,13 @@
 /**
  * Session Controls - Header controls for session page
- * Includes sidebar toggle, review actions, share button, online users
+ * Includes sidebar toggle, review actions, share button, GitHub sync, online users
  */
 
 import type { OnlineUser, Session } from '@codesync/shared';
 import { ShareIcon, SidebarIcon, UsersIcon } from '@/components/icons';
 import { Button } from '@/components/ui';
 import { ReviewActions } from './ReviewActions';
+import { SubmitReviewButton } from './SubmitReviewButton';
 
 interface SessionControlsProps {
   /** Full session object (for review actions) */
@@ -25,6 +26,8 @@ interface SessionControlsProps {
   onlineUsers: OnlineUser[];
   /** Current user ID */
   currentUserId?: string;
+  /** Count of comments not synced to GitHub */
+  unsyncedCommentCount?: number;
 }
 
 export function SessionControls({
@@ -36,6 +39,7 @@ export function SessionControls({
   connected,
   onlineUsers,
   currentUserId,
+  unsyncedCommentCount = 0,
 }: SessionControlsProps) {
   return (
     <div className="flex items-center gap-2 sm:gap-3">
@@ -63,6 +67,13 @@ export function SessionControls({
         <ShareIcon className="size-4" />
         <span className="hidden lg:inline">Share</span>
       </Button>
+
+      {/* Submit to GitHub button (only for GitHub sessions) */}
+      <SubmitReviewButton
+        session={session}
+        unsyncedCommentCount={unsyncedCommentCount}
+        onSuccess={() => onSessionChange({ ...session, githubSyncedAt: new Date() })}
+      />
 
       {/* Online users indicator */}
       <OnlineUsersIndicator connected={connected} count={onlineUsers.length} />

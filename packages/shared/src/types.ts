@@ -31,6 +31,9 @@ export interface Session {
   approvedBy: string | null;
   mergedAt: Date | null;
   mergedBy: string | null;
+  // GitHub sync tracking
+  githubReviewId: string | null;
+  githubSyncedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
   // Joined data (populated by API)
@@ -95,6 +98,9 @@ export interface Comment {
   parentId: string | null;
   threadId: string | null;
   isResolved: boolean;
+  // GitHub sync tracking
+  githubCommentId: string | null;
+  syncedAt: Date | null;
   createdAt: Date;
   // Joined data
   author?: User;

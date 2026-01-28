@@ -1,4 +1,5 @@
 import type { Comment } from '@codesync/shared';
+import { GitHubIcon } from '@/components/icons';
 import { Button, Card, CardContent } from '@/components/ui';
 
 interface CommentCardProps {
@@ -11,7 +12,17 @@ export function CommentCard({ comment, onResolve }: CommentCardProps) {
     <Card className={comment.isResolved ? 'opacity-60' : ''}>
       <CardContent className="p-2">
         <div className="flex items-center justify-between mb-1">
-          <span className="text-xs text-muted-foreground">{comment.author?.name || 'Unknown'}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">{comment.author?.name || 'Unknown'}</span>
+            {comment.syncedAt && (
+              <span
+                className="inline-flex items-center gap-1 text-xs text-muted-foreground"
+                title={`Synced to GitHub on ${new Date(comment.syncedAt).toLocaleString()}`}
+              >
+                <GitHubIcon className="size-3" />
+              </span>
+            )}
+          </div>
           {onResolve && (
             <Button
               variant="ghost"

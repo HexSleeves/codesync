@@ -13,5 +13,6 @@ export { MainContent } from './MainContent';
 export { OnlineUsers } from './OnlineUsers';
 export { OnlineUsersIndicator, SessionControls } from './SessionControls';
 export { ReviewActions } from './ReviewActions';
+export { SubmitReviewButton } from './SubmitReviewButton';
 export { SessionCard } from './SessionCard';
 export { SessionStatusBadge } from './SessionStatusBadge';
