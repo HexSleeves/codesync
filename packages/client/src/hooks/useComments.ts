@@ -27,16 +27,17 @@ export function useComments(fileId: string | null) {
 
   const addCommentMutation = useMutation({
     mutationFn: async ({
+      targetFileId,
       text,
       lineNumber,
       parentId,
     }: {
+      targetFileId: string;
       text: string;
       lineNumber?: number;
       parentId?: string;
     }) => {
-      if (!fileId) throw new Error('No file ID');
-      return apiCall<{ comment: Comment }>('POST', `/files/${fileId}/comments`, {
+      return apiCall<{ comment: Comment }>('POST', `/files/${targetFileId}/comments`, {
         text,
         lineNumber,
         parentId,
@@ -106,7 +107,11 @@ export function useComments(fileId: string | null) {
     loading,
     refetch,
     addComment: async (text: string, lineNumber?: number, parentId?: string) => {
-      return addCommentMutation.mutateAsync({ text, lineNumber, parentId });
+      if (!fileId) {
+        toast.error('No file selected');
+        return;
+      }
+      return addCommentMutation.mutateAsync({ targetFileId: fileId, text, lineNumber, parentId });
     },
     resolveComment: async (commentId: string, resolved: boolean) => {
       return resolveCommentMutation.mutateAsync({ commentId, resolved });
