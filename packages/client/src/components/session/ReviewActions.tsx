@@ -46,7 +46,8 @@ export function ReviewActions({ session, onStatusChange, currentUserId }: Review
   const [loading, setLoading] = useState(false);
 
   const actions = statusActions[session.status] || [];
-  const isOwner = session.createdBy === currentUserId;
+  // TODO: Use isOwner to restrict who can change status
+  const _isOwner = session.createdBy === currentUserId;
 
   const handleStatusChange = async (newStatus: SessionStatus) => {
     setLoading(true);

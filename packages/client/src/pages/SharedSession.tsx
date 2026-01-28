@@ -127,7 +127,7 @@ interface SharedSessionHeaderProps {
 function SharedSessionHeader({
   title,
   status,
-  showFileTree,
+  showFileTree: _showFileTree, // Used only for toggle button state indication
   onToggleFileTree,
 }: SharedSessionHeaderProps) {
   return (

@@ -128,7 +128,7 @@ export async function checkRepoWriteAccess(
 
     // User has write access if they have push permission
     return data.permissions?.push ?? false;
-  } catch (error) {
+  } catch {
     // If we can't fetch the repo, assume no access
     return false;
   }

@@ -109,11 +109,22 @@ export function SessionPage({ sessionId }: SessionPageProps) {
     navigate('/login');
   };
 
-  const handleLineHover = (lineNumber: number) => {
-    if (selectedFileId) {
-      sendCursor(selectedFileId, lineNumber, 0);
-    }
-  };
+  const handleLineHover = useCallback(
+    (lineNumber: number) => {
+      if (selectedFileId) {
+        sendCursor(selectedFileId, lineNumber, 0);
+      }
+    },
+    [selectedFileId, sendCursor]
+  );
+
+  const handleCloseChat = useCallback(() => {
+    setShowChat(false);
+  }, []);
+
+  const handleOpenChat = useCallback(() => {
+    setShowChat(true);
+  }, []);
 
   if (loading) {
     return <PageLoading message="Loading session..." />;
@@ -200,7 +211,7 @@ export function SessionPage({ sessionId }: SessionPageProps) {
         {/* Right Sidebar: Chat */}
         <ChatSidebar
           open={showChat}
-          onClose={() => setShowChat(false)}
+          onClose={handleCloseChat}
           messages={chatMessages}
           onSend={sendChat}
           connected={connected}
@@ -212,7 +223,7 @@ export function SessionPage({ sessionId }: SessionPageProps) {
             variant="outline"
             size="sm"
             className="fixed bottom-4 right-4 z-10 gap-1.5"
-            onClick={() => setShowChat(true)}
+            onClick={handleOpenChat}
           >
             <MessageIcon className="size-4" />
             <span className="hidden sm:inline">Chat</span>

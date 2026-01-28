@@ -3,7 +3,7 @@
  */
 
 import type { Comment, File } from '@codesync/shared';
-import { useState } from 'hono/jsx';
+import { memo, useState } from 'hono/jsx';
 import { CommentCard } from '@/components/comment';
 import { Button, Textarea } from '@/components/ui';
 
@@ -147,13 +147,13 @@ function CodeLine({
   );
 }
 
-function LineNumber({ number }: { number: number }) {
+const LineNumber = memo(function LineNumber({ number }: { number: number }) {
   return (
     <td className="w-12 px-2 py-0 text-right text-muted-foreground select-none border-r border-border sticky left-0 bg-background">
       {number}
     </td>
   );
-}
+});
 
 function AddCommentButton({ onClick }: { onClick: () => void }) {
   return (
@@ -168,9 +168,9 @@ function AddCommentButton({ onClick }: { onClick: () => void }) {
   );
 }
 
-function LineContent({ content }: { content: string }) {
+const LineContent = memo(function LineContent({ content }: { content: string }) {
   return <td className="px-4 py-0 whitespace-pre">{content || ' '}</td>;
-}
+});
 
 function CommentIndicator({ count, hasComments }: { count: number; hasComments: boolean }) {
   if (!hasComments) return <td className="w-8 px-1" />;
