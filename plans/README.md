@@ -17,13 +17,14 @@ Each plan follows this structure:
 
 | # | Name | Status | Priority |
 |---|------|--------|----------|
-| 002 | [UI Polish - Modals](002-ui-polish-modals.md) | 🟡 Planned | Medium |
+| 003 | [GitHub Review Sync](003-github-review-sync.md) | 🟡 Planned | Medium |
 
 ## Completed Plans
 
 | # | Name | Status | Priority |
 |---|------|--------|----------|
 | 001 | [WebSocket Real-time](001-websocket-realtime.md) | 🟢 Complete | High |
+| 002 | [UI Polish - Modals](002-ui-polish-modals.md) | 🟢 Complete | Medium |
 
 ## How to Create a New Plan
 
