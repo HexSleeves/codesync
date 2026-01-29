@@ -10,7 +10,7 @@
 | TypeScript | ✅ 0 errors |
 | Lint | ✅ 0 warnings |
 | Old Meteor Code | ✅ Removed |
-| Production Config | ⚠️ Needed |
+| Production Config | ✅ Complete |
 | CI/CD | ✅ Basic Complete |
 | E2E Tests | ⚠️ Needed |
 
@@ -18,15 +18,15 @@
 
 ## 🚀 RELEASE BLOCKERS (Must Do)
 
-### 1. Production Environment Setup
-- [ ] Create `.env.example` with all required variables
-- [ ] Create `.env.production` template
-- [ ] Document required secrets (JWT_SECRET, GITHUB_CLIENT_ID, etc.)
+### 1. Production Environment Setup ✅ COMPLETE
+- [x] Create `.env.example` with all required variables
+- [x] Create `.env.production` template
+- [x] Document required secrets (JWT_SECRET, GITHUB_CLIENT_ID, etc.)
 
-### 2. Systemd Service Files
-- [ ] `codesync-api.service` for backend
-- [ ] `codesync-client.service` for frontend (or static build)
-- [ ] Install and enable services
+### 2. Systemd Service Files ✅ COMPLETE
+- [x] `codesync-api.service` for backend
+- [x] `codesync-client.service` for frontend (vite preview)
+- [x] Deployment guide: `docs/DEPLOYMENT.md`
 
 ### 3. CI/CD Pipeline (GitHub Actions) ✅ COMPLETE
 - [x] Type checking on PR
