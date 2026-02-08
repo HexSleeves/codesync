@@ -186,7 +186,7 @@ export const useSoundEnabled = () => useSettingsStore((s) => s.soundEnabled);
 export const useDesktopNotifications = () => useSettingsStore((s) => s.desktopNotifications);
 
 let settingsInitialized = false;
-let mediaQueryCleanup: (() => void) | null = null;
+let _mediaQueryCleanup: (() => void) | null = null;
 
 /**
  * Initialize settings (apply theme and font size on app load)
@@ -207,5 +207,5 @@ export function initSettings(): void {
     }
   };
   mediaQuery.addEventListener('change', handler);
-  mediaQueryCleanup = () => mediaQuery.removeEventListener('change', handler);
+  _mediaQueryCleanup = () => mediaQuery.removeEventListener('change', handler);
 }

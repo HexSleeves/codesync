@@ -9,7 +9,7 @@ import {
 } from '@codesync/shared';
 import type { SessionStatus } from '@codesync/shared';
 import { zValidator } from '@hono/zod-validator';
-import { desc, eq, inArray, or } from 'drizzle-orm';
+import { desc, eq, inArray } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { nanoid } from 'nanoid';
 import { db } from '../db/client';

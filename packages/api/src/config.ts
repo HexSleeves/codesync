@@ -19,7 +19,7 @@ export const config = {
   databaseUrl: process.env.DATABASE_URL || 'postgres://codesync:codesync@localhost:5432/codesync',
 
   // Auth
-  jwtSecret: process.env.JWT_SECRET || 'dev-only-secret-' + crypto.randomUUID(),
+  jwtSecret: process.env.JWT_SECRET || `dev-only-secret-${crypto.randomUUID()}`,
   tokenExpiryDays: 7,
 
   // CORS

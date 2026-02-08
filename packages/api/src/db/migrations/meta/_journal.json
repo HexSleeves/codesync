@@ -22,6 +22,13 @@
       "when": 1769574778247,
       "tag": "0002_hard_molecule_man",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1770517819278,
+      "tag": "0003_lean_james_howlett",
+      "breakpoints": true
     }
   ]
 }
