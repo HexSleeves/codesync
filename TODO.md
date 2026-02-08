@@ -12,6 +12,8 @@
 | Old Meteor Code | ✅ Removed |
 | Production Config | ✅ Complete |
 | CI/CD | ✅ Basic Complete |
+| Security Review | ✅ Complete |
+| Code Quality | ✅ Complete |
 | E2E Tests | ⚠️ Needed |
 
 ---
@@ -44,6 +46,12 @@
 - [ ] WebSocket connection tests
 
 ### Security
+- [x] Password hashing (argon2id)
+- [x] Authorization on all routes (file/comment/chat IDOR fixes)
+- [x] OAuth cookie signing (HMAC)
+- [x] WebSocket session access control
+- [x] JWT secret validation on startup
+- [x] DB connection pool configuration
 - [ ] Rate limiting on auth endpoints
 - [ ] Input sanitization audit
 - [ ] CORS configuration for production

@@ -1,7 +1,7 @@
 # Agent Context Dump
 
-**Last Updated:** Jan 28, 2026
-**Last Task:** Implemented GitHub Review Sync (plan 003)
+**Last Updated:** Feb 8, 2026
+**Last Task:** Full codebase review + 58 fixes across 4 phases
 
 ---
 
@@ -38,26 +38,42 @@ Password: password123
 
 ---
 
-## Recent Changes (Jan 28, 2026)
+## Recent Changes (Feb 8, 2026)
 
-### 1. GitHub Review Sync (Plan 003)
+### Full Codebase Review & 58+ Fixes (4 Phases)
 
-- Submit CodeSync reviews directly to GitHub PRs
-- New database columns: `github_review_id`, `github_synced_at` (sessions), `github_comment_id`, `synced_at` (comments)
-- New services:
-  - `services/github/diff-mapper.ts` - Maps file line numbers to diff positions
-  - `services/github/review-sync.ts` - GitHub review submission API
-- New routes:
-  - `POST /github/sessions/:id/submit-review` - Submit review to GitHub
-  - `GET /github/sessions/:id/sync-status` - Get sync status
-- New UI components:
-  - `SubmitReviewButton` - Button + confirmation dialog for GitHub submission
-  - GitHub sync indicator on comments
-  - `useGitHubSync` hook for sync status
-- Features:
-  - Maps session status to GitHub review action (approved → APPROVE)
-  - Tracks synced vs unsynced comments
-  - Error handling for GitHub API errors
+**Phase 1: Security Hardening**
+- Switched password hashing from SHA-256 to argon2id (`Bun.password.hash()`)
+- JWT_SECRET validated on startup in production; random dev default
+- Added authorization checks to ALL file/comment/chat routes (IDOR fixes)
+- Signed OAuth state with HMAC (prevents user impersonation)
+- Added session access check to WebSocket upgrade handler
+- Fixed cookie `path: '/'` on set and delete
+- Configured DB connection pool (max:20, idle_timeout:30)
+- Added graceful shutdown handler (SIGTERM/SIGINT)
+
+**Phase 2: API Bug Fixes**
+- Fixed broken comment sync (blanket UPDATE marked ALL comments synced)
+- Fixed N+1 queries in status update (batch user lookup)
+- Fixed session listing (owned+participated, not all public)
+- Fixed WebSocket multi-tab support (connectionId instead of userId)
+- Added 9 DB indexes + unique constraint on sessionParticipants
+- Removed dead code (4 unused exported functions)
+- Parallelized PR file processing (batch of 5 concurrent)
+- Removed unused Redis from docker-compose
+
+**Phase 3: Client Cleanup**
+- Removed 36 unused dependencies (26 @radix-ui, lucide-react, etc.)
+- Deleted 6 dead components (CursorOverlay, PageHeader, UserMenu, etc.)
+- Extracted shared store boilerplate to `lib/store.ts` (~100 lines removed)
+- Replaced 11 `any` types with proper types
+- Fixed useQuery/useMutation option tracking
+- Capped WebSocket chat at 500 messages
+- Fixed auth store init retry, settings memory leak
+
+**Phase 4: Infrastructure**
+- Generated & applied migration 0003 (indexes + unique constraint)
+- Fixed all lint warnings to 0
 
 ---
 
