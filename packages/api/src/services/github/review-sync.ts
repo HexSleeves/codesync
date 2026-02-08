@@ -62,9 +62,10 @@ export async function submitGitHubReview(params: SubmitReviewParams): Promise<Su
   const octokit = createOctokit(accessToken);
 
   // Filter out comments without valid positions
-  const validComments = comments.filter((c) => c.position !== undefined || c.line !== undefined);
+  const validComments = comments.filter((c) => c.position !== undefined);
 
   // Create the review with comments
+  // Note: pulls.createReview only supports `position` (diff-relative), not `line`/`side`
   const { data: review } = await octokit.pulls.createReview({
     owner,
     repo,
@@ -74,9 +75,7 @@ export async function submitGitHubReview(params: SubmitReviewParams): Promise<Su
     body: body || undefined,
     comments: validComments.map((c) => ({
       path: c.path,
-      position: c.position,
-      line: c.line,
-      side: c.side,
+      position: c.position!,
       body: c.body,
     })),
   });
