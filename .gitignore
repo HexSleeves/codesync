@@ -1,4 +1,5 @@
 node_modules/
+dist/
 
 # Meteor Modern-Tools build context directories
 _build

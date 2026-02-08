@@ -9,7 +9,7 @@ import {
 } from '@codesync/shared';
 import type { SessionStatus } from '@codesync/shared';
 import { zValidator } from '@hono/zod-validator';
-import { desc, eq, or } from 'drizzle-orm';
+import { desc, eq, inArray, or } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { nanoid } from 'nanoid';
 import { db } from '../db/client';
@@ -18,17 +18,35 @@ import { type AuthVariables, authMiddleware, optionalAuthMiddleware } from '../m
 import { checkSessionAccess, checkSessionOwnership } from '../services/session/access';
 
 export const sessionRoutes = new Hono<{ Variables: AuthVariables }>()
-  // GET /api/sessions - List sessions for current user
+  // GET /api/sessions - List sessions for current user (owned + participated)
   .get('/', authMiddleware, async (c) => {
     const userId = c.get('userId');
 
-    const userSessions = await db
+    // Get sessions the user owns
+    const ownedSessions = await db
       .select()
       .from(sessions)
-      .where(or(eq(sessions.createdBy, userId), eq(sessions.isPublic, true)))
+      .where(eq(sessions.createdBy, userId))
       .orderBy(desc(sessions.updatedAt));
 
-    return c.json({ sessions: userSessions });
+    // Get sessions the user participates in (but doesn't own)
+    const participatedRows = await db
+      .select({ session: sessions })
+      .from(sessionParticipants)
+      .innerJoin(sessions, eq(sessionParticipants.sessionId, sessions.id))
+      .where(eq(sessionParticipants.userId, userId))
+      .orderBy(desc(sessions.updatedAt));
+
+    // Merge and deduplicate
+    const ownedIds = new Set(ownedSessions.map((s) => s.id));
+    const participated = participatedRows
+      .map((r) => r.session)
+      .filter((s) => !ownedIds.has(s.id));
+
+    const allSessions = [...ownedSessions, ...participated]
+      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+
+    return c.json({ sessions: allSessions });
   })
 
   // POST /api/sessions - Create a new session
@@ -221,29 +239,37 @@ export const sessionRoutes = new Hono<{ Variables: AuthVariables }>()
         .where(eq(sessions.id, id))
         .returning();
 
-      // Fetch user info for reviewer/approver/merger
-      const result = { ...updatedSession, reviewer: null, approver: null, merger: null } as any;
+      // Fetch user info for reviewer/approver/merger in a single query
+      const userIds = [
+        updatedSession.reviewStartedBy,
+        updatedSession.approvedBy,
+        updatedSession.mergedBy,
+      ].filter((id): id is string => !!id);
 
-      if (updatedSession.reviewStartedBy) {
-        const [reviewer] = await db
-          .select()
+      const usersMap = new Map<string, { id: string; name: string | null; email: string }>();
+      if (userIds.length > 0) {
+        const uniqueIds = [...new Set(userIds)];
+        const rows = await db
+          .select({ id: users.id, name: users.name, email: users.email })
           .from(users)
-          .where(eq(users.id, updatedSession.reviewStartedBy));
-        if (reviewer)
-          result.reviewer = { id: reviewer.id, name: reviewer.name, email: reviewer.email };
+          .where(inArray(users.id, uniqueIds));
+        for (const row of rows) {
+          usersMap.set(row.id, row);
+        }
       }
-      if (updatedSession.approvedBy) {
-        const [approver] = await db
-          .select()
-          .from(users)
-          .where(eq(users.id, updatedSession.approvedBy));
-        if (approver)
-          result.approver = { id: approver.id, name: approver.name, email: approver.email };
-      }
-      if (updatedSession.mergedBy) {
-        const [merger] = await db.select().from(users).where(eq(users.id, updatedSession.mergedBy));
-        if (merger) result.merger = { id: merger.id, name: merger.name, email: merger.email };
-      }
+
+      const result = {
+        ...updatedSession,
+        reviewer: updatedSession.reviewStartedBy
+          ? usersMap.get(updatedSession.reviewStartedBy) ?? null
+          : null,
+        approver: updatedSession.approvedBy
+          ? usersMap.get(updatedSession.approvedBy) ?? null
+          : null,
+        merger: updatedSession.mergedBy
+          ? usersMap.get(updatedSession.mergedBy) ?? null
+          : null,
+      };
 
       return c.json({ session: result });
     }

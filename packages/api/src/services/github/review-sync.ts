@@ -3,7 +3,7 @@
  * Handles submitting CodeSync reviews to GitHub PRs
  */
 
-import { Octokit } from '@octokit/rest';
+import { createOctokit } from './pr-fetcher';
 
 export type GitHubReviewEvent = 'APPROVE' | 'REQUEST_CHANGES' | 'COMMENT';
 
@@ -59,7 +59,7 @@ export interface SubmitReviewResult {
 export async function submitGitHubReview(params: SubmitReviewParams): Promise<SubmitReviewResult> {
   const { accessToken, owner, repo, prNumber, commitSha, event, body, comments } = params;
 
-  const octokit = new Octokit({ auth: accessToken });
+  const octokit = createOctokit(accessToken);
 
   // Filter out comments without valid positions
   const validComments = comments.filter((c) => c.position !== undefined || c.line !== undefined);
@@ -90,51 +90,6 @@ export async function submitGitHubReview(params: SubmitReviewParams): Promise<Su
 }
 
 /**
- * Get the latest commit SHA for a PR
- * Useful for ensuring comments are attached to the right commit
- */
-export async function getPRHeadSha(
-  accessToken: string,
-  owner: string,
-  repo: string,
-  prNumber: number
-): Promise<string> {
-  const octokit = new Octokit({ auth: accessToken });
-
-  const { data: pr } = await octokit.pulls.get({
-    owner,
-    repo,
-    pull_number: prNumber,
-  });
-
-  return pr.head.sha;
-}
-
-/**
- * Check if user has write access to the repository
- */
-export async function checkRepoWriteAccess(
-  accessToken: string,
-  owner: string,
-  repo: string
-): Promise<boolean> {
-  const octokit = new Octokit({ auth: accessToken });
-
-  try {
-    const { data } = await octokit.repos.get({
-      owner,
-      repo,
-    });
-
-    // User has write access if they have push permission
-    return data.permissions?.push ?? false;
-  } catch {
-    // If we can't fetch the repo, assume no access
-    return false;
-  }
-}
-
-/**
  * Check if a PR is still open
  */
 export async function isPROpen(
@@ -143,7 +98,8 @@ export async function isPROpen(
   repo: string,
   prNumber: number
 ): Promise<{ open: boolean; state: string; merged: boolean }> {
-  const octokit = new Octokit({ auth: accessToken });
+  const { createOctokit } = await import('./pr-fetcher');
+  const octokit = createOctokit(accessToken);
 
   const { data: pr } = await octokit.pulls.get({
     owner,

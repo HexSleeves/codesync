@@ -5,7 +5,7 @@
 
 import type { DiffHunk, SessionSettings, SessionSource } from '@codesync/shared';
 import { relations } from 'drizzle-orm';
-import { boolean, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { boolean, index, integer, jsonb, pgTable, text, timestamp, unique } from 'drizzle-orm/pg-core';
 import { nanoid } from 'nanoid';
 
 export const users = pgTable('users', {
@@ -50,7 +50,11 @@ export const sessions = pgTable('sessions', {
   githubSyncedAt: timestamp('github_synced_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+}, (table) => ([
+  index('sessions_created_by_idx').on(table.createdBy),
+  index('sessions_status_idx').on(table.status),
+  index('sessions_share_token_idx').on(table.shareToken),
+]));
 
 export const files = pgTable('files', {
   id: text('id')
@@ -70,7 +74,9 @@ export const files = pgTable('files', {
   isReviewed: boolean('is_reviewed').default(false).notNull(),
   hunks: jsonb('hunks').$type<DiffHunk[]>(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+}, (table) => ([
+  index('files_session_id_idx').on(table.sessionId),
+]));
 
 export const comments = pgTable('comments', {
   id: text('id')
@@ -94,7 +100,11 @@ export const comments = pgTable('comments', {
   githubCommentId: text('github_comment_id'),
   syncedAt: timestamp('synced_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+}, (table) => ([
+  index('comments_session_id_idx').on(table.sessionId),
+  index('comments_file_id_idx').on(table.fileId),
+  index('comments_thread_id_idx').on(table.threadId),
+]));
 
 export const chatMessages = pgTable('chat_messages', {
   id: text('id')
@@ -108,7 +118,9 @@ export const chatMessages = pgTable('chat_messages', {
     .notNull(),
   text: text('text').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+}, (table) => ([
+  index('chat_messages_session_id_idx').on(table.sessionId),
+]));
 
 export const sessionParticipants = pgTable('session_participants', {
   id: text('id')
@@ -122,7 +134,10 @@ export const sessionParticipants = pgTable('session_participants', {
     .notNull(),
   role: text('role').$type<'owner' | 'reviewer' | 'viewer'>().default('viewer').notNull(),
   joinedAt: timestamp('joined_at').defaultNow().notNull(),
-});
+}, (table) => ([
+  unique('session_participants_unique').on(table.sessionId, table.userId),
+  index('session_participants_user_id_idx').on(table.userId),
+]));
 
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({

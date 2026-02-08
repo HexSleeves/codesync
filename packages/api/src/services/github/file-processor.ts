@@ -98,7 +98,7 @@ export async function processPRFile(
 }
 
 /**
- * Process multiple PR files in sequence
+ * Process multiple PR files with bounded concurrency
  * @returns count of successfully processed files
  */
 export async function processPRFiles(
@@ -107,10 +107,16 @@ export async function processPRFiles(
   prFiles: GitHubPRFile[],
   context: FileProcessingContext
 ): Promise<number> {
+  const CONCURRENCY = 5;
   let count = 0;
-  for (const prFile of prFiles) {
-    const success = await processPRFile(octokit, sessionId, prFile, context);
-    if (success) count++;
+  
+  // Process in batches of CONCURRENCY
+  for (let i = 0; i < prFiles.length; i += CONCURRENCY) {
+    const batch = prFiles.slice(i, i + CONCURRENCY);
+    const results = await Promise.allSettled(
+      batch.map((prFile) => processPRFile(octokit, sessionId, prFile, context))
+    );
+    count += results.filter((r) => r.status === 'fulfilled' && r.value).length;
   }
   return count;
 }

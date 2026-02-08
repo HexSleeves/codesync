@@ -187,18 +187,7 @@ export const syncRoutes = new Hono<{ Variables: AuthVariables }>()
         .map((c) => c.id);
 
       if (syncedCommentIds.length > 0) {
-        await db
-          .update(comments)
-          .set({ syncedAt })
-          .where(
-            and(
-              eq(comments.sessionId, id)
-              // Using raw SQL for IN clause since drizzle-orm doesn't have a direct inArray for update
-              // We'll update each comment individually instead
-            )
-          );
-
-        // Update each synced comment
+        // Update each synced comment individually
         for (const commentId of syncedCommentIds) {
           await db
             .update(comments)

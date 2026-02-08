@@ -14,7 +14,10 @@ import { chatMessages } from '../db/schema';
 // =============================================================================
 
 interface SessionState {
+  /** Map of connectionId → WebSocket */
   connections: Map<string, ServerWebSocket<WSConnectionData>>;
+  /** Map of userId → Set of connectionIds (supports multi-tab) */
+  userConnections: Map<string, Set<string>>;
   cursors: Map<string, CursorMessage>;
 }
 
@@ -27,6 +30,7 @@ function getSession(sessionId: string): SessionState {
   if (!sessions.has(sessionId)) {
     sessions.set(sessionId, {
       connections: new Map(),
+      userConnections: new Map(),
       cursors: new Map(),
     });
   }
@@ -61,13 +65,13 @@ export function getUserColor(userId: string): string {
 /**
  * Broadcast message to all connections in session except one
  */
-function broadcast(sessionId: string, message: object, excludeUserId?: string): void {
+function broadcast(sessionId: string, message: object, excludeConnId?: string): void {
   const session = sessions.get(sessionId);
   if (!session) return;
 
   const json = JSON.stringify(message);
-  for (const [odId, ws] of session.connections) {
-    if (odId !== excludeUserId && ws.readyState === WebSocket.OPEN) {
+  for (const [connId, ws] of session.connections) {
+    if (connId !== excludeConnId && ws.readyState === WebSocket.OPEN) {
       ws.send(json);
     }
   }
@@ -92,11 +96,20 @@ function broadcastAll(sessionId: string, message: object): void {
  * Get list of online users in a session
  */
 function getOnlineUsers(session: SessionState): OnlineUser[] {
-  return Array.from(session.connections.values()).map((conn) => ({
-    userId: conn.data.userId,
-    userName: conn.data.userName,
-    color: conn.data.color,
-  }));
+  // Deduplicate by userId (user may have multiple tabs)
+  const seen = new Set<string>();
+  const result: OnlineUser[] = [];
+  for (const ws of session.connections.values()) {
+    if (!seen.has(ws.data.userId)) {
+      seen.add(ws.data.userId);
+      result.push({
+        userId: ws.data.userId,
+        userName: ws.data.userName,
+        color: ws.data.color,
+      });
+    }
+  }
+  return result;
 }
 
 // =============================================================================
@@ -111,8 +124,16 @@ export const wsHandlers = {
     const { sessionId, userId, userName, color } = ws.data;
     const session = getSession(sessionId);
 
+    // Generate unique connection ID for multi-tab support
+    const connId = nanoid(8);
+    (ws.data as any).connId = connId;
+
     // Add this connection
-    session.connections.set(userId, ws);
+    session.connections.set(connId, ws);
+    if (!session.userConnections.has(userId)) {
+      session.userConnections.set(userId, new Set());
+    }
+    session.userConnections.get(userId)!.add(connId);
 
     // Get current online users (including the new one)
     const onlineUsers = getOnlineUsers(session);
@@ -145,7 +166,7 @@ export const wsHandlers = {
         color,
         onlineUsers,
       },
-      userId
+      connId
     );
 
     console.log(`[WS] User ${userName} joined session ${sessionId}`);
@@ -156,6 +177,7 @@ export const wsHandlers = {
    */
   async message(ws: ServerWebSocket<WSConnectionData>, message: string | Buffer): Promise<void> {
     const { sessionId, userId, userName, color } = ws.data;
+    const connId = (ws.data as any).connId as string;
 
     try {
       const data = JSON.parse(message.toString());
@@ -177,7 +199,7 @@ export const wsHandlers = {
           session.cursors.set(userId, cursorMsg);
 
           // Broadcast to others (not back to sender)
-          broadcast(sessionId, cursorMsg, userId);
+          broadcast(sessionId, cursorMsg, connId);
           break;
         }
 
@@ -244,12 +266,21 @@ export const wsHandlers = {
    */
   close(ws: ServerWebSocket<WSConnectionData>): void {
     const { sessionId, userId, userName, color } = ws.data;
+    const connId = (ws.data as any).connId as string;
     const session = sessions.get(sessionId);
 
     if (session) {
-      // Remove connection and cursor
-      session.connections.delete(userId);
-      session.cursors.delete(userId);
+      // Remove this specific connection
+      session.connections.delete(connId);
+      const userConns = session.userConnections.get(userId);
+      if (userConns) {
+        userConns.delete(connId);
+        if (userConns.size === 0) {
+          session.userConnections.delete(userId);
+          // Only remove cursor when ALL tabs are closed
+          session.cursors.delete(userId);
+        }
+      }
 
       if (session.connections.size === 0) {
         // Clean up empty session
