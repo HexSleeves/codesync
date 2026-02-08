@@ -35,10 +35,10 @@ export function useQuery<TData = unknown, TError = Error>(
     observerRef.current = new QueryObserver(queryClient, options);
   }
 
-  // Update options if they change
+  // Update options when key or enabled changes
   useEffect(() => {
     observerRef.current?.setOptions(options);
-  }, [JSON.stringify(options.queryKey)]);
+  }, [JSON.stringify(options.queryKey), options.enabled]);
 
   const result = useSyncExternalStore(
     (callback) => {
@@ -63,6 +63,11 @@ export function useMutation<TData = unknown, TError = Error, TVariables = void>(
   if (!observerRef.current) {
     observerRef.current = new MutationObserver(queryClient, options);
   }
+
+  // Update options when callbacks change
+  useEffect(() => {
+    observerRef.current?.setOptions(options);
+  });
 
   const result = useSyncExternalStore(
     (callback) => {

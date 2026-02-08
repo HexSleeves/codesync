@@ -2,8 +2,8 @@
  * GitHub store using Zustand vanilla (compatible with Hono JSX-DOM)
  */
 
-import { useRef, useSyncExternalStore } from 'hono/jsx';
 import { createStore } from 'zustand/vanilla';
+import { createStoreHook } from '../lib/store';
 import { toast } from '@/components/ui/sonner';
 import { apiClient } from '../api/client';
 
@@ -69,54 +69,9 @@ export const githubStore = createStore<GitHubStore>()((set, _get) => ({
 }));
 
 /**
- * Shallow equality check for store selectors
- */
-function shallowEqual<T>(a: T, b: T): boolean {
-  if (Object.is(a, b)) return true;
-  if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) {
-    return false;
-  }
-  const keysA = Object.keys(a) as Array<keyof T>;
-  const keysB = Object.keys(b) as Array<keyof T>;
-  if (keysA.length !== keysB.length) return false;
-  for (const key of keysA) {
-    if (!keysB.includes(key) || !Object.is(a[key], b[key])) {
-      return false;
-    }
-  }
-  return true;
-}
-
-/**
  * Hook to use GitHub store with Hono JSX-DOM
- * Uses useSyncExternalStore for compatibility with shallow equality checking
  */
-export function useGitHubStore<T>(selector: (state: GitHubStore) => T): T {
-  const cache = useRef<{ value: T; hasValue: boolean }>({ value: undefined as T, hasValue: false });
-
-  return useSyncExternalStore(
-    (onStoreChange) => {
-      // Create a custom subscribe that only notifies when selected value changes
-      let currentValue = selector(githubStore.getState());
-      return githubStore.subscribe((state) => {
-        const nextValue = selector(state);
-        if (!shallowEqual(currentValue, nextValue)) {
-          currentValue = nextValue;
-          onStoreChange();
-        }
-      });
-    },
-    () => {
-      const nextValue = selector(githubStore.getState());
-      if (cache.current?.hasValue && shallowEqual(cache.current.value, nextValue)) {
-        return cache.current.value;
-      }
-      cache.current = { value: nextValue, hasValue: true };
-      return nextValue;
-    },
-    () => selector(githubStore.getState())
-  );
-}
+export const useGitHubStore = createStoreHook(githubStore);
 
 // Initialize on first import (when user is logged in)
 export function initGitHubStore() {

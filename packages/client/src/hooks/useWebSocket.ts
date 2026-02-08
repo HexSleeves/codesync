@@ -187,10 +187,14 @@ export function useWebSocket(sessionId: string | undefined): UseWebSocketReturn 
             break;
 
           case 'chat':
-            setState((s) => ({
-              ...s,
-              chatMessages: [...s.chatMessages, message],
-            }));
+            setState((s) => {
+              const messages = [...s.chatMessages, message];
+              // Cap at 500 messages to prevent unbounded memory growth
+              return {
+                ...s,
+                chatMessages: messages.length > 500 ? messages.slice(-500) : messages,
+              };
+            });
             break;
 
           case 'error':

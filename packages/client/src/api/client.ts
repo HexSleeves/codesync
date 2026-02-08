@@ -1,16 +1,6 @@
 /**
- * Hono RPC Client - Type-safe API calls
+ * API Client - fetch-based with auth
  */
-
-import type { AppType } from '@codesync/api';
-import { hc } from 'hono/client';
-
-// Create type-safe client
-export const api = hc<AppType>('/', {
-  init: {
-    credentials: 'include',
-  },
-});
 
 // Auth helpers
 export function getToken(): string | null {
@@ -62,7 +52,7 @@ export async function apiCall<T>(
       // Zod validation errors
       try {
         const errors = JSON.parse(data.error.message);
-        message = errors.map((e: any) => e.message).join(', ');
+        message = errors.map((e: { message: string }) => e.message).join(', ');
       } catch {
         message = data.error.message;
       }

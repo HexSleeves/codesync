@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { initToaster } from './components/ui/sonner';
 import { useAuth } from './hooks/useAuth';
+import { initSettings } from './stores/settings';
 import { DashboardPage } from './pages/Dashboard';
 import { HomePage } from './pages/Home';
 import { LoginPage } from './pages/Login';
@@ -136,6 +137,7 @@ export function App() {
 
   useEffect(() => {
     initToaster();
+    initSettings();
   }, []);
 
   // Show loading while checking auth

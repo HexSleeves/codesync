@@ -34,7 +34,7 @@ export function useSession(sessionId: string | undefined) {
       await invalidateQueries(['sessions']);
 
       // Update cache
-      queryClient.setQueryData(['session', sessionId], (old: any) => ({
+      queryClient.setQueryData(['session', sessionId], (old: { session: Session; files: File[] } | undefined) => ({
         ...old,
         session: data.session,
       }));
@@ -51,7 +51,7 @@ export function useSession(sessionId: string | undefined) {
       return apiCall<{ file: File }>('POST', `/sessions/${sessionId}/files`, file);
     },
     onSuccess: (data) => {
-      queryClient.setQueryData(['session', sessionId], (old: any) => ({
+      queryClient.setQueryData(['session', sessionId], (old: { session: Session; files: File[] } | undefined) => ({
         ...old,
         files: [...(old?.files || []), data.file],
       }));
@@ -68,7 +68,7 @@ export function useSession(sessionId: string | undefined) {
       return { fileId, reviewed };
     },
     onSuccess: ({ fileId, reviewed }) => {
-      queryClient.setQueryData(['session', sessionId], (old: any) => ({
+      queryClient.setQueryData(['session', sessionId], (old: { session: Session; files: File[] } | undefined) => ({
         ...old,
         files: old?.files?.map((f: File) => (f.id === fileId ? { ...f, isReviewed: reviewed } : f)),
       }));
@@ -83,7 +83,7 @@ export function useSession(sessionId: string | undefined) {
   const setSession = useCallback(
     (session: Session) => {
       // Update current session cache
-      queryClient.setQueryData(['session', sessionId], (old: any) => ({
+      queryClient.setQueryData(['session', sessionId], (old: { session: Session; files: File[] } | undefined) => ({
         ...old,
         session,
       }));

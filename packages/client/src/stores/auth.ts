@@ -3,8 +3,8 @@
  */
 
 import type { User } from '@codesync/shared';
-import { useRef, useSyncExternalStore } from 'hono/jsx';
 import { createStore } from 'zustand/vanilla';
+import { createStoreHook } from '../lib/store';
 import { apiCall, clearToken, getToken, setToken } from '../api/client';
 import { resetGitHubStore } from './github';
 import { resetSessionsStore } from './sessions';
@@ -29,7 +29,7 @@ interface AuthActions {
 
 type AuthStore = AuthState & AuthActions;
 
-let initialized = false;
+let initState: 'idle' | 'loading' | 'done' = 'idle';
 
 export const authStore = createStore<AuthStore>()((set) => ({
   // State
@@ -39,21 +39,24 @@ export const authStore = createStore<AuthStore>()((set) => ({
 
   // Actions
   init: async () => {
-    if (initialized) return;
-    initialized = true;
+    if (initState !== 'idle') return;
+    initState = 'loading';
 
     const token = getToken();
     if (!token) {
       set({ user: null, loading: false, error: null });
+      initState = 'done';
       return;
     }
 
     try {
       const { user } = await apiCall<{ user: User }>('GET', '/auth/me');
       set({ user, loading: false, error: null });
+      initState = 'done';
     } catch {
       clearToken();
       set({ user: null, loading: false, error: null });
+      initState = 'idle'; // Allow retry on failure
     }
   },
 
@@ -108,55 +111,9 @@ export const authStore = createStore<AuthStore>()((set) => ({
 }));
 
 /**
- * Shallow equality check for store selectors
- */
-function shallowEqual<T>(a: T, b: T): boolean {
-  if (Object.is(a, b)) return true;
-  if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) {
-    return false;
-  }
-  const keysA = Object.keys(a) as Array<keyof T>;
-  const keysB = Object.keys(b) as Array<keyof T>;
-  if (keysA.length !== keysB.length) return false;
-  for (const key of keysA) {
-    if (!keysB.includes(key) || !Object.is(a[key], b[key])) {
-      return false;
-    }
-  }
-  return true;
-}
-
-/**
  * Hook to use auth store with Hono JSX-DOM
- * Uses useSyncExternalStore for compatibility with shallow equality checking
  */
-export function useAuthStore<T>(selector: (state: AuthStore) => T): T {
-  const cache = useRef<{ value: T; hasValue: boolean }>({ value: undefined as T, hasValue: false });
-
-  return useSyncExternalStore(
-    (onStoreChange) => {
-      // Create a custom subscribe that only notifies when selected value changes
-      let currentValue = selector(authStore.getState());
-      return authStore.subscribe((state) => {
-        const nextValue = selector(state);
-        if (!shallowEqual(currentValue, nextValue)) {
-          currentValue = nextValue;
-          onStoreChange();
-        }
-      });
-    },
-    () => {
-      const nextValue = selector(authStore.getState());
-      const cached = cache.current;
-      if (cached?.hasValue && shallowEqual(cached.value, nextValue)) {
-        return cached.value;
-      }
-      cache.current = { value: nextValue, hasValue: true };
-      return nextValue;
-    },
-    () => selector(authStore.getState())
-  );
-}
+export const useAuthStore = createStoreHook(authStore);
 
 // Convenience selector hooks
 export const useUser = () => useAuthStore((s) => s.user);

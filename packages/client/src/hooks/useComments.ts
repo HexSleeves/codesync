@@ -44,7 +44,7 @@ export function useComments(fileId: string | null) {
       });
     },
     onSuccess: (data) => {
-      queryClient.setQueryData(['comments', fileId], (old: any) => ({
+      queryClient.setQueryData(['comments', fileId], (old: { comments: Comment[] } | undefined) => ({
         comments: [...(old?.comments || []), data.comment],
       }));
       toast.success('Comment added');
@@ -60,8 +60,8 @@ export function useComments(fileId: string | null) {
       return { commentId, resolved };
     },
     onSuccess: ({ commentId, resolved }) => {
-      queryClient.setQueryData(['comments', fileId], (old: any) => ({
-        comments: old?.comments?.map((c: Comment) =>
+      queryClient.setQueryData(['comments', fileId], (old: { comments: Comment[] } | undefined) => ({
+        comments: (old?.comments ?? []).map((c) =>
           c.id === commentId || c.threadId === commentId ? { ...c, isResolved: resolved } : c
         ),
       }));
@@ -78,8 +78,8 @@ export function useComments(fileId: string | null) {
       return commentId;
     },
     onSuccess: (commentId) => {
-      queryClient.setQueryData(['comments', fileId], (old: any) => ({
-        comments: old?.comments?.filter((c: Comment) => c.id !== commentId),
+      queryClient.setQueryData(['comments', fileId], (old: { comments: Comment[] } | undefined) => ({
+        comments: (old?.comments ?? []).filter((c) => c.id !== commentId),
       }));
       toast.success('Comment deleted');
     },

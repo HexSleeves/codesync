@@ -2,6 +2,7 @@
  * Client-side router for Hono JSX-DOM SPA
  */
 
+import type { Child } from 'hono/jsx';
 import { useEffect, useState } from 'hono/jsx';
 
 // Global navigation event
@@ -68,7 +69,7 @@ export function Link({
   class: cls,
 }: {
   href: string;
-  children: any;
+  children: Child;
   className?: string;
   class?: string;
 }) {

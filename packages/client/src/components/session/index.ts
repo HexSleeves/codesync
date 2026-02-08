@@ -4,7 +4,6 @@
 
 export { ChatPanel } from './ChatPanel';
 export { ChatSidebar } from './ChatSidebar';
-export { CursorOverlay } from './CursorOverlay';
 export { FileHeader } from './FileHeader';
 export { FileTree } from './FileTree';
 export { FileTreeItem } from './FileTreeItem';

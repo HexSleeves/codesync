@@ -3,8 +3,8 @@
  * Persists user preferences to localStorage
  */
 
-import { useRef, useSyncExternalStore } from 'hono/jsx';
 import { createStore } from 'zustand/vanilla';
+import { createStoreHook } from '../lib/store';
 
 const STORAGE_KEY = 'codesync-settings';
 
@@ -172,54 +172,9 @@ export const settingsStore = createStore<SettingsStore>()((set, get) => ({
 }));
 
 /**
- * Shallow equality check for store selectors
- */
-function shallowEqual<T>(a: T, b: T): boolean {
-  if (Object.is(a, b)) return true;
-  if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) {
-    return false;
-  }
-  const keysA = Object.keys(a) as Array<keyof T>;
-  const keysB = Object.keys(b) as Array<keyof T>;
-  if (keysA.length !== keysB.length) return false;
-  for (const key of keysA) {
-    if (!keysB.includes(key) || !Object.is(a[key], b[key])) {
-      return false;
-    }
-  }
-  return true;
-}
-
-/**
  * Hook to use settings store with Hono JSX-DOM
- * Uses useSyncExternalStore for compatibility with shallow equality checking
  */
-export function useSettingsStore<T>(selector: (state: SettingsStore) => T): T {
-  const cache = useRef<{ value: T; hasValue: boolean }>({ value: undefined as T, hasValue: false });
-
-  return useSyncExternalStore(
-    (onStoreChange) => {
-      // Create a custom subscribe that only notifies when selected value changes
-      let currentValue = selector(settingsStore.getState());
-      return settingsStore.subscribe((state) => {
-        const nextValue = selector(state);
-        if (!shallowEqual(currentValue, nextValue)) {
-          currentValue = nextValue;
-          onStoreChange();
-        }
-      });
-    },
-    () => {
-      const nextValue = selector(settingsStore.getState());
-      if (cache.current?.hasValue && shallowEqual(cache.current.value, nextValue)) {
-        return cache.current.value;
-      }
-      cache.current = { value: nextValue, hasValue: true };
-      return nextValue;
-    },
-    () => selector(settingsStore.getState())
-  );
-}
+export const useSettingsStore = createStoreHook(settingsStore);
 
 // Convenience selector hooks
 export const useTheme = () => useSettingsStore((s) => s.theme);
@@ -230,21 +185,27 @@ export const useShowLineNumbers = () => useSettingsStore((s) => s.showLineNumber
 export const useSoundEnabled = () => useSettingsStore((s) => s.soundEnabled);
 export const useDesktopNotifications = () => useSettingsStore((s) => s.desktopNotifications);
 
+let settingsInitialized = false;
+let mediaQueryCleanup: (() => void) | null = null;
+
 /**
  * Initialize settings (apply theme and font size on app load)
  */
 export function initSettings(): void {
+  if (settingsInitialized) return;
+  settingsInitialized = true;
+
   const state = settingsStore.getState();
   applyTheme(state.theme);
   applyFontSize(state.fontSize);
 
-  // Listen for system theme changes
-  if (state.theme === 'system') {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    mediaQuery.addEventListener('change', () => {
-      if (settingsStore.getState().theme === 'system') {
-        applyTheme('system');
-      }
-    });
-  }
+  // Listen for system theme changes (with cleanup)
+  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+  const handler = () => {
+    if (settingsStore.getState().theme === 'system') {
+      applyTheme('system');
+    }
+  };
+  mediaQuery.addEventListener('change', handler);
+  mediaQueryCleanup = () => mediaQuery.removeEventListener('change', handler);
 }

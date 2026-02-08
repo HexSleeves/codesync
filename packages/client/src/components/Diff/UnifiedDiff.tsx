@@ -3,6 +3,7 @@
  */
 
 import type { Comment, CursorMessage, DiffHunk, DiffLine } from '@codesync/shared';
+import { useMemo } from 'hono/jsx';
 import { highlightLine } from '@/lib/highlight';
 
 export interface UnifiedDiffProps {
@@ -22,12 +23,15 @@ export function UnifiedDiff({
   language,
   cursors = [],
 }: UnifiedDiffProps) {
-  // Create a map of line numbers to cursors
-  const cursorsByLine = new Map<number, CursorMessage[]>();
-  for (const cursor of cursors) {
-    const existing = cursorsByLine.get(cursor.line) || [];
-    cursorsByLine.set(cursor.line, [...existing, cursor]);
-  }
+  // Create a map of line numbers to cursors (memoized)
+  const cursorsByLine = useMemo(() => {
+    const map = new Map<number, CursorMessage[]>();
+    for (const cursor of cursors) {
+      const existing = map.get(cursor.line) || [];
+      map.set(cursor.line, [...existing, cursor]);
+    }
+    return map;
+  }, [cursors]);
   return (
     <div className="font-mono text-[13px] leading-5 bg-background text-foreground overflow-x-auto">
       {hunks.map((hunk, hunkIndex) => (
