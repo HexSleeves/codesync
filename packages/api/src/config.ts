@@ -2,9 +2,16 @@
  * Configuration - Centralized environment variables
  */
 
+// Validate critical secrets in production
+if (process.env.NODE_ENV === 'production') {
+  if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'your-secret-key-change-in-production') {
+    throw new Error('FATAL: JWT_SECRET must be set in production');
+  }
+}
+
 export const config = {
   // Server
-  port: Number.parseInt(process.env.PORT || '8000', 10),
+  port: Number.parseInt(process.env.PORT || '8001', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
   isDev: process.env.NODE_ENV !== 'production',
 
@@ -12,8 +19,7 @@ export const config = {
   databaseUrl: process.env.DATABASE_URL || 'postgres://codesync:codesync@localhost:5432/codesync',
 
   // Auth
-  jwtSecret: process.env.JWT_SECRET || 'your-secret-key-change-in-production',
-  passwordSalt: process.env.PASSWORD_SALT || 'salt',
+  jwtSecret: process.env.JWT_SECRET || 'dev-only-secret-' + crypto.randomUUID(),
   tokenExpiryDays: 7,
 
   // CORS

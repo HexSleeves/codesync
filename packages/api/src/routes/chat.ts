@@ -9,12 +9,23 @@ import { Hono } from 'hono';
 import { db } from '../db/client';
 import { chatMessages, users } from '../db/schema';
 import { type AuthVariables, authMiddleware } from '../middleware/auth';
+import { checkSessionAccess } from '../services/session/access';
 
 export const chatRoutes = new Hono<{ Variables: AuthVariables }>()
   // GET /api/sessions/:sessionId/chat - Get chat messages
   .get('/sessions/:sessionId/chat', authMiddleware, async (c) => {
     const { sessionId } = c.req.param();
-    const limit = parseInt(c.req.query('limit') || '100', 10);
+    const userId = c.get('userId');
+    const limit = Math.min(Math.max(Number.parseInt(c.req.query('limit') || '100', 10) || 100, 1), 200);
+
+    // Check session access
+    const access = await checkSessionAccess(sessionId, userId);
+    if (access.error) {
+      return c.json(
+        { error: access.error === 'not_found' ? 'Session not found' : 'Access denied' },
+        access.error === 'not_found' ? 404 : 403
+      );
+    }
 
     const messages = await db
       .select({
@@ -50,6 +61,15 @@ export const chatRoutes = new Hono<{ Variables: AuthVariables }>()
       const { sessionId } = c.req.param();
       const userId = c.get('userId');
       const { text } = c.req.valid('json');
+
+      // Check session access
+      const access = await checkSessionAccess(sessionId, userId);
+      if (access.error) {
+        return c.json(
+          { error: access.error === 'not_found' ? 'Session not found' : 'Access denied' },
+          access.error === 'not_found' ? 404 : 403
+        );
+      }
 
       const [message] = await db
         .insert(chatMessages)

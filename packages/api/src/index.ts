@@ -10,6 +10,7 @@ import app from './app';
 import { config } from './config';
 import { db } from './db/client';
 import { users } from './db/schema';
+import { checkSessionAccess } from './services/session/access';
 import { getUserColor, wsHandlers } from './ws';
 
 console.log(`\n🚀 CodeSync API starting...`);
@@ -62,6 +63,12 @@ const server = Bun.serve<WSConnectionData>({
           return new Response('Unauthorized - user not found', { status: 401 });
         }
 
+        // Check session access
+        const access = await checkSessionAccess(sessionId, user.id);
+        if (!access.hasAccess) {
+          return new Response('Forbidden - no access to this session', { status: 403 });
+        }
+
         // Upgrade to WebSocket with user data attached
         const upgraded = server.upgrade(req, {
           data: {
@@ -96,6 +103,15 @@ console.log(`✅ Server running at http://localhost:${server.port}`);
 console.log(`   API: http://localhost:${server.port}/api`);
 console.log(`   Health: http://localhost:${server.port}/health`);
 console.log(`   WebSocket: ws://localhost:${server.port}/ws/sessions/:id\n`);
+
+// Graceful shutdown
+function shutdown() {
+  console.log('\n🛑 Shutting down...');
+  server.stop();
+  process.exit(0);
+}
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);
 
 // Export for type inference in client
 export type { AppType } from './app';

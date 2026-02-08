@@ -6,6 +6,7 @@
 import { eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { getCookie, setCookie } from 'hono/cookie';
+import { sign, verify } from 'hono/jwt';
 import { nanoid } from 'nanoid';
 import { config } from '../../config';
 import { db } from '../../db/client';
@@ -25,24 +26,19 @@ export const oauthRoutes = new Hono<{ Variables: AuthVariables }>()
 
     const userId = c.get('userId');
 
-    // Generate state for CSRF protection
-    const state = nanoid(32);
+    // Generate HMAC-signed state containing userId for CSRF protection + user binding
+    const nonce = nanoid(32);
+    const state = await sign(
+      { sub: userId, nonce, exp: Math.floor(Date.now() / 1000) + 600 },
+      config.jwtSecret
+    );
 
-    // Store state in cookie for verification
-    setCookie(c, 'github_oauth_state', state, {
+    // Store nonce in cookie for double-check verification
+    setCookie(c, 'github_oauth_state', nonce, {
       httpOnly: true,
       secure: !config.isDev,
       sameSite: 'Lax',
       maxAge: 60 * 10, // 10 minutes
-      path: '/',
-    });
-
-    // Store user ID to link after callback
-    setCookie(c, 'github_oauth_user', userId, {
-      httpOnly: true,
-      secure: !config.isDev,
-      sameSite: 'Lax',
-      maxAge: 60 * 10,
       path: '/',
     });
 
@@ -79,16 +75,21 @@ export const oauthRoutes = new Hono<{ Variables: AuthVariables }>()
       return redirectWithError('missing_params');
     }
 
-    // Verify state
-    const storedState = getCookie(c, 'github_oauth_state');
-    const userId = getCookie(c, 'github_oauth_user');
+    // Verify signed state — extracts userId securely
+    const storedNonce = getCookie(c, 'github_oauth_state');
 
-    if (!storedState || state !== storedState) {
+    let userId: string;
+    try {
+      const payload = await verify(state, config.jwtSecret, 'HS256') as { sub?: string; nonce?: string };
+      if (!payload?.sub || !payload?.nonce) {
+        return redirectWithError('invalid_state');
+      }
+      if (payload.nonce !== storedNonce) {
+        return redirectWithError('invalid_state');
+      }
+      userId = payload.sub;
+    } catch {
       return redirectWithError('invalid_state');
-    }
-
-    if (!userId) {
-      return redirectWithError('session_expired');
     }
 
     try {
@@ -134,9 +135,8 @@ export const oauthRoutes = new Hono<{ Variables: AuthVariables }>()
         })
         .where(eq(users.id, userId));
 
-      // Clear OAuth cookies
+      // Clear OAuth cookie
       setCookie(c, 'github_oauth_state', '', { maxAge: 0, path: '/' });
-      setCookie(c, 'github_oauth_user', '', { maxAge: 0, path: '/' });
 
       return c.redirect(`${config.frontendUrl}/dashboard?github_connected=true`);
     } catch (err) {

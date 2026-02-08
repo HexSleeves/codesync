@@ -29,9 +29,12 @@ export const authRoutes = new Hono<{ Variables: AuthVariables }>()
       return c.json({ error: 'Invalid email or password' }, 401);
     }
 
-    // Verify password (simplified - use bcrypt in production)
-    const passwordHash = await hashPassword(password);
-    if (user.passwordHash !== passwordHash) {
+    // Verify password using argon2id
+    if (!user.passwordHash) {
+      return c.json({ error: 'Invalid email or password' }, 401);
+    }
+    const passwordValid = await Bun.password.verify(password, user.passwordHash);
+    if (!passwordValid) {
       return c.json({ error: 'Invalid email or password' }, 401);
     }
 
@@ -44,6 +47,7 @@ export const authRoutes = new Hono<{ Variables: AuthVariables }>()
       secure: !config.isDev,
       sameSite: 'Lax',
       maxAge: 60 * 60 * 24 * config.tokenExpiryDays,
+      path: '/',
     });
 
     return c.json({
@@ -73,8 +77,8 @@ export const authRoutes = new Hono<{ Variables: AuthVariables }>()
       return c.json({ error: 'Email already registered' }, 400);
     }
 
-    // Create user
-    const passwordHash = await hashPassword(password);
+    // Create user with argon2id hashing
+    const passwordHash = await Bun.password.hash(password, { algorithm: 'argon2id' });
     const [user] = await db
       .insert(users)
       .values({
@@ -93,6 +97,7 @@ export const authRoutes = new Hono<{ Variables: AuthVariables }>()
       secure: !config.isDev,
       sameSite: 'Lax',
       maxAge: 60 * 60 * 24 * config.tokenExpiryDays,
+      path: '/',
     });
 
     return c.json(
@@ -110,7 +115,7 @@ export const authRoutes = new Hono<{ Variables: AuthVariables }>()
 
   // POST /api/auth/logout
   .post('/logout', async (c) => {
-    deleteCookie(c, 'token');
+    deleteCookie(c, 'token', { path: '/' });
     return c.json({ success: true });
   })
 
@@ -120,13 +125,4 @@ export const authRoutes = new Hono<{ Variables: AuthVariables }>()
     return c.json({ user });
   });
 
-/**
- * Simple password hashing (use bcrypt in production)
- */
-async function hashPassword(password: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password + config.passwordSalt);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
-}
+

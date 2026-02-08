@@ -10,11 +10,18 @@ import { nanoid } from 'nanoid';
 import { db } from '../db/client';
 import { comments, files, users } from '../db/schema';
 import { type AuthVariables, authMiddleware } from '../middleware/auth';
+import { checkFileAccess, checkSessionAccess } from '../services/session/access';
 
 export const commentRoutes = new Hono<{ Variables: AuthVariables }>()
   // GET /api/files/:fileId/comments - Get comments for file
   .get('/files/:fileId/comments', authMiddleware, async (c) => {
     const { fileId } = c.req.param();
+    const userId = c.get('userId');
+
+    const accessCheck = await checkFileAccess(fileId, userId);
+    if ('error' in accessCheck) {
+      return c.json({ error: accessCheck.error }, accessCheck.status);
+    }
 
     const fileComments = await db
       .select({
@@ -145,6 +152,7 @@ export const commentRoutes = new Hono<{ Variables: AuthVariables }>()
   // POST /api/comments/:id/resolve - Resolve comment thread
   .post('/comments/:id/resolve', authMiddleware, async (c) => {
     const { id } = c.req.param();
+    const userId = c.get('userId');
 
     // Get comment to find thread
     const comment = await db
@@ -156,6 +164,12 @@ export const commentRoutes = new Hono<{ Variables: AuthVariables }>()
 
     if (!comment) {
       return c.json({ error: 'Comment not found' }, 404);
+    }
+
+    // Check session access
+    const access = await checkSessionAccess(comment.sessionId, userId);
+    if (!access.hasAccess) {
+      return c.json({ error: 'Access denied' }, 403);
     }
 
     // Resolve all comments in thread
@@ -174,6 +188,7 @@ export const commentRoutes = new Hono<{ Variables: AuthVariables }>()
   // DELETE /api/comments/:id/resolve - Unresolve comment thread
   .delete('/comments/:id/resolve', authMiddleware, async (c) => {
     const { id } = c.req.param();
+    const userId = c.get('userId');
 
     const comment = await db
       .select()
@@ -184,6 +199,12 @@ export const commentRoutes = new Hono<{ Variables: AuthVariables }>()
 
     if (!comment) {
       return c.json({ error: 'Comment not found' }, 404);
+    }
+
+    // Check session access
+    const access = await checkSessionAccess(comment.sessionId, userId);
+    if (!access.hasAccess) {
+      return c.json({ error: 'Access denied' }, 403);
     }
 
     if (comment.threadId) {

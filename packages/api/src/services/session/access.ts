@@ -3,9 +3,9 @@
  * Helpers for checking session ownership and access rights
  */
 
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { db } from '../../db/client';
-import { sessions } from '../../db/schema';
+import { files, sessionParticipants, sessions } from '../../db/schema';
 
 /**
  * Session access result
@@ -32,8 +32,23 @@ export async function getSessionById(
 }
 
 /**
- * Check if user has access to a session
- * Returns session data and access info
+ * Check if user is a participant (or owner) of a session
+ */
+async function isParticipant(sessionId: string, userId: string): Promise<boolean> {
+  const row = await db
+    .select({ id: sessionParticipants.id })
+    .from(sessionParticipants)
+    .where(
+      and(eq(sessionParticipants.sessionId, sessionId), eq(sessionParticipants.userId, userId))
+    )
+    .limit(1)
+    .then((rows) => rows[0]);
+  return !!row;
+}
+
+/**
+ * Check if user has access to a session.
+ * Access is granted if: user is owner, user is participant, or session is public.
  */
 export async function checkSessionAccess(
   sessionId: string,
@@ -45,14 +60,26 @@ export async function checkSessionAccess(
     return { session: null, hasAccess: false, isOwner: false, error: 'not_found' };
   }
 
-  const isOwner = session.createdBy === userId;
-  const hasAccess = session.isPublic || isOwner;
+  const isOwner = !!userId && session.createdBy === userId;
 
-  if (!hasAccess) {
-    return { session, hasAccess: false, isOwner, error: 'access_denied' };
+  if (isOwner) {
+    return { session, hasAccess: true, isOwner: true };
   }
 
-  return { session, hasAccess: true, isOwner };
+  // Check participant table
+  if (userId) {
+    const participant = await isParticipant(sessionId, userId);
+    if (participant) {
+      return { session, hasAccess: true, isOwner: false };
+    }
+  }
+
+  // Public sessions allow read access
+  if (session.isPublic) {
+    return { session, hasAccess: true, isOwner: false };
+  }
+
+  return { session, hasAccess: false, isOwner: false, error: 'access_denied' };
 }
 
 /**
@@ -76,4 +103,31 @@ export async function checkSessionOwnership(
   }
 
   return { session, hasAccess: true, isOwner: true };
+}
+
+/**
+ * Check session access given a fileId (look up the session from the file).
+ * Returns the file's sessionId on success.
+ */
+export async function checkFileAccess(
+  fileId: string,
+  userId: string
+): Promise<{ sessionId: string } | { error: string; status: 404 | 403 }> {
+  const file = await db
+    .select({ sessionId: files.sessionId })
+    .from(files)
+    .where(eq(files.id, fileId))
+    .limit(1)
+    .then((rows) => rows[0]);
+
+  if (!file) {
+    return { error: 'File not found', status: 404 };
+  }
+
+  const access = await checkSessionAccess(file.sessionId, userId);
+  if (!access.hasAccess) {
+    return { error: 'Access denied', status: 403 };
+  }
+
+  return { sessionId: file.sessionId };
 }
