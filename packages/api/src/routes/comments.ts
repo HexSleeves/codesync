@@ -4,11 +4,11 @@
 
 import { createCommentSchema, updateCommentSchema } from '@codesync/shared';
 import { zValidator } from '@hono/zod-validator';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { nanoid } from 'nanoid';
 import { db } from '../db/client';
-import { comments, files, users } from '../db/schema';
+import { comments, users } from '../db/schema';
 import { type AuthVariables, authMiddleware } from '../middleware/auth';
 import { checkFileAccess, checkSessionAccess } from '../services/session/access';
 
@@ -54,27 +54,42 @@ export const commentRoutes = new Hono<{ Variables: AuthVariables }>()
       const userId = c.get('userId');
       const data = c.req.valid('json');
 
-      // Get file to get sessionId
-      const file = await db
-        .select()
-        .from(files)
-        .where(eq(files.id, fileId))
-        .limit(1)
-        .then((rows) => rows[0]);
-
-      if (!file) {
-        return c.json({ error: 'File not found' }, 404);
+      const accessCheck = await checkFileAccess(fileId, userId);
+      if ('error' in accessCheck) {
+        return c.json({ error: accessCheck.error }, accessCheck.status);
       }
 
-      // Generate threadId for new threads
-      const threadId = data.parentId ? data.threadId : nanoid();
+      let threadId = nanoid();
+      if (data.parentId) {
+        const parentComment = await db
+          .select({
+            id: comments.id,
+            sessionId: comments.sessionId,
+            fileId: comments.fileId,
+            threadId: comments.threadId,
+          })
+          .from(comments)
+          .where(eq(comments.id, data.parentId))
+          .limit(1)
+          .then((rows) => rows[0]);
+
+        if (!parentComment) {
+          return c.json({ error: 'Parent comment not found' }, 400);
+        }
+
+        if (parentComment.fileId !== fileId || parentComment.sessionId !== accessCheck.sessionId) {
+          return c.json({ error: 'Parent comment must be in the same file thread' }, 400);
+        }
+
+        threadId = parentComment.threadId || parentComment.id;
+      }
 
       const [comment] = await db
         .insert(comments)
         .values({
           ...data,
           fileId,
-          sessionId: file.sessionId,
+          sessionId: accessCheck.sessionId,
           authorId: userId,
           threadId,
         })
@@ -177,7 +192,13 @@ export const commentRoutes = new Hono<{ Variables: AuthVariables }>()
       await db
         .update(comments)
         .set({ isResolved: true })
-        .where(eq(comments.threadId, comment.threadId));
+        .where(
+          and(
+            eq(comments.threadId, comment.threadId),
+            eq(comments.sessionId, comment.sessionId),
+            eq(comments.fileId, comment.fileId)
+          )
+        );
     } else {
       await db.update(comments).set({ isResolved: true }).where(eq(comments.id, id));
     }
@@ -211,7 +232,13 @@ export const commentRoutes = new Hono<{ Variables: AuthVariables }>()
       await db
         .update(comments)
         .set({ isResolved: false })
-        .where(eq(comments.threadId, comment.threadId));
+        .where(
+          and(
+            eq(comments.threadId, comment.threadId),
+            eq(comments.sessionId, comment.sessionId),
+            eq(comments.fileId, comment.fileId)
+          )
+        );
     } else {
       await db.update(comments).set({ isResolved: false }).where(eq(comments.id, id));
     }

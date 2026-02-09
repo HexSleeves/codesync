@@ -21,7 +21,10 @@ import { Link, navigate, useRouter } from './router';
 function LoadingScreen() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
-      <Spinner size="lg" />
+      <div className="text-center animate-fade-in">
+        <Spinner size="lg" className="mx-auto mb-3" />
+        <p className="text-sm text-muted-foreground">Loading...</p>
+      </div>
     </div>
   );
 }
@@ -31,12 +34,12 @@ function LoadingScreen() {
  */
 function NotFoundPage() {
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-foreground mb-4">404</h1>
-        <p className="text-muted-foreground mb-6">Page not found</p>
+    <div className="min-h-screen bg-background flex items-center justify-center px-4">
+      <div className="text-center animate-fade-in-up">
+        <div className="text-7xl font-bold gradient-text mb-4">404</div>
+        <p className="text-muted-foreground mb-8 text-lg">This page doesn't exist.</p>
         <Link href="/">
-          <Button variant="link">Go home</Button>
+          <Button className="rounded-lg bg-primary hover:bg-primary/90 glow-sm">Go home</Button>
         </Link>
       </div>
     </div>

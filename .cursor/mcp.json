@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest"
+      ]
+    },
+    "better-context": {
+      "url": "https://btca.dev/api/mcp",
+      "headers": {
+        "Authorization": "Bearer ak_YT92GH53AVH9EW8TEMF2PSPZN6QDXEC3"
+      }
+    }
+  }
+}

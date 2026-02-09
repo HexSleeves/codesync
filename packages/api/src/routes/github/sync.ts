@@ -3,7 +3,7 @@
  * POST /sessions/:id/submit-review - Submit review to GitHub PR
  */
 
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { db } from '../../db/client';
 import { comments, files, sessions, users } from '../../db/schema';
@@ -187,13 +187,10 @@ export const syncRoutes = new Hono<{ Variables: AuthVariables }>()
         .map((c) => c.id);
 
       if (syncedCommentIds.length > 0) {
-        // Update each synced comment individually
-        for (const commentId of syncedCommentIds) {
-          await db
-            .update(comments)
-            .set({ syncedAt, githubCommentId: String(result.reviewId) })
-            .where(eq(comments.id, commentId));
-        }
+        await db
+          .update(comments)
+          .set({ syncedAt, githubCommentId: String(result.reviewId) })
+          .where(inArray(comments.id, syncedCommentIds));
       }
 
       // 13. Update session with review info
@@ -275,21 +272,22 @@ export const syncRoutes = new Hono<{ Variables: AuthVariables }>()
       return c.json({ error: 'Not authorized' }, 403);
     }
 
-    // Count synced vs unsynced comments
-    const allComments = await db.query.comments.findMany({
-      where: eq(comments.sessionId, id),
-    });
-
-    const syncedCount = allComments.filter((c) => c.syncedAt).length;
-    const unsyncedCount = allComments.filter((c) => !c.syncedAt && !c.isResolved).length;
+    const [counts] = await db
+      .select({
+        totalComments: sql<number>`count(*)`,
+        syncedComments: sql<number>`count(*) filter (where ${comments.syncedAt} is not null)`,
+        unsyncedComments: sql<number>`count(*) filter (where ${comments.syncedAt} is null and ${comments.isResolved} = false)`,
+      })
+      .from(comments)
+      .where(eq(comments.sessionId, id));
 
     return c.json({
       isGitHubSession: session.source?.type === 'github',
       githubReviewId: session.githubReviewId,
       lastSyncedAt: session.githubSyncedAt,
-      totalComments: allComments.length,
-      syncedComments: syncedCount,
-      unsyncedComments: unsyncedCount,
+      totalComments: Number(counts?.totalComments ?? 0),
+      syncedComments: Number(counts?.syncedComments ?? 0),
+      unsyncedComments: Number(counts?.unsyncedComments ?? 0),
       canSync: session.source?.type === 'github' && session.status !== 'draft',
     });
   });

@@ -35,10 +35,7 @@ export function mapLineToDiffPosition(
   let position = 0;
 
   for (const hunk of hunks) {
-    // Each hunk starts fresh (GitHub uses per-hunk positioning now)
-    // But for createReview, we need the overall position in the diff
-    position++; // The @@ hunk header counts as a line
-
+    // GitHub position starts at the first diff line after the hunk header.
     for (const line of hunk.lines) {
       position++;
 
@@ -63,5 +60,4 @@ export function mapLineToDiffPosition(
 
   return null; // Line not found in diff
 }
-
 

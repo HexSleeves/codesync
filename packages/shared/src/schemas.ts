@@ -69,7 +69,6 @@ export const createCommentSchema = z.object({
   text: z.string().min(1, 'Comment text is required').max(5000),
   lineNumber: z.number().int().positive().optional(),
   parentId: z.string().optional(),
-  threadId: z.string().optional(),
 });
 
 export const updateCommentSchema = z.object({

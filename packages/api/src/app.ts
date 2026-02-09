@@ -4,6 +4,7 @@
 
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { HTTPException } from 'hono/http-exception';
 import { logger } from 'hono/logger';
 import { prettyJSON } from 'hono/pretty-json';
 import { secureHeaders } from 'hono/secure-headers';
@@ -47,11 +48,20 @@ const app = new Hono()
 
   // Error handler
   .onError((err, c) => {
+    if (err instanceof HTTPException) {
+      return c.json({ error: err.message || 'Request failed' }, err.status);
+    }
+
     console.error('Error:', err);
+
+    if (!config.isDev) {
+      return c.json({ error: 'Internal server error' }, 500);
+    }
+
     return c.json(
       {
         error: err.message || 'Internal server error',
-        ...(config.isDev && { stack: err.stack }),
+        stack: err.stack,
       },
       500
     );

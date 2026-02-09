@@ -3,7 +3,7 @@
  * Helpers for checking session ownership and access rights
  */
 
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { db } from '../../db/client';
 import { files, sessionParticipants, sessions } from '../../db/schema';
 
@@ -32,21 +32,6 @@ export async function getSessionById(
 }
 
 /**
- * Check if user is a participant (or owner) of a session
- */
-async function isParticipant(sessionId: string, userId: string): Promise<boolean> {
-  const row = await db
-    .select({ id: sessionParticipants.id })
-    .from(sessionParticipants)
-    .where(
-      and(eq(sessionParticipants.sessionId, sessionId), eq(sessionParticipants.userId, userId))
-    )
-    .limit(1)
-    .then((rows) => rows[0]);
-  return !!row;
-}
-
-/**
  * Check if user has access to a session.
  * Access is granted if: user is owner, user is participant, or session is public.
  */
@@ -54,7 +39,24 @@ export async function checkSessionAccess(
   sessionId: string,
   userId: string | undefined
 ): Promise<SessionAccessResult> {
-  const session = await getSessionById(sessionId);
+  const row = await db
+    .select({
+      session: sessions,
+      participantId: sessionParticipants.id,
+    })
+    .from(sessions)
+    .leftJoin(
+      sessionParticipants,
+      and(
+        eq(sessionParticipants.sessionId, sessions.id),
+        userId ? eq(sessionParticipants.userId, userId) : sql`false`
+      )
+    )
+    .where(eq(sessions.id, sessionId))
+    .limit(1)
+    .then((rows) => rows[0]);
+
+  const session = row?.session ?? null;
 
   if (!session) {
     return { session: null, hasAccess: false, isOwner: false, error: 'not_found' };
@@ -66,12 +68,8 @@ export async function checkSessionAccess(
     return { session, hasAccess: true, isOwner: true };
   }
 
-  // Check participant table
-  if (userId) {
-    const participant = await isParticipant(sessionId, userId);
-    if (participant) {
-      return { session, hasAccess: true, isOwner: false };
-    }
+  if (row?.participantId) {
+    return { session, hasAccess: true, isOwner: false };
   }
 
   // Public sessions allow read access

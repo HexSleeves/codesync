@@ -63,7 +63,6 @@ export const authRoutes = new Hono<{ Variables: AuthVariables }>()
         name: user.name,
         githubUsername: user.githubUsername,
       },
-      token,
     });
   })
 
@@ -113,7 +112,6 @@ export const authRoutes = new Hono<{ Variables: AuthVariables }>()
           email: user.email,
           name: user.name,
         },
-        token,
       },
       201
     );
@@ -165,4 +163,3 @@ async function verifyPassword(password: string, storedHash: string): Promise<boo
   }
   return Bun.password.verify(password, storedHash);
 }
-
