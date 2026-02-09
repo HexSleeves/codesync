@@ -13,6 +13,21 @@ import { users } from './db/schema';
 import { checkSessionAccess } from './services/session/access';
 import { getUserColor, wsHandlers } from './ws';
 
+function extractTokenFromRequest(req: Request): string | null {
+  const authHeader = req.headers.get('Authorization');
+  if (authHeader?.startsWith('Bearer ')) {
+    return authHeader.slice(7);
+  }
+
+  const cookies = req.headers.get('Cookie') || '';
+  const tokenCookie = cookies
+    .split(';')
+    .map((cookie) => cookie.trim())
+    .find((cookie) => cookie.startsWith('token='));
+
+  return tokenCookie ? tokenCookie.slice('token='.length) : null;
+}
+
 console.log(`\n🚀 CodeSync API starting...`);
 console.log(`   Environment: ${config.nodeEnv}`);
 console.log(`   Port: ${config.port}`);
@@ -38,8 +53,8 @@ const server = Bun.serve<WSConnectionData>({
         return new Response('Session ID required', { status: 400 });
       }
 
-      // Get token from query string
-      const token = url.searchParams.get('token');
+      // Get token from auth header or cookie
+      const token = extractTokenFromRequest(req);
       if (!token) {
         return new Response('Unauthorized - token required', { status: 401 });
       }

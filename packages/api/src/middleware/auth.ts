@@ -93,8 +93,7 @@ export const authMiddleware = createMiddleware<{ Variables: AuthVariables }>(asy
   } catch (error) {
     if (error instanceof HTTPException) throw error;
     console.error('Auth error:', error);
-    const message = error instanceof Error ? error.message : 'token verification failed';
-    throw new HTTPException(401, { message: `Unauthorized - ${message}` });
+    throw new HTTPException(401, { message: 'Unauthorized - token verification failed' });
   }
 });
 

@@ -115,6 +115,9 @@ docker compose up -d postgres
 # Run database migrations
 cd packages/api && bun run db:migrate
 
+# Seed test users
+cd packages/api && bun run db:seed
+
 # Start development servers
 bun run dev
 ```
@@ -214,6 +217,7 @@ bun run format
 cd packages/api
 bun run db:generate   # Generate migrations
 bun run db:migrate    # Run migrations
+bun run db:seed       # Seed test users
 bun run db:studio     # Open Drizzle Studio
 ```
 

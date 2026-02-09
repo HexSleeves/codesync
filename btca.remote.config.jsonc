@@ -1,0 +1,6 @@
+{
+	"$schema": "https://btca.dev/btca.remote.schema.json",
+	"project": "codesync",
+	"model": "claude-haiku",
+	"resources": []
+}

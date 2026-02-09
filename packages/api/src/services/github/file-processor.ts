@@ -21,6 +21,12 @@ export interface FileProcessingContext {
   headSha: string;
 }
 
+export interface ProcessPRFilesResult {
+  processedCount: number;
+  failedCount: number;
+  failedFiles: string[];
+}
+
 /**
  * Process a single PR file and insert into database
  * @returns true if successful, false otherwise
@@ -106,17 +112,33 @@ export async function processPRFiles(
   sessionId: string,
   prFiles: GitHubPRFile[],
   context: FileProcessingContext
-): Promise<number> {
+): Promise<ProcessPRFilesResult> {
   const CONCURRENCY = 5;
-  let count = 0;
-  
+  let processedCount = 0;
+  let failedCount = 0;
+  const failedFiles: string[] = [];
+
   // Process in batches of CONCURRENCY
   for (let i = 0; i < prFiles.length; i += CONCURRENCY) {
     const batch = prFiles.slice(i, i + CONCURRENCY);
     const results = await Promise.allSettled(
       batch.map((prFile) => processPRFile(octokit, sessionId, prFile, context))
     );
-    count += results.filter((r) => r.status === 'fulfilled' && r.value).length;
+
+    results.forEach((result, index) => {
+      if (result.status === 'fulfilled' && result.value) {
+        processedCount++;
+        return;
+      }
+
+      failedCount++;
+      failedFiles.push(batch[index].filename);
+    });
   }
-  return count;
+
+  return {
+    processedCount,
+    failedCount,
+    failedFiles,
+  };
 }

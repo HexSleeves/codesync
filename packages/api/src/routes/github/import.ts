@@ -157,6 +157,7 @@ export const importRoutes = new Hono<{ Variables: AuthVariables }>()
   .post('/import', authMiddleware, zValidator('json', importPRSchema), async (c) => {
     const { prUrl } = c.req.valid('json');
     const userId = c.get('userId');
+    let createdSessionId: string | null = null;
 
     const prInfo = parseGitHubPRUrl(prUrl);
     if (!prInfo) {
@@ -187,6 +188,7 @@ export const importRoutes = new Hono<{ Variables: AuthVariables }>()
       // Create session
       const sessionId = nanoid();
       const shareToken = nanoid(12);
+      createdSessionId = sessionId;
 
       await db.insert(sessions).values({
         id: sessionId,
@@ -220,12 +222,18 @@ export const importRoutes = new Hono<{ Variables: AuthVariables }>()
 
       // Fetch and process PR files
       const prFiles = await fetchPRFiles(octokit, prInfo.owner, prInfo.repo, prInfo.prNumber);
-      const fileCount = await processPRFiles(octokit, sessionId, prFiles, {
+      const fileProcessing = await processPRFiles(octokit, sessionId, prFiles, {
         owner: prInfo.owner,
         repo: prInfo.repo,
         baseSha: prData.base.sha,
         headSha: prData.head.sha,
       });
+
+      if (fileProcessing.failedCount > 0) {
+        throw new Error(
+          `Failed to process ${fileProcessing.failedCount} file(s): ${fileProcessing.failedFiles.join(', ')}`
+        );
+      }
 
       return c.json(
         {
@@ -234,13 +242,21 @@ export const importRoutes = new Hono<{ Variables: AuthVariables }>()
             id: sessionId,
             title: prData.title,
             shareToken,
-            fileCount,
+            fileCount: fileProcessing.processedCount,
           },
-          message: `Imported ${fileCount} files from PR #${prInfo.prNumber}`,
+          message: `Imported ${fileProcessing.processedCount} files from PR #${prInfo.prNumber}`,
         },
         201
       );
     } catch (error: unknown) {
+      if (createdSessionId) {
+        try {
+          await db.delete(sessions).where(eq(sessions.id, createdSessionId));
+        } catch (cleanupError) {
+          console.error('Failed to clean up partially imported session:', cleanupError);
+        }
+      }
+
       const status = getGitHubErrorStatus(error);
 
       if (status === 401) {
