@@ -61,9 +61,17 @@ export function useComments(fileId: string | null) {
     },
     onSuccess: ({ commentId, resolved }) => {
       queryClient.setQueryData(['comments', fileId], (old: { comments: Comment[] } | undefined) => ({
-        comments: (old?.comments ?? []).map((c) =>
-          c.id === commentId || c.threadId === commentId ? { ...c, isResolved: resolved } : c
-        ),
+        comments: (() => {
+          const oldComments = old?.comments ?? [];
+          const target = oldComments.find((comment) => comment.id === commentId);
+          const targetThreadId = target?.threadId ?? null;
+
+          return oldComments.map((comment) => {
+            const isTargetComment = comment.id === commentId;
+            const isSameThread = targetThreadId !== null && comment.threadId === targetThreadId;
+            return isTargetComment || isSameThread ? { ...comment, isResolved: resolved } : comment;
+          });
+        })(),
       }));
       toast.success(resolved ? 'Comment resolved' : 'Comment reopened');
     },

@@ -43,7 +43,7 @@ const shortcutGroups: ShortcutGroup[] = [
 
 function KeyboardKey({ children }: { children: string }) {
   return (
-    <kbd className="px-2 py-1 text-xs font-mono bg-muted border border-border rounded shadow-sm min-w-[24px] inline-flex items-center justify-center">
+    <kbd className="px-2 py-0.5 text-[11px] font-mono bg-background/60 border border-border/50 rounded-md min-w-[24px] inline-flex items-center justify-center text-muted-foreground">
       {children}
     </kbd>
   );

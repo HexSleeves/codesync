@@ -1,29 +1,14 @@
 /**
- * API Client - fetch-based with auth
+ * API client - cookie-based auth
  */
 
-// Auth helpers
-export function getToken(): string | null {
-  return localStorage.getItem('token');
-}
-
-export function setToken(token: string): void {
-  localStorage.setItem('token', token);
-}
-
-export function clearToken(): void {
-  localStorage.removeItem('token');
-}
-
-// Fetch wrapper with auth
+// Fetch wrapper with cookie auth
 export async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Response> {
-  const token = getToken();
   const headers = new Headers(options.headers);
 
-  if (token) {
-    headers.set('Authorization', `Bearer ${token}`);
+  if (options.body && !(options.body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json');
   }
-  headers.set('Content-Type', 'application/json');
 
   return fetch(url, { ...options, headers, credentials: 'include' });
 }

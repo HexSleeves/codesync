@@ -21,7 +21,7 @@ export function CommentForm({
   onSubmit,
   onCancel,
   placeholder = 'Add a comment...',
-  submitLabel = 'Add Comment',
+  submitLabel = 'Comment',
   variant = 'block',
 }: CommentFormProps) {
   const form = useForm<CommentFormValues>({
@@ -43,16 +43,21 @@ export function CommentForm({
           e.stopPropagation();
           form.handleSubmit();
         }}
-        className="flex gap-3"
+        className="flex gap-2"
       >
         <Input
           type="text"
           placeholder={placeholder}
-          className="flex-1"
+          className="flex-1 h-8 text-sm rounded-lg bg-background/50 border-border/50 placeholder:text-muted-foreground/40"
           {...form.getFieldProps('text')}
         />
-        <Button type="submit" disabled={!form.values.text.trim() || form.isSubmitting}>
-          {form.isSubmitting ? 'Adding...' : submitLabel}
+        <Button
+          type="submit"
+          size="sm"
+          disabled={!form.values.text.trim() || form.isSubmitting}
+          className="h-8 rounded-lg bg-primary hover:bg-primary/90 text-xs"
+        >
+          {form.isSubmitting ? '...' : submitLabel}
         </Button>
       </form>
     );
@@ -66,14 +71,24 @@ export function CommentForm({
         form.handleSubmit();
       }}
     >
-      <Textarea placeholder={placeholder} rows={3} {...form.getTextAreaProps('text')} />
+      <Textarea
+        placeholder={placeholder}
+        rows={3}
+        className="rounded-lg bg-background/50 border-border/50 placeholder:text-muted-foreground/40 text-sm"
+        {...form.getTextAreaProps('text')}
+      />
       <div className="flex justify-end gap-2 mt-2">
         {onCancel && (
-          <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
+          <Button type="button" variant="ghost" size="sm" onClick={onCancel} className="text-xs h-7">
             Cancel
           </Button>
         )}
-        <Button type="submit" size="sm" disabled={!form.values.text.trim() || form.isSubmitting}>
+        <Button
+          type="submit"
+          size="sm"
+          disabled={!form.values.text.trim() || form.isSubmitting}
+          className="text-xs h-7 rounded-md bg-primary hover:bg-primary/90"
+        >
           {form.isSubmitting ? 'Adding...' : submitLabel}
         </Button>
       </div>

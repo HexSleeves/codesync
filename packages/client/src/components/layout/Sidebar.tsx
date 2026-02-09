@@ -1,6 +1,6 @@
 /**
  * Reusable Sidebar component with mobile drawer support
- * Handles both desktop sidebar and mobile drawer + overlay pattern
+ * Glass morphism design with smooth transitions
  */
 
 import type { Child } from 'hono/jsx';
@@ -47,7 +47,7 @@ export function Sidebar({
       <aside
         className={cn(
           width,
-          'border-border flex-col bg-card hidden md:flex shrink-0',
+          'border-border/50 flex-col bg-card/60 backdrop-blur-sm hidden md:flex shrink-0',
           side === 'left' ? 'border-r' : 'border-l',
           className
         )}
@@ -58,21 +58,23 @@ export function Sidebar({
       {/* Mobile Drawer */}
       <aside
         className={cn(
-          'absolute inset-y-0 z-30',
+          'absolute inset-y-0 z-30 animate-slide-in-left',
           width,
           sideClasses,
-          'border-border flex flex-col bg-card md:hidden',
+          'border-border/50 flex flex-col bg-card/95 backdrop-blur-xl md:hidden',
+          side === 'right' && 'animate-slide-in-right',
           className
         )}
       >
         {showMobileHeader && (
-          <div className="flex items-center justify-between px-3 py-2 border-b border-border">
-            <span className="text-sm font-medium">{title}</span>
+          <div className="flex items-center justify-between px-4 py-2.5 border-b border-border/50">
+            <span className="text-sm font-medium text-foreground">{title}</span>
             <Button
               variant="ghost"
               size="sm"
               onClick={onClose}
               aria-label={`Close ${title?.toLowerCase() || 'sidebar'}`}
+              className="size-7 p-0 hover:bg-accent/50"
             >
               <CloseIcon className="size-4" />
             </Button>
@@ -82,7 +84,7 @@ export function Sidebar({
       </aside>
 
       {/* Mobile Overlay */}
-      <div className="fixed inset-0 bg-black/50 z-20 md:hidden" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-20 md:hidden animate-fade-in" onClick={onClose} />
     </>
   );
 }

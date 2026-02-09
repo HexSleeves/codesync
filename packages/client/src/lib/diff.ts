@@ -5,6 +5,8 @@
 
 import type { DiffHunk, DiffLine } from '@codesync/shared';
 
+const MAX_LCS_MATRIX_CELLS = 4_000_000;
+
 /**
  * Create diff hunks from two strings
  * Uses LCS-based diff algorithm
@@ -12,6 +14,12 @@ import type { DiffHunk, DiffLine } from '@codesync/shared';
 export function createDiffFromStrings(oldStr: string, newStr: string): DiffHunk[] {
   const oldLines = oldStr.split('\n');
   const newLines = newStr.split('\n');
+  const matrixCells = oldLines.length * newLines.length;
+
+  // Prevent quadratic memory/time blowups on very large files.
+  if (matrixCells > MAX_LCS_MATRIX_CELLS) {
+    return createFallbackHunks(oldLines, newLines);
+  }
 
   const diffLines = computeDiff(oldLines, newLines);
 
@@ -203,4 +211,32 @@ function groupIntoHunks(
 function finalizeHunk(hunk: DiffHunk): void {
   hunk.oldLines = hunk.lines.filter((l) => l.type === 'context' || l.type === 'remove').length;
   hunk.newLines = hunk.lines.filter((l) => l.type === 'context' || l.type === 'add').length;
+}
+
+function createFallbackHunks(oldLines: string[], newLines: string[]): DiffHunk[] {
+  if (oldLines.length === 0 && newLines.length === 0) {
+    return [];
+  }
+
+  const removed: DiffLine[] = oldLines.map((content, index) => ({
+    type: 'remove',
+    content,
+    oldLineNumber: index + 1,
+  }));
+
+  const added: DiffLine[] = newLines.map((content, index) => ({
+    type: 'add',
+    content,
+    newLineNumber: index + 1,
+  }));
+
+  return [
+    {
+      oldStart: oldLines.length > 0 ? 1 : 0,
+      oldLines: oldLines.length,
+      newStart: newLines.length > 0 ? 1 : 0,
+      newLines: newLines.length,
+      lines: [...removed, ...added],
+    },
+  ];
 }

@@ -26,7 +26,7 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center"
+      className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-fade-in"
       onClick={(e) => {
         if (e.target === overlayRef.current) {
           onOpenChange(false);
@@ -47,7 +47,7 @@ export function DialogContent({ className, children }: DialogContentProps) {
   return (
     <div
       className={cn(
-        'relative z-50 w-full max-w-lg rounded-lg border bg-card p-6 shadow-lg animate-in fade-in-0 zoom-in-95',
+        'relative z-[101] w-full max-w-lg rounded-xl border border-border/50 bg-card backdrop-blur-xl p-6 shadow-2xl animate-scale-in my-auto',
         className
       )}
     >
@@ -74,7 +74,7 @@ export function DialogFooter({ className, children }: { className?: string; chil
 
 export function DialogTitle({ className, children }: { className?: string; children?: Child }) {
   return (
-    <h2 className={cn('text-lg font-semibold leading-none tracking-tight', className)}>
+    <h2 className={cn('text-lg font-semibold leading-none tracking-tight text-foreground', className)}>
       {children}
     </h2>
   );
@@ -104,7 +104,7 @@ export function DialogClose({
       type="button"
       onClick={onClick}
       className={cn(
-        'absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+        'absolute right-4 top-4 rounded-md p-1 opacity-50 ring-offset-background transition-all hover:opacity-100 hover:bg-accent/30 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
         className
       )}
     >

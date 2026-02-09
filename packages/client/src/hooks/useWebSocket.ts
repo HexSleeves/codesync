@@ -6,7 +6,7 @@
 import type { CursorMessage, OnlineUser, ServerMessage, WSChatMessage } from '@codesync/shared';
 import { useCallback, useEffect, useRef, useState } from 'hono/jsx';
 import { toast } from '@/components/ui/sonner';
-import { apiCall, getToken } from '../api/client';
+import { apiCall } from '../api/client';
 
 // =============================================================================
 // Utils
@@ -122,12 +122,6 @@ export function useWebSocket(sessionId: string | undefined): UseWebSocketReturn 
   const connect = useCallback(() => {
     if (!sessionId) return;
 
-    const token = getToken();
-    if (!token) {
-      console.warn('[WS] No auth token available');
-      return;
-    }
-
     // Close existing connection
     if (wsRef.current) {
       wsRef.current.close();
@@ -138,9 +132,9 @@ export function useWebSocket(sessionId: string | undefined): UseWebSocketReturn 
     // This works both in development and through exe.dev proxy
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsHost = window.location.host; // Same host:port as the page
-    const url = `${protocol}//${wsHost}/ws/sessions/${sessionId}?token=${token}`;
+    const url = `${protocol}//${wsHost}/ws/sessions/${sessionId}`;
 
-    console.log('[WS] Connecting to', url.replace(/token=.*/, 'token=***'));
+    console.log('[WS] Connecting to', url);
 
     const ws = new WebSocket(url);
     wsRef.current = ws;

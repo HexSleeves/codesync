@@ -30,7 +30,7 @@ export interface SettingsState {
 
 // Default settings
 const defaultSettings: SettingsState = {
-  theme: 'system',
+  theme: 'dark',
   fontSize: 'md',
   defaultDiffMode: 'unified',
   defaultViewMode: 'diff',

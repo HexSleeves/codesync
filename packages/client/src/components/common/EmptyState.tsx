@@ -1,5 +1,5 @@
 import type { Child } from 'hono/jsx';
-import { Button, Card, CardContent } from '@/components/ui';
+import { Button } from '@/components/ui';
 
 interface EmptyStateProps {
   icon?: Child;
@@ -11,17 +11,17 @@ interface EmptyStateProps {
 
 export function EmptyState({ icon, title, description, actionLabel, onAction }: EmptyStateProps) {
   return (
-    <Card className="text-center py-12">
-      <CardContent>
-        {icon && <div className="text-4xl mb-4">{icon}</div>}
-        <p className="text-muted-foreground mb-2">{title}</p>
-        {description && <p className="text-sm text-muted-foreground mb-4">{description}</p>}
-        {actionLabel && onAction && (
-          <Button variant="link" onClick={onAction}>
-            {actionLabel}
-          </Button>
-        )}
-      </CardContent>
-    </Card>
+    <div className="flex flex-col items-center justify-center py-16 sm:py-24 text-center">
+      {icon && <div className="mb-5">{icon}</div>}
+      <p className="text-lg font-medium text-foreground/80 mb-2">{title}</p>
+      {description && (
+        <p className="text-sm text-muted-foreground max-w-sm mb-6 leading-relaxed">{description}</p>
+      )}
+      {actionLabel && onAction && (
+        <Button onClick={onAction} className="rounded-lg bg-primary hover:bg-primary/90 glow-sm">
+          {actionLabel}
+        </Button>
+      )}
+    </div>
   );
 }
