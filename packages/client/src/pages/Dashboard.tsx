@@ -13,6 +13,7 @@ import { useGitHub } from '../hooks/useGitHub';
 import { useOAuthCallback } from '../hooks/useOAuthCallback';
 import { useSessions } from '../hooks/useSession';
 import { navigate } from '../router';
+import { AddFilesDialog } from './dashboard/AddFilesDialog';
 import { ImportPRDialog } from './dashboard/ImportPRDialog';
 import { NewSessionDialog } from './dashboard/NewSessionDialog';
 
@@ -28,6 +29,8 @@ export function DashboardPage() {
   } = useGitHub();
   const [showNewForm, setShowNewForm] = useState(false);
   const [showImportForm, setShowImportForm] = useState(false);
+  const [showAddFiles, setShowAddFiles] = useState(false);
+  const [newSessionId, setNewSessionId] = useState<string | null>(null);
 
   // Handle OAuth callback query params
   useOAuthCallback({
@@ -47,7 +50,15 @@ export function DashboardPage() {
     const session = await createSession(data);
     setShowNewForm(false);
     if (session) {
-      navigate(`/session/${session.id}`);
+      setNewSessionId(session.id);
+      setShowAddFiles(true);
+    }
+  };
+
+  const handleAddFilesDone = () => {
+    setShowAddFiles(false);
+    if (newSessionId) {
+      navigate(`/session/${newSessionId}`);
     }
   };
 
@@ -106,6 +117,20 @@ export function DashboardPage() {
           githubConnected={githubConnected}
           onConnectGitHub={connectGitHub}
         />
+
+        {newSessionId && (
+          <AddFilesDialog
+            open={showAddFiles}
+            onOpenChange={(open) => {
+              setShowAddFiles(open);
+              if (!open && newSessionId) {
+                navigate(`/session/${newSessionId}`);
+              }
+            }}
+            sessionId={newSessionId}
+            onDone={handleAddFilesDone}
+          />
+        )}
 
         <SessionsList
           sessions={sessions}

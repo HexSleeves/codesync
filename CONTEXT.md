@@ -1,13 +1,13 @@
 # Agent Context Dump
 
 **Last Updated:** Feb 8, 2026
-**Last Task:** Full codebase review + 58 fixes across 4 phases
+**Last Task:** Full codebase review (58+ fixes) + started Add Files feature
 
 ---
 
 ## Current Project State
 
-CodeSync is a real-time collaborative code review application. The migration from Meteor.js to Hono is nearly complete.
+CodeSync is a real-time collaborative code review app. Meteor→Hono migration is complete. A major security/quality review was done with fixes across 4 phases.
 
 ### Running Services
 
@@ -17,11 +17,32 @@ cd /home/exedev/codesync && docker compose up -d postgres
 
 # Start API (port 8001)
 export PATH="$HOME/.bun/bin:$PATH"
-cd packages/api && nohup bun --hot src/index.ts > /tmp/api.log 2>&1 &
+cd packages/api && bun --hot src/index.ts
 
 # Start Client (port 5173)
-cd packages/client && nohup bun run dev > /tmp/client.log 2>&1 &
+cd packages/client && bun run dev
 ```
+
+### Environment Setup
+
+**IMPORTANT:** `.env` files are NOT in git. They must exist in both locations:
+- `/home/exedev/codesync/.env` (root)
+- `/home/exedev/codesync/packages/api/.env` (copy of root — Bun loads .env from CWD)
+
+Current `.env` contents:
+```
+DATABASE_URL=postgres://codesync:codesync@localhost:5432/codesync
+JWT_SECRET=codesync-dev-secret-do-not-use-in-production
+PORT=8001
+NODE_ENV=development
+FRONTEND_URL=https://noon-disk.exe.xyz:5173
+CORS_ORIGIN=https://noon-disk.exe.xyz:5173
+GITHUB_CLIENT_ID=Ov23li8HongvGIUS6cgX
+GITHUB_CLIENT_SECRET=95292721c41587f906ece0c4e5ba83a5393b4983
+GITHUB_REDIRECT_URI=https://noon-disk.exe.xyz:8001/api/github/callback
+```
+
+If the `.env` is missing, the API will use a **random JWT secret** on each restart, invalidating all existing tokens (users see auth errors).
 
 ### Live URLs
 
@@ -29,12 +50,53 @@ cd packages/client && nohup bun run dev > /tmp/client.log 2>&1 &
 - **API**: <https://noon-disk.exe.xyz:8001/>
 - **Health Check**: <https://noon-disk.exe.xyz:8001/health>
 
-### Test Account
+### Test Accounts
 
-```
-Email: test2@example.com
-Password: password123
-```
+| Email | Password | Notes |
+|-------|----------|-------|
+| `test2@example.com` | `password123` | Main test account, GitHub connected (HexSleeves) |
+| `review-test@example.com` | `testpass123` | Created during review phase |
+| `lecoqjacob@gmail.com` | `password123` | Owner's account |
+
+### Password Hashing Migration
+
+Passwords are now argon2id. Legacy SHA-256 hashes are transparently migrated on login:
+- `routes/auth.ts` has `verifyPassword()` that tries argon2id first, falls back to legacy SHA-256
+- On successful legacy login, the hash is re-written to argon2id
+- Most test accounts have already been migrated (check DB: hash starts with `$argon2id$`)
+
+---
+
+## In-Progress Work: Add Files Feature
+
+**Status: Code written, NOT committed, NOT tested in browser**
+
+The feature adds paste-code and file-upload support for manual sessions (non-GitHub).
+
+### Uncommitted Files
+
+| File | Status | Description |
+|------|--------|-------------|
+| `packages/client/src/pages/dashboard/AddFilesDialog.tsx` | **NEW** | Main dialog component |
+| `packages/client/src/pages/Dashboard.tsx` | Modified | Wired up AddFilesDialog after session creation |
+| `packages/client/src/pages/dashboard/index.ts` | Modified | Added export |
+
+### How It Works
+
+1. User clicks "+ New Session" → `NewSessionDialog` creates session
+2. After creation, `AddFilesDialog` opens with the new session ID
+3. Dialog has two tabs:
+   - **Paste Code**: Enter filename + code. Optional "original version" for diff comparison.
+   - **Upload Files**: Click/drag-drop file upload (multiple, max 1MB each)
+4. Files are staged locally, then batch-uploaded via `POST /api/sessions/:id/files`
+5. After upload (or skip), navigates to the session page
+
+### What's Left to Do
+
+- [ ] Test the dialog in the browser (was about to when conversation ended)
+- [ ] The dialog compiles clean (`bun tsc --noEmit` passes) but hasn't been visually verified
+- [ ] Consider adding an "Add Files" button inside the Session page too (for adding files later)
+- [ ] Commit once verified working
 
 ---
 
@@ -42,7 +104,7 @@ Password: password123
 
 ### Full Codebase Review & 58+ Fixes (4 Phases)
 
-**Phase 1: Security Hardening**
+**Phase 1: Security Hardening** (commit `691b5ab`)
 - Switched password hashing from SHA-256 to argon2id (`Bun.password.hash()`)
 - JWT_SECRET validated on startup in production; random dev default
 - Added authorization checks to ALL file/comment/chat routes (IDOR fixes)
@@ -52,7 +114,7 @@ Password: password123
 - Configured DB connection pool (max:20, idle_timeout:30)
 - Added graceful shutdown handler (SIGTERM/SIGINT)
 
-**Phase 2: API Bug Fixes**
+**Phase 2: API Bug Fixes** (commit `655cbc4`)
 - Fixed broken comment sync (blanket UPDATE marked ALL comments synced)
 - Fixed N+1 queries in status update (batch user lookup)
 - Fixed session listing (owned+participated, not all public)
@@ -62,7 +124,7 @@ Password: password123
 - Parallelized PR file processing (batch of 5 concurrent)
 - Removed unused Redis from docker-compose
 
-**Phase 3: Client Cleanup**
+**Phase 3: Client Cleanup** (commit `a6cc7de`)
 - Removed 36 unused dependencies (26 @radix-ui, lucide-react, etc.)
 - Deleted 6 dead components (CursorOverlay, PageHeader, UserMenu, etc.)
 - Extracted shared store boilerplate to `lib/store.ts` (~100 lines removed)
@@ -71,86 +133,14 @@ Password: password123
 - Capped WebSocket chat at 500 messages
 - Fixed auth store init retry, settings memory leak
 
-**Phase 4: Infrastructure**
+**Phase 4: Infrastructure** (commit `b0f3e38`)
 - Generated & applied migration 0003 (indexes + unique constraint)
 - Fixed all lint warnings to 0
 
----
-
-## Previous Changes (Jan 26, 2026)
-
-### 1. Custom Form Hook Implementation
-
-- Created custom `useForm` hook in `lib/form.tsx` for Hono JSX compatibility
-- TanStack React Form was incompatible (uses React hooks internally)
-- Simple API with `getFieldProps`, `getTextAreaProps`, `getCheckboxProps`
-- Added `onBlur` and `onFocus` props to Input and Textarea components
-- Converted all forms:
-  - `LoginPage` - login/register form
-  - `NewSessionDialog` - create session form
-  - `ImportPRDialog` - GitHub PR URL form
-  - `CommentForm` - inline/block comment form
-  - `ChatPanel` - real-time chat input
-- Removed unused `react-hook-form` and `@hookform/resolvers` dependencies
-- Bundle size reduced by ~44KB
-
----
-
-## Previous Changes (Jan 25, 2026)
-
-### 1. Mobile-First Responsive Design
-
-- Updated all client components to use mobile-first approach
-- **PageHeader**: Wraps items with gap on mobile
-- **UserMenu**: Truncated email, smaller buttons on mobile
-- **GitHubStatus**: Shows "GitHub" text on mobile, full text on desktop
-- **Dashboard**: Stacked title/buttons on mobile, full-width action buttons
-- **Session page**: Collapsible file tree and chat sidebars on mobile
-  - File tree hidden by default, toggleable via hamburger menu
-  - Chat panel hidden by default, full-width when open on mobile
-  - Desktop shows both sidebars permanently
-- **SessionCard**: Title truncation, smaller text on mobile
-- **FileHeader**: Stacked controls on mobile
-- **Home page**: Responsive hero text and feature grid
-
-### 2. API Refactoring (Previous)
-
-- Split monolithic `github.ts` (658 lines) into domain modules:
-  - `routes/github/oauth.ts` - OAuth flow
-  - `routes/github/import.ts` - PR import
-  - `services/github/pr-fetcher.ts` - GitHub API
-  - `services/github/file-processor.ts` - File processing
-  - `services/session/access.ts` - Access control
-- Created `config.ts` for centralized environment variables
-- Added `utils/language.ts` for language detection
-
-### 2. WebSocket Real-time (Plan 001 - COMPLETE)
-
-- **Backend**: `packages/api/src/ws/index.ts`
-  - JWT-authenticated WebSocket connections
-  - Session state management (connections, cursors)
-  - Cursor position broadcasting
-  - Real-time chat with DB persistence
-  - User presence (join/leave)
-
-- **Shared**: `packages/shared/src/ws-types.ts`
-  - `CursorMessage`, `PresenceMessage`, `WSChatMessage`
-  - `ServerMessage`, `ClientMessage` union types
-
-- **Client**:
-  - `hooks/useWebSocket.ts` - WebSocket hook with auto-reconnect
-  - `components/session/OnlineUsers.tsx` - Online user avatars
-  - `components/session/ChatPanel.tsx` - Real-time chat
-  - `components/session/CursorOverlay.tsx` - Cursor display
-  - Updated `Session.tsx` with WebSocket integration
-  - Updated `DiffViewer`, `UnifiedDiff`, `SplitDiff` for cursors
-
-### 3. Documentation
-
-- Created comprehensive `README.md` with screenshots
-- Added `plans/` directory for tracking implementation plans
-- Added `LICENSE` (MIT)
-- Updated `TODO.md`
+**Post-Review Fixes:**
+- `e94c3ad` — Re-added tailwindcss-animate (used via CSS @plugin, not JS import)
+- `5d624c1` — Legacy password migration (SHA-256→argon2id on login)
+- `7de3ba1` — Fixed GitHub review submit (removed unsupported `side`/`line` fields)
 
 ---
 
@@ -161,155 +151,79 @@ codesync/
 ├── packages/
 │   ├── api/                 # Hono backend (port 8001)
 │   │   └── src/
-│   │       ├── config.ts    # Environment config
-│   │       ├── index.ts     # Server entry + WS upgrade
+│   │       ├── config.ts    # Environment config (validates JWT_SECRET in prod)
+│   │       ├── index.ts     # Server entry + WS upgrade + session access check
 │   │       ├── app.ts       # Hono routes
 │   │       ├── routes/
-│   │       │   ├── auth.ts
+│   │       │   ├── auth.ts  # Login/register with argon2id + legacy migration
 │   │       │   ├── sessions.ts
-│   │       │   ├── files.ts
-│   │       │   ├── comments.ts
-│   │       │   ├── chat.ts
-│   │       │   └── github/  # OAuth + import
+│   │       │   ├── files.ts # All routes have session access checks
+│   │       │   ├── comments.ts # All routes have session access checks
+│   │       │   ├── chat.ts  # Session access + bounded limit
+│   │       │   └── github/  # OAuth (HMAC-signed state) + import + sync
 │   │       ├── services/
-│   │       │   ├── github/  # PR fetching, file processing
-│   │       │   └── session/ # Access control
+│   │       │   ├── github/  # PR fetching, file processing (parallel), review sync
+│   │       │   └── session/ # Access control (checks participants table)
 │   │       ├── middleware/
 │   │       │   └── auth.ts  # JWT middleware
 │   │       ├── db/
-│   │       │   ├── client.ts
-│   │       │   └── schema.ts
+│   │       │   ├── client.ts # Connection pool (max:20)
+│   │       │   └── schema.ts # With indexes + unique constraints
 │   │       ├── ws/
-│   │       │   └── index.ts # WebSocket handlers
+│   │       │   └── index.ts # Multi-tab support via connectionId
 │   │       └── utils/
-│   │           ├── github-parser.ts
-│   │           └── language.ts
 │   │
 │   ├── client/              # Hono JSX-DOM frontend (port 5173)
 │   │   └── src/
 │   │       ├── pages/
-│   │       │   ├── Home.tsx
-│   │       │   ├── Login.tsx
-│   │       │   ├── Dashboard.tsx
-│   │       │   └── Session.tsx
+│   │       │   ├── Dashboard.tsx # Wired to AddFilesDialog
+│   │       │   ├── dashboard/
+│   │       │   │   ├── AddFilesDialog.tsx # NEW — paste/upload files
+│   │       │   │   ├── NewSessionDialog.tsx
+│   │       │   │   └── ImportPRDialog/
+│   │       │   ├── Session.tsx
+│   │       │   └── ...
 │   │       ├── components/
-│   │       │   ├── ui/      # shadcn components
-│   │       │   ├── Diff/    # DiffViewer, UnifiedDiff, SplitDiff
-│   │       │   ├── session/ # OnlineUsers, ChatPanel, FileTree
-│   │       │   └── comment/ # InlineCommentPanel
 │   │       ├── hooks/
-│   │       │   ├── useAuth.ts
-│   │       │   ├── useSession.ts
-│   │       │   ├── useComments.ts
-│   │       │   ├── useGitHub.ts
-│   │       │   └── useWebSocket.ts
-│   │       ├── stores/
-│   │       │   └── auth.ts
+│   │       ├── stores/      # Uses shared lib/store.ts
+│   │       ├── lib/
+│   │       │   ├── store.ts # Shared createStoreHook + shallowEqual
+│   │       │   ├── query.ts # Fixed useQuery (watches enabled), useMutation (updates options)
+│   │       │   └── ...
 │   │       └── api/
-│   │           └── client.ts
+│   │           └── client.ts # No more hc<AppType>, just apiCall()
 │   │
 │   └── shared/              # Shared types & schemas
-│       └── src/
-│           ├── types.ts
-│           ├── schemas.ts
-│           └── ws-types.ts
 │
-├── plans/                   # Implementation plans
-│   ├── README.md
-│   └── 001-websocket-realtime.md (COMPLETE)
-│
-├── docs/
-│   └── screenshots/
-│
-├── README.md
-├── TODO.md
-├── CONTEXT.md              # This file
-├── AGENTS.md               # Agent instructions
-├── LICENSE
-└── docker-compose.yml
+├── .env                     # NOT in git — must create manually
+├── .env.example             # Template
+├── docker-compose.yml       # PostgreSQL only (Redis removed)
+├── REVIEW.md                # Full 58-issue review document
+└── ...
 ```
 
 ---
 
-## Tech Stack
+## Key Technical Notes
 
-| Layer | Technology |
-|-------|------------|
-| Runtime | Bun 1.3+ |
-| Backend | Hono 4.11 |
-| Frontend | Hono JSX-DOM |
-| Database | PostgreSQL 16 + Drizzle ORM |
-| Validation | Zod v4 |
-| Styling | Tailwind CSS v4 + shadcn/ui |
-| Auth | JWT (HTTP-only cookies) |
-| Real-time | Bun WebSocket + custom handlers |
-| Syntax Highlighting | Prism.js |
-| Form Management | Custom useForm hook |
+### Auth Flow
+- JWT tokens stored in httpOnly cookies + localStorage (dual)
+- Token extracted from `Authorization: Bearer` header or `token` cookie
+- Cookie has `path: '/'`, `sameSite: Lax`, `httpOnly: true`
 
----
+### Session Access Model
+- `checkSessionAccess()` checks: owner → participant → public
+- `checkFileAccess()` looks up file → gets sessionId → checks session access
+- `sessionParticipants` table has unique constraint on `(sessionId, userId)`
+- WebSocket upgrade also checks session access
 
-## Key Files to Know
-
-### Backend
-
-- `packages/api/src/index.ts` - Server entry, WebSocket upgrade logic
-- `packages/api/src/ws/index.ts` - WebSocket handlers (cursors, chat, presence)
-- `packages/api/src/config.ts` - All environment variables
-- `packages/api/src/middleware/auth.ts` - JWT authentication
-- `packages/api/src/db/schema.ts` - Database schema
-
-### Frontend
-
-- `packages/client/src/pages/Session.tsx` - Main code review UI
-- `packages/client/src/hooks/useWebSocket.ts` - WebSocket connection hook
-- `packages/client/src/stores/auth.ts` - Auth state management
-- `packages/client/src/components/Diff/` - Diff viewer components
-- `packages/client/src/lib/form.tsx` - TanStack Form wrapper for Hono JSX
-
-### Shared
-
-- `packages/shared/src/ws-types.ts` - WebSocket message types
-- `packages/shared/src/types.ts` - Domain types
-- `packages/shared/src/schemas.ts` - Zod validation schemas
+### GitHub Integration
+- OAuth uses HMAC-signed state parameter (contains userId, nonce, expiry)
+- PR import fetches files in parallel batches of 5
+- Review sync uses `position` only (not `line`/`side`) for `createReview` API
+- `github_id` column is unique — must clear old link before connecting new account
 
 ---
-
-## Completed Features
-
-- [x] User authentication (login/register/logout)
-- [x] Session CRUD
-- [x] File management
-- [x] Diff viewer (unified + split)
-- [x] Syntax highlighting (25+ languages)
-- [x] Inline comments
-- [x] GitHub OAuth
-- [x] GitHub PR import
-- [x] WebSocket real-time:
-  - [x] User presence
-  - [x] Real-time chat
-  - [x] Cursor broadcasting
-
-## Remaining Work
-
-- [ ] Load chat history on session open
-- [ ] Typing indicators
-- [ ] Keyboard shortcuts
-- [ ] Share session functionality
-- [ ] Toast notifications
-- [ ] E2E tests
-- [ ] Production deployment
-
----
-
-## Git Status
-
-```bash
-# Recent commits
-git log --oneline -10
-
-# Current branch
-git branch --show-current  # new
-```
 
 ## Useful Commands
 
@@ -322,12 +236,14 @@ tail -f /tmp/client.log
 fuser -k 8001/tcp 5173/tcp
 
 # Type check
-cd packages/api && bun tsc --noEmit
-cd packages/client && bun tsc --noEmit
+bun run typecheck
 
 # Lint
 bun run lint
 
 # Database
 cd packages/api && bun run db:studio
+
+# Check password hash format in DB
+docker exec codesync-postgres psql -U codesync -c "SELECT email, substring(password_hash, 1, 30) FROM users;"
 ```
