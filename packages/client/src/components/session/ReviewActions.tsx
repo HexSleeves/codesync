@@ -15,6 +15,8 @@ interface ReviewActionsProps {
   onStatusChange: (session: Session) => void;
   /** Current user ID (to check if user is owner) */
   currentUserId?: string;
+  /** Role of the current user in this session */
+  userRole?: 'owner' | 'reviewer' | 'viewer';
 }
 
 // Status display info
@@ -42,12 +44,11 @@ const statusActions: Record<
   merged: [{ status: 'approved', label: 'Unmerge', variant: 'secondary' }],
 };
 
-export function ReviewActions({ session, onStatusChange, currentUserId }: ReviewActionsProps) {
+export function ReviewActions({ session, onStatusChange, currentUserId, userRole = 'viewer' }: ReviewActionsProps) {
   const [loading, setLoading] = useState(false);
 
   const actions = statusActions[session.status] || [];
-  // TODO: Use isOwner to restrict who can change status
-  const _isOwner = session.createdBy === currentUserId;
+  const canChangeStatus = userRole === 'owner' || userRole === 'reviewer';
 
   const handleStatusChange = async (newStatus: SessionStatus) => {
     setLoading(true);
@@ -72,7 +73,7 @@ export function ReviewActions({ session, onStatusChange, currentUserId }: Review
       <StatusInfo session={session} />
 
       {/* Action buttons */}
-      {actions.map((action) => (
+      {canChangeStatus && actions.map((action) => (
         <Button
           key={action.status}
           variant={action.variant}

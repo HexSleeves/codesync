@@ -3,7 +3,7 @@
  * Run with: bun src/index.ts
  */
 
-import type { WSConnectionData } from '@codesync/shared';
+import { getUserColor, type WSConnectionData } from '@codesync/shared';
 import { eq } from 'drizzle-orm';
 import { verify } from 'hono/jwt';
 import app from './app';
@@ -11,7 +11,7 @@ import { config } from './config';
 import { db } from './db/client';
 import { users } from './db/schema';
 import { checkSessionAccess } from './services/session/access';
-import { getUserColor, wsHandlers } from './ws';
+import { wsHandlers } from './ws';
 
 function extractTokenFromRequest(req: Request): string | null {
   const authHeader = req.headers.get('Authorization');
@@ -111,7 +111,11 @@ const server = Bun.serve<WSConnectionData>({
   },
 
   // WebSocket handlers
-  websocket: wsHandlers,
+  websocket: {
+    ...wsHandlers,
+    maxPayloadLength: 64 * 1024, // 64KB max message size
+    idleTimeout: 120, // Close idle connections after 2 minutes
+  },
 });
 
 console.log(`✅ Server running at http://localhost:${server.port}`);

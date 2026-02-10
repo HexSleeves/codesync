@@ -37,27 +37,6 @@ function getSession(sessionId: string): SessionState {
   return sessions.get(sessionId)!;
 }
 
-/**
- * Generate consistent color from userId
- */
-export function getUserColor(userId: string): string {
-  const colors = [
-    '#ef4444', // red
-    '#f97316', // orange
-    '#eab308', // yellow
-    '#22c55e', // green
-    '#14b8a6', // teal
-    '#3b82f6', // blue
-    '#8b5cf6', // violet
-    '#ec4899', // pink
-  ];
-  let hash = 0;
-  for (let i = 0; i < userId.length; i++) {
-    hash = userId.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return colors[Math.abs(hash) % colors.length];
-}
-
 // =============================================================================
 // Broadcasting Helpers
 // =============================================================================
@@ -215,6 +194,18 @@ export const wsHandlers = {
             return;
           }
 
+          const text = data.text.trim();
+          if (text.length > 2000) {
+            ws.send(
+              JSON.stringify({
+                type: 'error',
+                code: 'message_too_long',
+                message: 'Chat message must be 2000 characters or less',
+              })
+            );
+            return;
+          }
+
           // Save to database
           const [msg] = await db
             .insert(chatMessages)
@@ -222,7 +213,7 @@ export const wsHandlers = {
               id: nanoid(),
               sessionId,
               authorId: userId,
-              text: data.text.trim(),
+              text,
             })
             .returning();
 

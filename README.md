@@ -20,19 +20,20 @@ CodeSync is a modern code review application that enables teams to collaborate o
 - **Session Management** - Create, edit, delete review sessions with status tracking
 - **File Tree** - Navigate files easily, track reviewed status
 - **Dark Theme** - Beautiful dark UI built with shadcn/ui components
+- **Real-time Collaboration** - Live cursor positions, user presence indicators
+- **Chat** - Session chat with real-time WebSocket updates
+- **Keyboard Shortcuts** - Navigate files, toggle views, and more
+- **Share Sessions** - Generate shareable links for read-only access
+- **Review Workflow** - Role-based approval workflow (draft → review → approved → merged)
 
 ### 🚧 In Progress
 
-- **Real-time Collaboration** - Live cursor positions, presence indicators
-- **Chat** - Session chat with real-time updates
-- **User Presence** - See who's online in your session
+- **Email Notifications** - Notify reviewers of new comments and status changes
 
 ### 📋 Planned
 
-- Keyboard shortcuts
-- Share sessions via link
-- Email notifications
-- Review approval workflow
+- CI/CD E2E tests (Playwright)
+- Auto-deploy pipeline
 
 ## Screenshots
 

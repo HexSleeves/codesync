@@ -3,37 +3,10 @@
  * Manages connection, presence, cursors, and chat
  */
 
-import type { CursorMessage, OnlineUser, ServerMessage, WSChatMessage } from '@codesync/shared';
+import { getUserColor, type CursorMessage, type OnlineUser, type ServerMessage, type WSChatMessage } from '@codesync/shared';
 import { useCallback, useEffect, useRef, useState } from 'hono/jsx';
 import { toast } from '@/components/ui/sonner';
 import { apiCall } from '../api/client';
-
-// =============================================================================
-// Utils
-// =============================================================================
-
-/**
- * Generate a consistent color for a user based on their ID
- */
-function getUserColor(userId: string): string {
-  const colors = [
-    '#ef4444', // red
-    '#f97316', // orange
-    '#eab308', // yellow
-    '#22c55e', // green
-    '#14b8a6', // teal
-    '#3b82f6', // blue
-    '#8b5cf6', // violet
-    '#ec4899', // pink
-  ];
-
-  let hash = 0;
-  for (let i = 0; i < userId.length; i++) {
-    hash = (hash << 5) - hash + userId.charCodeAt(i);
-    hash = hash & hash;
-  }
-  return colors[Math.abs(hash) % colors.length];
-}
 
 // =============================================================================
 // Types
@@ -182,6 +155,10 @@ export function useWebSocket(sessionId: string | undefined): UseWebSocketReturn 
 
           case 'chat':
             setState((s) => {
+              // Deduplicate: skip if this message ID was already loaded from history
+              if (s.chatMessages.some((m) => m.id === message.id)) {
+                return s;
+              }
               const messages = [...s.chatMessages, message];
               // Cap at 500 messages to prevent unbounded memory growth
               return {

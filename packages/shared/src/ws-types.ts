@@ -115,3 +115,23 @@ export interface WSConnectionData {
   userName: string;
   color: string;
 }
+
+// =============================================================================
+// Utility Functions
+// =============================================================================
+
+/**
+ * Generate consistent color from userId.
+ * Shared between server and client to ensure matching colors.
+ */
+export function getUserColor(userId: string): string {
+  const colors = [
+    '#ef4444', '#f97316', '#eab308', '#22c55e',
+    '#14b8a6', '#3b82f6', '#8b5cf6', '#ec4899',
+  ];
+  let hash = 0;
+  for (let i = 0; i < userId.length; i++) {
+    hash = userId.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return colors[Math.abs(hash) % colors.length];
+}

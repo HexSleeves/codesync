@@ -3,7 +3,7 @@
  * Mobile-first design with collapsible sidebars
  */
 
-import { useCallback, useEffect, useState } from 'hono/jsx';
+import { useCallback, useEffect, useRef, useState } from 'hono/jsx';
 import { PageError, PageLoading } from '@/components/common';
 import { MessageIcon } from '@/components/icons';
 import { AppShell, UserDropdown } from '@/components/layout';
@@ -51,6 +51,8 @@ export function SessionPage({ sessionId }: SessionPageProps) {
   // WebSocket for real-time collaboration
   const { connected, onlineUsers, cursors, chatMessages, sendCursor, sendChat } =
     useWebSocket(sessionId);
+
+  const lastCursorSendRef = useRef(0);
 
   // Comments for selected file
   const selectedFile = files.find((f) => f.id === selectedFileId) || null;
@@ -112,6 +114,9 @@ export function SessionPage({ sessionId }: SessionPageProps) {
   const handleLineHover = useCallback(
     (lineNumber: number) => {
       if (selectedFileId) {
+        const now = Date.now();
+        if (now - lastCursorSendRef.current < 50) return;
+        lastCursorSendRef.current = now;
         sendCursor(selectedFileId, lineNumber, 0);
       }
     },

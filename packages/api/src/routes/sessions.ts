@@ -9,7 +9,7 @@ import {
 } from '@codesync/shared';
 import type { SessionStatus } from '@codesync/shared';
 import { zValidator } from '@hono/zod-validator';
-import { desc, eq, inArray } from 'drizzle-orm';
+import { and, desc, eq, inArray } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { nanoid } from 'nanoid';
 import { db } from '../db/client';
@@ -188,6 +188,31 @@ export const sessionRoutes = new Hono<{ Variables: AuthVariables }>()
       }
 
       const session = access.session!;
+
+      // Check participant role for permission
+      const participant = await db
+        .select({ role: sessionParticipants.role })
+        .from(sessionParticipants)
+        .where(
+          and(
+            eq(sessionParticipants.sessionId, id),
+            eq(sessionParticipants.userId, userId)
+          )
+        )
+        .limit(1)
+        .then((rows) => rows[0]);
+
+      const isOwner = session.createdBy === userId;
+      const role = participant?.role || (isOwner ? 'owner' : 'viewer');
+
+      // Role-based permissions:
+      // - owner: can do any transition
+      // - reviewer: can approve, request changes, reopen review
+      // - viewer: cannot change status
+      if (role === 'viewer') {
+        return c.json({ error: 'Viewers cannot change session status' }, 403);
+      }
+
       const currentStatus = session.status as SessionStatus;
       const now = new Date();
 
