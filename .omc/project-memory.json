@@ -1,0 +1,131 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1770695178438,
+  "projectRoot": "/Users/jacob.lecoq.ext/Projects/Tools/codesync",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "package.json"
+        ]
+      }
+    ],
+    "frameworks": [],
+    "packageManager": "npm",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": "npm run build",
+    "testCommand": null,
+    "lintCommand": "npm run lint",
+    "devCommand": "npm run dev",
+    "scripts": {
+      "dev": "bun run --filter '*' dev",
+      "dev:api": "bun run --filter @codesync/api dev",
+      "dev:client": "bun run --filter @codesync/client dev",
+      "build": "bun run --filter '*' build",
+      "typecheck": "bun run --filter '*' typecheck",
+      "lint": "biome lint .",
+      "lint:fix": "biome lint --write .",
+      "format": "biome format --write .",
+      "format:check": "biome format .",
+      "check": "biome check .",
+      "check:fix": "biome check --write .",
+      "db:migrate": "bun run --filter @codesync/api db:migrate",
+      "db:studio": "bun run --filter @codesync/api db:studio",
+      "db:seed": "bun run --filter @codesync/api db:seed"
+    }
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": true,
+    "workspaces": [
+      "packages/*"
+    ],
+    "mainDirectories": [
+      "docs"
+    ],
+    "gitBranches": {
+      "defaultBranch": "main",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "_build": {
+      "path": "_build",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1770695178407,
+      "keyFiles": []
+    },
+    "_vite-bundle": {
+      "path": "_vite-bundle",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1770695178412,
+      "keyFiles": []
+    },
+    "docs": {
+      "path": "docs",
+      "purpose": "Documentation",
+      "fileCount": 1,
+      "lastAccessed": 1770695178412,
+      "keyFiles": [
+        "DEPLOYMENT.md"
+      ]
+    },
+    "packages": {
+      "path": "packages",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1770695178412,
+      "keyFiles": []
+    },
+    "plans": {
+      "path": "plans",
+      "purpose": null,
+      "fileCount": 5,
+      "lastAccessed": 1770695178413,
+      "keyFiles": [
+        "001-websocket-realtime.md",
+        "002-ui-polish-modals.md",
+        "003-github-review-sync.md",
+        "004-cicd-pipeline.md",
+        "README.md"
+      ]
+    },
+    "_build/test": {
+      "path": "_build/test",
+      "purpose": "Test files",
+      "fileCount": 3,
+      "lastAccessed": 1770695178413,
+      "keyFiles": [
+        "test-entry.js",
+        "test-meteor.js",
+        "test-rspack.js"
+      ]
+    },
+    "packages/api": {
+      "path": "packages/api",
+      "purpose": "API routes",
+      "fileCount": 5,
+      "lastAccessed": 1770695178414,
+      "keyFiles": [
+        "drizzle.config.ts",
+        "package.json",
+        "tsconfig.json"
+      ]
+    }
+  },
+  "hotPaths": [],
+  "userDirectives": []
+}

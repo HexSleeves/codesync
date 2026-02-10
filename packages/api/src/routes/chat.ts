@@ -16,7 +16,10 @@ export const chatRoutes = new Hono<{ Variables: AuthVariables }>()
   .get('/sessions/:sessionId/chat', authMiddleware, async (c) => {
     const { sessionId } = c.req.param();
     const userId = c.get('userId');
-    const limit = Math.min(Math.max(Number.parseInt(c.req.query('limit') || '100', 10) || 100, 1), 200);
+    const limit = Math.min(
+      Math.max(Number.parseInt(c.req.query('limit') || '100', 10) || 100, 1),
+      200
+    );
 
     // Check session access
     const access = await checkSessionAccess(sessionId, userId);

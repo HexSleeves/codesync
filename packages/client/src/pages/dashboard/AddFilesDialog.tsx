@@ -20,14 +20,43 @@ import { apiCall } from '@/api/client';
 
 // Language detection by file extension (client-side mirror of server util)
 const LANG_MAP: Record<string, string> = {
-  js: 'javascript', jsx: 'javascript', mjs: 'javascript', cjs: 'javascript',
-  ts: 'typescript', tsx: 'typescript', mts: 'typescript', cts: 'typescript',
-  py: 'python', rb: 'ruby', java: 'java', go: 'go', rs: 'rust',
-  cpp: 'cpp', cc: 'cpp', c: 'c', h: 'c', hpp: 'cpp', cs: 'csharp', php: 'php',
-  html: 'html', css: 'css', scss: 'scss', less: 'less',
-  json: 'json', yaml: 'yaml', yml: 'yaml', toml: 'toml', xml: 'xml', svg: 'xml',
-  md: 'markdown', mdx: 'markdown', sh: 'bash', bash: 'bash',
-  sql: 'sql', graphql: 'graphql', gql: 'graphql',
+  js: 'javascript',
+  jsx: 'javascript',
+  mjs: 'javascript',
+  cjs: 'javascript',
+  ts: 'typescript',
+  tsx: 'typescript',
+  mts: 'typescript',
+  cts: 'typescript',
+  py: 'python',
+  rb: 'ruby',
+  java: 'java',
+  go: 'go',
+  rs: 'rust',
+  cpp: 'cpp',
+  cc: 'cpp',
+  c: 'c',
+  h: 'c',
+  hpp: 'cpp',
+  cs: 'csharp',
+  php: 'php',
+  html: 'html',
+  css: 'css',
+  scss: 'scss',
+  less: 'less',
+  json: 'json',
+  yaml: 'yaml',
+  yml: 'yaml',
+  toml: 'toml',
+  xml: 'xml',
+  svg: 'xml',
+  md: 'markdown',
+  mdx: 'markdown',
+  sh: 'bash',
+  bash: 'bash',
+  sql: 'sql',
+  graphql: 'graphql',
+  gql: 'graphql',
 };
 
 function detectLanguage(filename: string): string | undefined {
@@ -238,8 +267,18 @@ export function AddFilesDialog({ open, onOpenChange, sessionId, onDone }: AddFil
                 className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
                 onClick={() => setShowOriginal(!showOriginal)}
               >
-                <svg className={`w-3 h-3 transition-transform ${showOriginal ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m9 18 6-6-6-6" />
+                <svg
+                  className={`w-3 h-3 transition-transform ${showOriginal ? 'rotate-90' : ''}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="m9 18 6-6-6-6"
+                  />
                 </svg>
                 {showOriginal ? 'Hide' : 'Add'} original version (for diff)
               </button>
@@ -252,7 +291,9 @@ export function AddFilesDialog({ open, onOpenChange, sessionId, onDone }: AddFil
                     rows={8}
                     className="font-mono text-sm"
                     value={pasteOriginal}
-                    onInput={(e: Event) => setPasteOriginal((e.target as HTMLTextAreaElement).value)}
+                    onInput={(e: Event) =>
+                      setPasteOriginal((e.target as HTMLTextAreaElement).value)
+                    }
                   />
                 </div>
               )}
@@ -300,11 +341,25 @@ export function AddFilesDialog({ open, onOpenChange, sessionId, onDone }: AddFil
                 }
               }}
             >
-              <svg className="w-10 h-10 mx-auto text-muted-foreground mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+              <svg
+                className="w-10 h-10 mx-auto text-muted-foreground mb-3"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"
+                />
               </svg>
-              <p className="text-sm font-medium text-foreground">Click to browse or drag files here</p>
-              <p className="text-xs text-muted-foreground mt-1">Text files only · Max 1MB per file</p>
+              <p className="text-sm font-medium text-foreground">
+                Click to browse or drag files here
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Text files only · Max 1MB per file
+              </p>
             </div>
             <input
               ref={fileInputRef}
@@ -337,7 +392,9 @@ export function AddFilesDialog({ open, onOpenChange, sessionId, onDone }: AddFil
                       {file.path}
                     </span>
                     {file.originalContent && (
-                      <span className="text-xs text-primary bg-primary/10 px-1.5 py-0.5 rounded">diff</span>
+                      <span className="text-xs text-primary bg-primary/10 px-1.5 py-0.5 rounded">
+                        diff
+                      </span>
                     )}
                   </div>
                   <button
@@ -347,7 +404,12 @@ export function AddFilesDialog({ open, onOpenChange, sessionId, onDone }: AddFil
                     title="Remove"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18 18 6M6 6l12 12" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18 18 6M6 6l12 12"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -361,11 +423,7 @@ export function AddFilesDialog({ open, onOpenChange, sessionId, onDone }: AddFil
           <Button type="button" variant="ghost" onClick={handleClose}>
             {files.length > 0 ? 'Skip' : 'Cancel'}
           </Button>
-          <Button
-            type="button"
-            onClick={handleSubmit}
-            disabled={files.length === 0 || submitting}
-          >
+          <Button type="button" onClick={handleSubmit} disabled={files.length === 0 || submitting}>
             {submitting
               ? 'Uploading...'
               : `Upload ${files.length} File${files.length !== 1 ? 's' : ''}`}

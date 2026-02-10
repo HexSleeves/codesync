@@ -79,7 +79,13 @@ export function CommentForm({
       />
       <div className="flex justify-end gap-2 mt-2">
         {onCancel && (
-          <Button type="button" variant="ghost" size="sm" onClick={onCancel} className="text-xs h-7">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onCancel}
+            className="text-xs h-7"
+          >
             Cancel
           </Button>
         )}

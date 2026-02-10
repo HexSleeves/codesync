@@ -173,10 +173,17 @@ function SplitDiffLine({
       {hasCursors && (
         <div className="absolute left-0 top-0 h-full flex items-center pointer-events-none z-10">
           {cursors.map((cursor) => (
-            <div key={cursor.userId} className="flex items-center" title={cursor.userName}>
-              <div className="w-0.5 h-4 rounded" style={{ backgroundColor: cursor.color }} />
+            <div
+              key={cursor.userId}
+              className="flex items-center animate-cursor-fade-in"
+              title={cursor.userName}
+            >
+              <div
+                className="w-0.5 h-4 rounded transition-all duration-150"
+                style={{ backgroundColor: cursor.color }}
+              />
               <span
-                className="text-[9px] px-1 rounded text-white ml-0.5"
+                className="text-[9px] px-1 rounded text-white ml-0.5 transition-all duration-150"
                 style={{ backgroundColor: cursor.color }}
               >
                 {cursor.userName}

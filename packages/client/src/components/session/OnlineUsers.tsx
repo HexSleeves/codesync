@@ -29,7 +29,10 @@ export function OnlineUsers({ users, connected }: OnlineUsersProps) {
       {users.length > 0 && (
         <div class="flex -space-x-1.5 ml-auto">
           {users.slice(0, 5).map((user) => (
-            <Avatar key={user.userId} className="size-5 border border-background ring-1 ring-border/20">
+            <Avatar
+              key={user.userId}
+              className="size-5 border border-background ring-1 ring-border/20"
+            >
               <AvatarFallback
                 className="text-[9px] text-white font-medium"
                 style={{ backgroundColor: user.color }}

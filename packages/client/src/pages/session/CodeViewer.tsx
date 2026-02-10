@@ -1,9 +1,9 @@
 /**
- * Code viewer component - displays file content with line numbers and comments
+ * Code viewer component - displays file content with line numbers, comments, and cursors
  */
 
-import type { Comment, File } from '@codesync/shared';
-import { memo, useState } from 'hono/jsx';
+import type { Comment, CursorMessage, File } from '@codesync/shared';
+import { memo, useMemo, useState } from 'hono/jsx';
 import { CommentCard } from '@/components/comment';
 import { Button, Textarea } from '@/components/ui';
 
@@ -14,6 +14,12 @@ interface CodeViewerProps {
   onAddComment?: (text: string, lineNumber?: number) => Promise<any>;
   /** Optional - if not provided, resolving is disabled (read-only mode) */
   onResolveComment?: (id: string, resolved: boolean) => Promise<unknown>;
+  /** Line hover callback (for cursor tracking) */
+  onLineHover?: (lineNumber: number) => void;
+  /** Remote user cursors */
+  cursors?: Map<string, CursorMessage>;
+  /** Current user ID (to filter out own cursor) */
+  currentUserId?: string;
 }
 
 export function CodeViewer({
@@ -21,12 +27,33 @@ export function CodeViewer({
   commentsByLine,
   onAddComment,
   onResolveComment,
+  onLineHover,
+  cursors,
+  currentUserId,
 }: CodeViewerProps) {
   const [activeCommentLine, setActiveCommentLine] = useState<number | null>(null);
   const [commentText, setCommentText] = useState('');
 
   const content = file.content || '';
   const lines = content.split('\n');
+
+  // Filter cursors for this file
+  const fileCursors = useMemo(() => {
+    if (!cursors) return [];
+    return Array.from(cursors.values()).filter(
+      (c) => c.fileId === file.id && c.userId !== currentUserId
+    );
+  }, [cursors, file.id, currentUserId]);
+
+  // Create a map of line numbers to cursors
+  const cursorsByLine = useMemo(() => {
+    const map = new Map<number, CursorMessage[]>();
+    for (const cursor of fileCursors) {
+      const existing = map.get(cursor.line) || [];
+      map.set(cursor.line, [...existing, cursor]);
+    }
+    return map;
+  }, [fileCursors]);
 
   const handleAddComment = async (lineNumber: number) => {
     if (!commentText.trim() || !onAddComment) return;
@@ -46,6 +73,7 @@ export function CodeViewer({
             const lineComments = commentsByLine[lineNumber] || [];
             const hasComments = lineComments.length > 0;
             const isActiveInput = activeCommentLine === lineNumber;
+            const lineCursors = cursorsByLine.get(lineNumber) || [];
 
             return (
               <CodeLine
@@ -57,11 +85,13 @@ export function CodeViewer({
                 isActiveInput={isActiveInput}
                 commentText={commentText}
                 readOnly={readOnly}
+                cursors={lineCursors}
                 onCommentTextChange={setCommentText}
                 onOpenCommentInput={() => setActiveCommentLine(lineNumber)}
                 onCloseCommentInput={() => setActiveCommentLine(null)}
                 onSubmitComment={() => handleAddComment(lineNumber)}
                 onResolveComment={onResolveComment}
+                onLineHover={onLineHover}
               />
             );
           })}
@@ -79,11 +109,13 @@ interface CodeLineProps {
   isActiveInput: boolean;
   commentText: string;
   readOnly: boolean;
+  cursors: CursorMessage[];
   onCommentTextChange: (text: string) => void;
   onOpenCommentInput: () => void;
   onCloseCommentInput: () => void;
   onSubmitComment: () => void;
   onResolveComment?: (id: string, resolved: boolean) => Promise<unknown>;
+  onLineHover?: (lineNumber: number) => void;
 }
 
 function CodeLine({
@@ -94,15 +126,44 @@ function CodeLine({
   isActiveInput,
   commentText,
   readOnly,
+  cursors,
   onCommentTextChange,
   onOpenCommentInput,
   onCloseCommentInput,
   onSubmitComment,
   onResolveComment,
+  onLineHover,
 }: CodeLineProps) {
+  const hasCursors = cursors.length > 0;
+
   return (
     <>
-      <tr className="hover:bg-accent group">
+      <tr className="hover:bg-accent group relative" onMouseEnter={() => onLineHover?.(lineNumber)}>
+        {/* Remote user cursors */}
+        {hasCursors && (
+          <td className="absolute left-0 top-0 h-full flex items-center pointer-events-none z-10 p-0">
+            <div className="flex items-center">
+              {cursors.map((cursor) => (
+                <div
+                  key={cursor.userId}
+                  className="flex items-center animate-cursor-fade-in"
+                  title={cursor.userName}
+                >
+                  <div
+                    className="w-0.5 h-4 rounded transition-all duration-150"
+                    style={{ backgroundColor: cursor.color }}
+                  />
+                  <span
+                    className="text-[9px] px-1 rounded text-white ml-0.5 transition-all duration-150"
+                    style={{ backgroundColor: cursor.color }}
+                  >
+                    {cursor.userName}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </td>
+        )}
         <LineNumber number={lineNumber} />
         {!readOnly && <AddCommentButton onClick={onOpenCommentInput} />}
         <LineContent content={content} />

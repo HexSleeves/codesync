@@ -2,8 +2,12 @@
  * Pull request list component
  */
 
+import type { FC } from 'hono/jsx';
+import { ChevronLeft } from 'lucide-react';
 import { Badge, Button, Card, CardContent, Spinner } from '@/components/ui';
 import type { GitHubPullRequest } from './types';
+
+const ChevronLeftIcon = ChevronLeft as unknown as FC<{ className?: string }>;
 
 interface PRListProps {
   pullRequests: GitHubPullRequest[];
@@ -27,7 +31,7 @@ export function PRList({ pullRequests, loading, repoName, onSelectPR, onBack }: 
       <div className="flex flex-col items-center gap-3 py-4">
         <p className="text-muted-foreground text-sm">No pull requests found</p>
         <Button variant="ghost" size="sm" onClick={onBack}>
-          ← Back to repos
+          <ChevronLeftIcon className="w-4 h-4" /> Back to repos
         </Button>
       </div>
     );
@@ -37,7 +41,7 @@ export function PRList({ pullRequests, loading, repoName, onSelectPR, onBack }: 
     <div className="flex-1 overflow-hidden flex flex-col">
       <div className="flex items-center gap-2 mb-2">
         <Button variant="ghost" size="sm" onClick={onBack}>
-          ← Back
+          <ChevronLeftIcon className="w-4 h-4" /> Back
         </Button>
         <span className="font-medium text-sm">{repoName}</span>
       </div>

@@ -3,8 +3,8 @@
  * No authentication required, accessible via share token
  */
 
-import type { File, Session } from '@codesync/shared';
-import { useEffect, useState } from 'hono/jsx';
+import type { Comment, File, Session } from '@codesync/shared';
+import { useEffect, useMemo, useState } from 'hono/jsx';
 import { apiCall } from '@/api/client';
 import { PageError, PageLoading } from '@/components/common';
 import { ShareIcon, SidebarIcon } from '@/components/icons';
@@ -19,6 +19,7 @@ interface SharedSessionPageProps {
 export function SharedSessionPage({ token }: SharedSessionPageProps) {
   const [session, setSession] = useState<Session | null>(null);
   const [files, setFiles] = useState<File[]>([]);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
@@ -26,6 +27,19 @@ export function SharedSessionPage({ token }: SharedSessionPageProps) {
   const [showFileTree, setShowFileTree] = useState(true);
 
   const selectedFile = files.find((f) => f.id === selectedFileId) || null;
+
+  // Group comments by line number for the selected file
+  const commentsByLine = useMemo(() => {
+    if (!selectedFileId) return {};
+    const fileComments = comments.filter((c) => c.fileId === selectedFileId);
+    const grouped: Record<number, Comment[]> = {};
+    for (const comment of fileComments) {
+      const line = comment.lineNumber ?? 0;
+      if (!grouped[line]) grouped[line] = [];
+      grouped[line].push(comment);
+    }
+    return grouped;
+  }, [comments, selectedFileId]);
 
   // Fetch shared session data
   useEffect(() => {
@@ -41,6 +55,18 @@ export function SharedSessionPage({ token }: SharedSessionPageProps) {
         // Select first file by default
         if (response.files.length > 0) {
           setSelectedFileId(response.files[0].id);
+        }
+
+        // Fetch all comments for the session
+        try {
+          const commentsResponse = await apiCall<{ comments: Comment[] }>(
+            'GET',
+            `/sessions/${response.session.id}/comments`
+          );
+          setComments(commentsResponse.comments);
+        } catch (err) {
+          console.error('Failed to load comments:', err);
+          // Don't fail the whole page if comments don't load
         }
       } catch (err) {
         console.error('Failed to load shared session:', err);
@@ -99,7 +125,7 @@ export function SharedSessionPage({ token }: SharedSessionPageProps) {
             onViewModeChange={() => {}}
             onDiffModeChange={setDiffMode}
             onToggleReviewed={() => {}}
-            commentsByLine={{}}
+            commentsByLine={commentsByLine}
             activeCommentLine={null}
             onLineClick={() => {}}
             onCloseCommentPanel={() => {}}

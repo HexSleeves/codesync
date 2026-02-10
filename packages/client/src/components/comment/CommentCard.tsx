@@ -10,10 +10,12 @@ interface CommentCardProps {
 
 export function CommentCard({ comment, onResolve }: CommentCardProps) {
   return (
-    <div className={cn(
-      'rounded-lg border border-border/30 p-3 transition-all',
-      comment.isResolved ? 'opacity-50' : 'bg-card/30'
-    )}>
+    <div
+      className={cn(
+        'rounded-lg border border-border/30 p-3 transition-all',
+        comment.isResolved ? 'opacity-50' : 'bg-card/30'
+      )}
+    >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <span className="text-xs font-medium text-foreground/80">
@@ -40,10 +42,12 @@ export function CommentCard({ comment, onResolve }: CommentCardProps) {
           </Button>
         )}
       </div>
-      <p className={cn(
-        'text-sm leading-relaxed',
-        comment.isResolved ? 'text-muted-foreground line-through' : 'text-foreground/90'
-      )}>
+      <p
+        className={cn(
+          'text-sm leading-relaxed',
+          comment.isResolved ? 'text-muted-foreground line-through' : 'text-foreground/90'
+        )}
+      >
         {comment.text}
       </p>
     </div>

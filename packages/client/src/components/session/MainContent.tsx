@@ -122,6 +122,9 @@ export function MainContent({
             commentsByLine={commentsByLine}
             onAddComment={readOnly ? undefined : onAddComment}
             onResolveComment={readOnly ? undefined : onResolveComment}
+            onLineHover={onLineHover}
+            cursors={cursors}
+            currentUserId={currentUserId}
           />
         )}
       </div>

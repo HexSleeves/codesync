@@ -4,7 +4,10 @@
 
 // Validate critical secrets in production
 if (process.env.NODE_ENV === 'production') {
-  if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'your-secret-key-change-in-production') {
+  if (
+    !process.env.JWT_SECRET ||
+    process.env.JWT_SECRET === 'your-secret-key-change-in-production'
+  ) {
     throw new Error('FATAL: JWT_SECRET must be set in production');
   }
 }

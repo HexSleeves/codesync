@@ -34,10 +34,13 @@ export function useSession(sessionId: string | undefined) {
       await invalidateQueries(['sessions']);
 
       // Update cache
-      queryClient.setQueryData(['session', sessionId], (old: { session: Session; files: File[] } | undefined) => ({
-        ...old,
-        session: data.session,
-      }));
+      queryClient.setQueryData(
+        ['session', sessionId],
+        (old: { session: Session; files: File[] } | undefined) => ({
+          ...old,
+          session: data.session,
+        })
+      );
       toast.success('Session updated');
     },
     onError: () => {
@@ -51,10 +54,13 @@ export function useSession(sessionId: string | undefined) {
       return apiCall<{ file: File }>('POST', `/sessions/${sessionId}/files`, file);
     },
     onSuccess: (data) => {
-      queryClient.setQueryData(['session', sessionId], (old: { session: Session; files: File[] } | undefined) => ({
-        ...old,
-        files: [...(old?.files || []), data.file],
-      }));
+      queryClient.setQueryData(
+        ['session', sessionId],
+        (old: { session: Session; files: File[] } | undefined) => ({
+          ...old,
+          files: [...(old?.files || []), data.file],
+        })
+      );
       toast.success('File added');
     },
     onError: () => {
@@ -68,10 +74,15 @@ export function useSession(sessionId: string | undefined) {
       return { fileId, reviewed };
     },
     onSuccess: ({ fileId, reviewed }) => {
-      queryClient.setQueryData(['session', sessionId], (old: { session: Session; files: File[] } | undefined) => ({
-        ...old,
-        files: old?.files?.map((f: File) => (f.id === fileId ? { ...f, isReviewed: reviewed } : f)),
-      }));
+      queryClient.setQueryData(
+        ['session', sessionId],
+        (old: { session: Session; files: File[] } | undefined) => ({
+          ...old,
+          files: old?.files?.map((f: File) =>
+            f.id === fileId ? { ...f, isReviewed: reviewed } : f
+          ),
+        })
+      );
       toast.success(reviewed ? 'File marked as reviewed' : 'File unmarked');
     },
     onError: () => {
@@ -83,10 +94,13 @@ export function useSession(sessionId: string | undefined) {
   const setSession = useCallback(
     (session: Session) => {
       // Update current session cache
-      queryClient.setQueryData(['session', sessionId], (old: { session: Session; files: File[] } | undefined) => ({
-        ...old,
-        session,
-      }));
+      queryClient.setQueryData(
+        ['session', sessionId],
+        (old: { session: Session; files: File[] } | undefined) => ({
+          ...old,
+          session,
+        })
+      );
       // Invalidate sessions list so dashboard shows updated status
       invalidateQueries(['sessions']);
     },

@@ -60,4 +60,3 @@ export function mapLineToDiffPosition(
 
   return null; // Line not found in diff
 }
-

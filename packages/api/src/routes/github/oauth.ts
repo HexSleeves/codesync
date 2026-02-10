@@ -80,7 +80,10 @@ export const oauthRoutes = new Hono<{ Variables: AuthVariables }>()
 
     let userId: string;
     try {
-      const payload = await verify(state, config.jwtSecret, 'HS256') as { sub?: string; nonce?: string };
+      const payload = (await verify(state, config.jwtSecret, 'HS256')) as {
+        sub?: string;
+        nonce?: string;
+      };
       if (!payload?.sub || !payload?.nonce) {
         return redirectWithError('invalid_state');
       }

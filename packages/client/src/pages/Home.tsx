@@ -47,8 +47,18 @@ export function HomePage() {
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 group">
             <div className="size-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center group-hover:bg-primary/15 transition-colors glow-sm">
-              <svg className="size-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
+              <svg
+                className="size-5 text-primary"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5"
+                />
               </svg>
             </div>
             <span className="text-lg font-semibold text-foreground tracking-tight">CodeSync</span>
@@ -63,7 +73,11 @@ export function HomePage() {
             ) : (
               <>
                 <Link href="/login">
-                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground rounded-lg">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground hover:text-foreground rounded-lg"
+                  >
                     Sign In
                   </Button>
                 </Link>
@@ -95,16 +109,29 @@ export function HomePage() {
             </h1>
 
             <p className="text-lg sm:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
-              Import GitHub PRs, add inline comments, see live cursors, and ship better code
-              with your team — all in one beautiful interface.
+              Import GitHub PRs, add inline comments, see live cursors, and ship better code with
+              your team — all in one beautiful interface.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link href={isAuthenticated ? '/dashboard' : '/login'}>
-                <Button size="lg" className="rounded-xl bg-primary hover:bg-primary/90 text-base px-8 h-12 glow-md font-medium">
+                <Button
+                  size="lg"
+                  className="rounded-xl bg-primary hover:bg-primary/90 text-base px-8 h-12 glow-md font-medium"
+                >
                   Start Reviewing
-                  <svg className="ml-2 size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                  <svg
+                    className="ml-2 size-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+                    />
                   </svg>
                 </Button>
               </Link>
@@ -128,8 +155,18 @@ export function HomePage() {
               title="Real-time Collaboration"
               description="See cursors, comments, and changes from your team as they happen. Presence indicators show who's online."
               icon={
-                <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                <svg
+                  className="size-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"
+                  />
                 </svg>
               }
               delay={0}
@@ -150,8 +187,18 @@ export function HomePage() {
               title="Inline Comments"
               description="Add comments on specific lines, resolve discussions, and track review progress across files."
               icon={
-                <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+                <svg
+                  className="size-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"
+                  />
                 </svg>
               }
               delay={2}
@@ -161,19 +208,31 @@ export function HomePage() {
 
           {/* Stats / Social Proof */}
           <div className="mt-20 sm:mt-28 flex flex-wrap justify-center gap-x-12 gap-y-6 text-center">
-            <div className="animate-fade-in" style={{ animationDelay: '0.8s', animationFillMode: 'backwards' }}>
+            <div
+              className="animate-fade-in"
+              style={{ animationDelay: '0.8s', animationFillMode: 'backwards' }}
+            >
               <div className="text-2xl sm:text-3xl font-bold text-foreground">100%</div>
               <div className="text-sm text-muted-foreground mt-1">Open Source</div>
             </div>
-            <div className="animate-fade-in" style={{ animationDelay: '1s', animationFillMode: 'backwards' }}>
+            <div
+              className="animate-fade-in"
+              style={{ animationDelay: '1s', animationFillMode: 'backwards' }}
+            >
               <div className="text-2xl sm:text-3xl font-bold text-foreground">Real-time</div>
               <div className="text-sm text-muted-foreground mt-1">WebSocket Sync</div>
             </div>
-            <div className="animate-fade-in" style={{ animationDelay: '1.2s', animationFillMode: 'backwards' }}>
+            <div
+              className="animate-fade-in"
+              style={{ animationDelay: '1.2s', animationFillMode: 'backwards' }}
+            >
               <div className="text-2xl sm:text-3xl font-bold text-foreground">GitHub</div>
               <div className="text-sm text-muted-foreground mt-1">Native Integration</div>
             </div>
-            <div className="animate-fade-in" style={{ animationDelay: '1.4s', animationFillMode: 'backwards' }}>
+            <div
+              className="animate-fade-in"
+              style={{ animationDelay: '1.4s', animationFillMode: 'backwards' }}
+            >
               <div className="text-2xl sm:text-3xl font-bold text-foreground">30+</div>
               <div className="text-sm text-muted-foreground mt-1">Languages Supported</div>
             </div>
@@ -185,7 +244,9 @@ export function HomePage() {
           <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
             <span>Built for developers who care about code quality.</span>
             <div className="flex items-center gap-4">
-              <a href="https://github.com" className="hover:text-foreground transition-colors">GitHub</a>
+              <a href="https://github.com" className="hover:text-foreground transition-colors">
+                GitHub
+              </a>
               <span className="text-border">|</span>
               <span>CodeSync</span>
             </div>

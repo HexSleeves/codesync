@@ -39,12 +39,11 @@ export const sessionRoutes = new Hono<{ Variables: AuthVariables }>()
 
     // Merge and deduplicate
     const ownedIds = new Set(ownedSessions.map((s) => s.id));
-    const participated = participatedRows
-      .map((r) => r.session)
-      .filter((s) => !ownedIds.has(s.id));
+    const participated = participatedRows.map((r) => r.session).filter((s) => !ownedIds.has(s.id));
 
-    const allSessions = [...ownedSessions, ...participated]
-      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+    const allSessions = [...ownedSessions, ...participated].sort(
+      (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    );
 
     return c.json({ sessions: allSessions });
   })
@@ -261,14 +260,12 @@ export const sessionRoutes = new Hono<{ Variables: AuthVariables }>()
       const result = {
         ...updatedSession,
         reviewer: updatedSession.reviewStartedBy
-          ? usersMap.get(updatedSession.reviewStartedBy) ?? null
+          ? (usersMap.get(updatedSession.reviewStartedBy) ?? null)
           : null,
         approver: updatedSession.approvedBy
-          ? usersMap.get(updatedSession.approvedBy) ?? null
+          ? (usersMap.get(updatedSession.approvedBy) ?? null)
           : null,
-        merger: updatedSession.mergedBy
-          ? usersMap.get(updatedSession.mergedBy) ?? null
-          : null,
+        merger: updatedSession.mergedBy ? (usersMap.get(updatedSession.mergedBy) ?? null) : null,
       };
 
       return c.json({ session: result });

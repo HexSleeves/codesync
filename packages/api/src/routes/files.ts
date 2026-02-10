@@ -9,7 +9,11 @@ import { Hono } from 'hono';
 import { db } from '../db/client';
 import { files } from '../db/schema';
 import { type AuthVariables, authMiddleware } from '../middleware/auth';
-import { checkFileAccess, checkSessionAccess, checkSessionOwnership } from '../services/session/access';
+import {
+  checkFileAccess,
+  checkSessionAccess,
+  checkSessionOwnership,
+} from '../services/session/access';
 
 export const fileRoutes = new Hono<{ Variables: AuthVariables }>()
   // GET /api/sessions/:sessionId/files - List files for session
@@ -19,7 +23,10 @@ export const fileRoutes = new Hono<{ Variables: AuthVariables }>()
 
     const access = await checkSessionAccess(sessionId, userId);
     if (access.error) {
-      return c.json({ error: access.error === 'not_found' ? 'Session not found' : 'Access denied' }, access.error === 'not_found' ? 404 : 403);
+      return c.json(
+        { error: access.error === 'not_found' ? 'Session not found' : 'Access denied' },
+        access.error === 'not_found' ? 404 : 403
+      );
     }
 
     const sessionFiles = await db.select().from(files).where(eq(files.sessionId, sessionId));

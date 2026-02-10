@@ -41,11 +41,23 @@ export function AppShell({
           <div className="flex items-center gap-1 min-w-0">
             <Link href="/dashboard" className="flex items-center gap-2.5 shrink-0 group">
               <div className="size-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
-                <svg className="size-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
+                <svg
+                  className="size-4 text-primary"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5"
+                  />
                 </svg>
               </div>
-              <span className="font-semibold text-foreground hidden sm:block tracking-tight">CodeSync</span>
+              <span className="font-semibold text-foreground hidden sm:block tracking-tight">
+                CodeSync
+              </span>
             </Link>
 
             {breadcrumbs && breadcrumbs.length > 0 && (

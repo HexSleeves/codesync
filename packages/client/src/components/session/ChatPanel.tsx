@@ -1,6 +1,6 @@
 /**
  * Chat panel component - Premium glass morphism design
- * Real-time chat for session participants
+ * Real-time chat for session participants with date separators
  */
 
 import type { WSChatMessage } from '@codesync/shared';
@@ -43,33 +43,94 @@ export function ChatPanel({ messages, onSend, connected }: ChatPanelProps) {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  const formatDate = (isoString: string) => {
+    const date = new Date(isoString);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    if (date.toDateString() === today.toDateString()) {
+      return 'Today';
+    } else if (date.toDateString() === yesterday.toDateString()) {
+      return 'Yesterday';
+    } else {
+      return date.toLocaleDateString([], {
+        month: 'short',
+        day: 'numeric',
+        year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined,
+      });
+    }
+  };
+
+  // Group messages by date
+  const messagesWithDateSeparators = (() => {
+    const result: Array<
+      { type: 'message'; message: WSChatMessage } | { type: 'date'; date: string }
+    > = [];
+    let lastDate: string | null = null;
+
+    for (const message of messages) {
+      const messageDate = new Date(message.createdAt).toDateString();
+      if (messageDate !== lastDate) {
+        result.push({ type: 'date', date: formatDate(message.createdAt) });
+        lastDate = messageDate;
+      }
+      result.push({ type: 'message', message });
+    }
+
+    return result;
+  })();
+
   return (
     <div class="flex flex-col h-full">
       {/* Messages */}
       <div class="flex-1 overflow-y-auto p-3 space-y-3 min-h-0">
         {messages.length === 0 ? (
           <div class="flex flex-col items-center justify-center py-8 text-center">
-            <svg class="size-8 text-muted-foreground/20 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            <svg
+              class="size-8 text-muted-foreground/20 mb-3"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="1"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+              />
             </svg>
-            <p class="text-xs text-muted-foreground/60">
-              No messages yet
-            </p>
+            <p class="text-xs text-muted-foreground/60">No messages yet</p>
           </div>
         ) : (
-          messages.map((msg) => (
-            <div key={msg.id} class="text-sm group">
-              <div class="flex items-baseline gap-2">
-                <span class="font-medium text-xs" style={{ color: msg.color }}>
-                  {msg.userName}
-                </span>
-                <span class="text-[10px] text-muted-foreground/50 opacity-0 group-hover:opacity-100 transition-opacity">
-                  {formatTime(msg.createdAt)}
-                </span>
+          messagesWithDateSeparators.map((item, index) => {
+            if (item.type === 'date') {
+              return (
+                <div key={`date-${index}`} class="flex items-center justify-center py-2">
+                  <div class="h-px bg-border/50 flex-1" />
+                  <span class="px-3 text-[10px] text-muted-foreground/60 font-medium uppercase tracking-wider">
+                    {item.date}
+                  </span>
+                  <div class="h-px bg-border/50 flex-1" />
+                </div>
+              );
+            }
+
+            const msg = item.message;
+            return (
+              <div key={msg.id} class="text-sm group animate-fade-in">
+                <div class="flex items-baseline gap-2">
+                  <span class="font-medium text-xs" style={{ color: msg.color }}>
+                    {msg.userName}
+                  </span>
+                  <span class="text-[10px] text-muted-foreground/50 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {formatTime(msg.createdAt)}
+                  </span>
+                </div>
+                <p class="text-foreground/90 mt-0.5 break-words leading-relaxed">{msg.text}</p>
               </div>
-              <p class="text-foreground/90 mt-0.5 break-words leading-relaxed">{msg.text}</p>
-            </div>
-          ))
+            );
+          })
         )}
         <div ref={messagesEndRef} />
       </div>
@@ -96,7 +157,11 @@ export function ChatPanel({ messages, onSend, connected }: ChatPanelProps) {
           className="rounded-lg h-9 bg-primary hover:bg-primary/90"
         >
           <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"
+            />
           </svg>
         </Button>
       </form>

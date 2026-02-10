@@ -31,7 +31,10 @@ export function shallowEqual<T>(a: T, b: T): boolean {
  */
 export function createStoreHook<TStore>(store: StoreApi<TStore>) {
   return function useStore<T>(selector: (state: TStore) => T): T {
-    const cache = useRef<{ value: T; hasValue: boolean }>({ value: undefined as T, hasValue: false });
+    const cache = useRef<{ value: T; hasValue: boolean }>({
+      value: undefined as T,
+      hasValue: false,
+    });
 
     return useSyncExternalStore(
       (onStoreChange) => {

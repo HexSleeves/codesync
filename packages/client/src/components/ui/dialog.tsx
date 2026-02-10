@@ -74,7 +74,9 @@ export function DialogFooter({ className, children }: { className?: string; chil
 
 export function DialogTitle({ className, children }: { className?: string; children?: Child }) {
   return (
-    <h2 className={cn('text-lg font-semibold leading-none tracking-tight text-foreground', className)}>
+    <h2
+      className={cn('text-lg font-semibold leading-none tracking-tight text-foreground', className)}
+    >
       {children}
     </h2>
   );

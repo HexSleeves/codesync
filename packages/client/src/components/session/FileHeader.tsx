@@ -1,5 +1,5 @@
 import type { File } from '@codesync/shared';
-import { Badge, Button, Select, SelectOption } from '@/components/ui';
+import { Badge, Button } from '@/components/ui';
 
 interface FileHeaderProps {
   file: File;
@@ -24,15 +24,31 @@ export function FileHeader({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         {/* File path and status */}
         <div className="flex items-center gap-2.5 min-w-0">
-          <svg className="size-4 text-muted-foreground shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+          <svg
+            className="size-4 text-muted-foreground shrink-0"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
+            />
           </svg>
           <span className="font-mono text-xs sm:text-sm text-foreground/80 truncate">
             {file.path}
           </span>
           {file.isReviewed && (
             <Badge variant="success" className="shrink-0 text-xs gap-1">
-              <svg className="size-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+              <svg
+                className="size-3"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
               </svg>
               Reviewed
@@ -51,14 +67,26 @@ export function FileHeader({
             >
               {file.isReviewed ? (
                 <>
-                  <svg className="size-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <svg
+                    className="size-3.5 mr-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                   <span className="hidden sm:inline">Unmark</span>
                 </>
               ) : (
                 <>
-                  <svg className="size-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <svg
+                    className="size-3.5 mr-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                   </svg>
                   <span className="hidden sm:inline">Mark Reviewed</span>
