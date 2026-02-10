@@ -23,7 +23,14 @@ export function PRList({ pullRequests, loading, repoName, onSelectPR, onBack }: 
   }
 
   if (pullRequests.length === 0) {
-    return <p className="text-muted-foreground text-sm text-center py-4">No pull requests found</p>;
+    return (
+      <div className="flex flex-col items-center gap-3 py-4">
+        <p className="text-muted-foreground text-sm">No pull requests found</p>
+        <Button variant="ghost" size="sm" onClick={onBack}>
+          ← Back to repos
+        </Button>
+      </div>
+    );
   }
 
   return (
