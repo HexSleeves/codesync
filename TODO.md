@@ -1,94 +1,87 @@
 # CodeSync TODO
 
-## Current State (Feb 8, 2026)
+## Current State (Feb 10, 2026)
 
-**Status: CORE COMPLETE** — All features working, security review done, quality hardened.
+**Status: FEATURE COMPLETE** — All core features working, real-time polished, role-based workflow in place.
 
 | Category | Status |
 |----------|--------|
 | Core Features | ✅ Complete |
+| Real-time (WS) | ✅ Polished (color sync, dedup, throttle, payload limits) |
+| GitHub Integration | ✅ OAuth + PR import + review sync |
+| Review Workflow | ✅ Role-gated (owner/reviewer/viewer) |
+| Keyboard Shortcuts | ✅ 8 shortcuts + help modal |
+| Share Sessions | ✅ Token-based public links |
+| Security Review | ✅ 58+ fixes applied |
 | TypeScript | ✅ 0 errors |
 | Lint | ✅ 0 warnings |
-| Security Review | ✅ 58+ fixes applied |
-| Auth (argon2id) | ✅ Complete with legacy migration |
-| GitHub Integration | ✅ OAuth + PR import + review sync |
-| E2E Tests | ⚠️ Needed |
+| E2E Tests | ❌ Not started |
 
 ---
 
-## 🟡 IN PROGRESS
+## 🔴 NEXT UP (High Priority)
 
-### Add Files Feature (Paste / Upload)
-**Status: Code written, not committed, needs browser testing**
+### 1. E2E Tests with Playwright
+- [ ] Set up Playwright config + first test
+- [ ] Test: register → login → create session → add file → add comment → resolve
+- [ ] Test: GitHub OAuth flow (mock)
+- [ ] Test: share session via link → view as anonymous
+- [ ] Test: review workflow (draft → in_review → approved → merged)
+- [ ] Add to CI pipeline (`.github/workflows/ci.yml`)
+- **Effort:** 3-4 hours
 
-Files changed:
-- `packages/client/src/pages/dashboard/AddFilesDialog.tsx` (NEW)
-- `packages/client/src/pages/Dashboard.tsx` (modified)
-- `packages/client/src/pages/dashboard/index.ts` (modified)
+### 2. Rate Limiting on Auth Endpoints
+- [ ] Add rate limiter middleware (e.g., 5 login attempts/minute per IP)
+- [ ] Apply to `/api/auth/login`, `/api/auth/register`
+- [ ] Consider WS message rate limiting (cursor: 50/sec, chat: 5/sec)
+- **Effort:** 1-2 hours
 
-What's left:
-- [ ] Test the AddFilesDialog in the browser
-- [ ] Verify paste code flow works (filename + content + optional original)
-- [ ] Verify file upload flow works (click + drag-drop)
-- [ ] Verify files appear in session after upload
-- [ ] Add "Add Files" button on Session page for adding more files later
-- [ ] Commit once verified
-
----
-
-## 🔴 NEXT UP
-
-### Session Page: Add Files Button
-- [ ] Add a "+ Add Files" button in the FileTree sidebar header
-- [ ] Reuse `AddFilesDialog` from the Session page
-- [ ] Allow adding files to an existing session (not just on creation)
-
-### `any` type in Dashboard.tsx
-- [ ] `sessions: any[]` in `SessionsList` — should be `Session[]`
+### 3. WS Ping/Pong Heartbeat
+- [ ] Server-side periodic ping (every 30s) to detect dead connections
+- [ ] Client-side `visibilitychange` listener to check connection health on wake
+- [ ] Reset stale presence/cursors on reconnect
+- **Effort:** 1 hour
 
 ---
 
-## 🟡 SHOULD DO
+## 🟡 SHOULD DO (Medium Priority)
 
-### Testing
-- [ ] Basic E2E test with Playwright (login, create session, add file, add comment)
-- [ ] API route unit tests for critical paths
-- [ ] WebSocket connection tests
-
-### Security (Remaining)
-- [ ] Rate limiting on auth endpoints
-- [ ] Input sanitization audit
-- [ ] CORS configuration for production
-
-### Performance
-- [ ] Replace O(n×m) LCS diff algorithm with Myers' diff (client `lib/diff.ts`)
-- [ ] Consider replacing React-based Sonner toast with Hono-native solution (saves ~40KB)
-
-### UX Polish
+### Code Quality
+- [ ] Fix `any` type: `sessions: any[]` in `Dashboard.tsx:163` → `Session[]`
 - [ ] Fix `InlineCommentPanel` hardcoded `left-64` (breaks when sidebar hidden)
-- [ ] Add error boundaries / error handling for diff rendering
+- [ ] Replace O(n×m) LCS diff with Myers' diff (`lib/diff.ts`, 242 lines)
+- [ ] Add error boundaries for diff rendering
 - [ ] FileTree: add `aria-selected`, `role="treeitem"` for accessibility
 - [ ] Re-enable Biome a11y rules and fix violations
 
+### UX Polish
+- [ ] Chat "is typing" indicator
+- [ ] Optimistic UI for chat sends (don't wait for server round-trip)
+- [ ] Cursor idle timeout (remove cursor after 5min inactive)
+- [ ] "You" indicator in OnlineUsers avatar list
+- [ ] Comment threads / replies
+
+### Infrastructure
+- [ ] Auto-deploy pipeline (GitHub Actions → SSH to server on merge)
+- [ ] Database backup automation
+- [ ] Monitoring & alerting
+
 ---
 
-## 🟢 NICE TO HAVE
+## 🟢 NICE TO HAVE (Low Priority)
 
 ### Features
-- [ ] Comment threads (replies)
+- [ ] Email notifications (new comments, status changes)
+- [ ] @mentions with autocomplete in comments/chat
 - [ ] Multi-file batch review
 - [ ] Review templates
-- [ ] Activity feed & notifications
-- [ ] @mentions with autocomplete
-- [ ] Typing indicators in chat
+- [ ] Activity feed
 - [ ] Light theme testing/polish
 
 ### Infrastructure
 - [ ] Redis for WebSocket pub/sub (horizontal scaling)
-- [ ] Database backup automation
-- [ ] Monitoring & alerting
 - [ ] Load testing
-- [ ] CD pipeline (auto-deploy on merge)
+- [ ] Replace Sonner toast with Hono-native solution (saves ~40KB)
 
 ---
 
@@ -98,17 +91,24 @@ What's left:
 - [x] JWT Authentication (login/register/logout)
 - [x] Password hashing with argon2id + legacy SHA-256 migration
 - [x] Session CRUD with status workflow (draft → in_review → approved → merged)
+- [x] Role-based review workflow (owner/reviewer can change status; viewers cannot)
 - [x] File management with diff viewer (unified + split modes)
 - [x] Syntax highlighting (25+ languages via Prism.js)
 - [x] Inline comments on specific lines
 - [x] Mark files as reviewed
+- [x] Add files via paste/upload
 
-### Real-time Collaboration
+### Real-time Collaboration (Polished Feb 10)
 - [x] WebSocket with JWT authentication + session access check
-- [x] Multi-tab support (connectionId-based, not userId)
+- [x] Multi-tab support (connectionId-based)
 - [x] User presence (online users list)
 - [x] Real-time chat with persistence (capped at 500 messages)
+- [x] Chat message deduplication (REST history + WS race fix)
+- [x] Chat message length validation (max 2000 chars on WS)
 - [x] Cursor position broadcasting
+- [x] Cursor send throttling (50ms)
+- [x] WS payload limit (64KB) + idle timeout (120s)
+- [x] Unified `getUserColor` in @codesync/shared (server/client match)
 - [x] Auto-reconnect with exponential backoff
 
 ### GitHub Integration
@@ -117,44 +117,35 @@ What's left:
 - [x] Push reviews to GitHub PRs (APPROVE/COMMENT)
 - [x] Comment sync tracking
 
-### Security Hardening (Feb 8, 2026)
-- [x] argon2id password hashing (was SHA-256)
+### UI/UX
+- [x] Keyboard shortcuts (8 shortcuts + `?` help modal)
+- [x] Share sessions with public links (nanoid tokens)
+- [x] User settings (theme, diff mode, view mode)
+- [x] Toast notifications
+- [x] Mobile responsive design
+- [x] Dark theme with glass morphism
+
+### Security Hardening
+- [x] argon2id password hashing
 - [x] JWT_SECRET validated on startup in production
 - [x] Authorization on ALL file/comment/chat routes (IDOR fixes)
 - [x] Session access checks via participants table
 - [x] WebSocket session access control
 - [x] OAuth cookie signing (HMAC)
-- [x] Cookie path: '/' on set and delete
 - [x] DB connection pool (max:20, idle_timeout:30)
 - [x] Graceful shutdown handler
-- [x] Chat limit bounded (1-200)
 
-### Code Quality (Feb 8, 2026)
+### Code Quality
 - [x] Removed 36 unused client dependencies
-- [x] Deleted 6 dead components
-- [x] Extracted shared store boilerplate (lib/store.ts)
-- [x] Replaced 11 `any` types
-- [x] Fixed useQuery/useMutation option tracking
-- [x] Fixed broken comment sync (blanket UPDATE bug)
-- [x] Fixed N+1 queries (batch user lookup)
-- [x] Fixed session listing (owned+participated only)
-- [x] 9 DB indexes + unique constraint added
-- [x] Parallel PR file processing
-- [x] Removed dead API code (4 functions)
-- [x] Removed unused Redis from docker-compose
-
-### UI/UX
-- [x] Keyboard shortcuts (`?` for help, `j/k` navigation)
-- [x] Share sessions with public links
-- [x] User settings (theme, diff mode, view mode)
-- [x] Toast notifications
-- [x] Mobile responsive design
+- [x] 0 TODO/FIXME remaining in codebase
+- [x] 0 TypeScript errors, 0 lint warnings
+- [x] 9 DB indexes + unique constraints
 
 ### Infrastructure
 - [x] GitHub Actions CI (typecheck, lint, build)
 - [x] Systemd service files
-- [x] Deployment docs
-- [x] .env.example + .env.production.example
+- [x] Deployment docs + .env templates
+- [x] Docker Compose for PostgreSQL
 
 ---
 
@@ -164,21 +155,14 @@ What's left:
 # Start database
 cd /home/exedev/codesync && docker compose up -d postgres
 
-# IMPORTANT: Ensure .env exists in both root AND packages/api/
-# Copy from .env.example if needed
-
-# Start API (port 8001)
+# Start both servers
 export PATH="$HOME/.bun/bin:$PATH"
-cd packages/api && bun --hot src/index.ts
-
-# Start Client (port 5173) - in another terminal
-cd packages/client && bun run dev
+bun run dev
 ```
 
 **URLs:**
-- Local: http://localhost:5173
+- Local: http://localhost:5173 (frontend), http://localhost:8001 (API)
 - Public: https://noon-disk.exe.xyz:5173
 
 **Test Account:**
-- Email: `test2@example.com`
-- Password: `password123`
+- Email: `test2@example.com` / Password: `password123`

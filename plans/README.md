@@ -17,7 +17,9 @@ Each plan follows this structure:
 
 | # | Name | Status | Priority |
 |---|------|--------|----------|
-| 004 | [CI/CD Pipeline](004-cicd-pipeline.md) | 🟡 Planned | High |
+| 005 | E2E Tests (Playwright) | 🟡 Planned | High |
+| 006 | Rate Limiting | 🟡 Planned | High |
+| 007 | WS Heartbeat | 🟡 Planned | Medium |
 
 ## Completed Plans
 
@@ -26,6 +28,7 @@ Each plan follows this structure:
 | 001 | [WebSocket Real-time](001-websocket-realtime.md) | 🟢 Complete | High |
 | 002 | [UI Polish - Modals](002-ui-polish-modals.md) | 🟢 Complete | Medium |
 | 003 | [GitHub Review Sync](003-github-review-sync.md) | 🟢 Complete | Medium |
+| 004 | [CI/CD Pipeline](004-cicd-pipeline.md) | 🟢 Phase 1 Complete | High |
 
 ## How to Create a New Plan
 
