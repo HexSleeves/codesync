@@ -231,6 +231,12 @@ export const wsHandlers = {
           break;
         }
 
+        case 'ping': {
+          // Client-level heartbeat: respond with pong
+          ws.send(JSON.stringify({ type: 'pong' }));
+          break;
+        }
+
         default:
           ws.send(
             JSON.stringify({

@@ -3,7 +3,13 @@
  * Manages connection, presence, cursors, and chat
  */
 
-import { getUserColor, type CursorMessage, type OnlineUser, type ServerMessage, type WSChatMessage } from '@codesync/shared';
+import {
+  getUserColor,
+  type CursorMessage,
+  type OnlineUser,
+  type ServerMessage,
+  type WSChatMessage,
+} from '@codesync/shared';
 import { useCallback, useEffect, useRef, useState } from 'hono/jsx';
 import { toast } from '@/components/ui/sonner';
 import { apiCall } from '../api/client';
@@ -33,10 +39,15 @@ interface UseWebSocketReturn {
 // Hook
 // =============================================================================
 
+const HEARTBEAT_INTERVAL = 30_000; // 30s between pings
+const HEARTBEAT_TIMEOUT = 10_000; // 10s to wait for pong
+
 export function useWebSocket(sessionId: string | undefined): UseWebSocketReturn {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<number | null>(null);
   const reconnectAttempts = useRef(0);
+  const heartbeatIntervalRef = useRef<number | null>(null);
+  const heartbeatTimeoutRef = useRef<number | null>(null);
 
   const [state, setState] = useState<WebSocketState>({
     connected: false,
@@ -115,7 +126,17 @@ export function useWebSocket(sessionId: string | undefined): UseWebSocketReturn 
     ws.onopen = () => {
       console.log('[WS] Connected');
       reconnectAttempts.current = 0;
-      setState((s) => ({ ...s, connected: true }));
+
+      // Clear stale presence/cursors on reconnect
+      setState((s) => ({
+        ...s,
+        connected: true,
+        onlineUsers: [],
+        cursors: new Map(),
+      }));
+
+      // Start heartbeat
+      startHeartbeat();
 
       // Load chat history on first connection
       if (!chatHistoryLoadedRef.current) {
@@ -171,6 +192,16 @@ export function useWebSocket(sessionId: string | undefined): UseWebSocketReturn 
           case 'error':
             console.error('[WS] Server error:', message.code, message.message);
             break;
+
+          default:
+            // Handle pong (heartbeat response) silently
+            if ((message as any).type === 'pong') {
+              if (heartbeatTimeoutRef.current) {
+                clearTimeout(heartbeatTimeoutRef.current);
+                heartbeatTimeoutRef.current = null;
+              }
+            }
+            break;
         }
       } catch (err) {
         console.error('[WS] Failed to parse message:', err);
@@ -179,6 +210,7 @@ export function useWebSocket(sessionId: string | undefined): UseWebSocketReturn 
 
     ws.onclose = (event) => {
       console.log('[WS] Disconnected', event.code, event.reason);
+      stopHeartbeat();
       setState((s) => ({ ...s, connected: false }));
 
       // Reconnect with exponential backoff
@@ -202,12 +234,44 @@ export function useWebSocket(sessionId: string | undefined): UseWebSocketReturn 
   }, [sessionId, loadChatHistory]);
 
   /**
+   * Start heartbeat: send ping every 30s, expect pong within 10s
+   */
+  const startHeartbeat = useCallback(() => {
+    stopHeartbeat();
+    heartbeatIntervalRef.current = window.setInterval(() => {
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        wsRef.current.send(JSON.stringify({ type: 'ping' }));
+        // If no pong within timeout, connection is dead
+        heartbeatTimeoutRef.current = window.setTimeout(() => {
+          console.warn('[WS] Heartbeat timeout — closing connection');
+          wsRef.current?.close();
+        }, HEARTBEAT_TIMEOUT);
+      }
+    }, HEARTBEAT_INTERVAL);
+  }, []);
+
+  /**
+   * Stop heartbeat timers
+   */
+  const stopHeartbeat = useCallback(() => {
+    if (heartbeatIntervalRef.current) {
+      clearInterval(heartbeatIntervalRef.current);
+      heartbeatIntervalRef.current = null;
+    }
+    if (heartbeatTimeoutRef.current) {
+      clearTimeout(heartbeatTimeoutRef.current);
+      heartbeatTimeoutRef.current = null;
+    }
+  }, []);
+
+  /**
    * Connect on mount, cleanup on unmount
    */
   useEffect(() => {
     connect();
 
     return () => {
+      stopHeartbeat();
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
       }
@@ -216,6 +280,25 @@ export function useWebSocket(sessionId: string | undefined): UseWebSocketReturn 
         wsRef.current = null;
       }
     };
+  }, [connect, stopHeartbeat]);
+
+  /**
+   * Reconnect on tab visibility change (e.g., laptop wake from sleep)
+   */
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Check if connection is dead
+        if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+          console.log('[WS] Tab visible, connection dead — reconnecting');
+          reconnectAttempts.current = 0; // Reset backoff
+          connect();
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [connect]);
 
   /**

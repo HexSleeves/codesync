@@ -126,8 +126,14 @@ export interface WSConnectionData {
  */
 export function getUserColor(userId: string): string {
   const colors = [
-    '#ef4444', '#f97316', '#eab308', '#22c55e',
-    '#14b8a6', '#3b82f6', '#8b5cf6', '#ec4899',
+    '#ef4444',
+    '#f97316',
+    '#eab308',
+    '#22c55e',
+    '#14b8a6',
+    '#3b82f6',
+    '#8b5cf6',
+    '#ec4899',
   ];
   let hash = 0;
   for (let i = 0; i < userId.length; i++) {

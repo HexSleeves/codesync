@@ -44,7 +44,12 @@ const statusActions: Record<
   merged: [{ status: 'approved', label: 'Unmerge', variant: 'secondary' }],
 };
 
-export function ReviewActions({ session, onStatusChange, currentUserId, userRole = 'viewer' }: ReviewActionsProps) {
+export function ReviewActions({
+  session,
+  onStatusChange,
+  currentUserId,
+  userRole = 'viewer',
+}: ReviewActionsProps) {
   const [loading, setLoading] = useState(false);
 
   const actions = statusActions[session.status] || [];
@@ -73,26 +78,27 @@ export function ReviewActions({ session, onStatusChange, currentUserId, userRole
       <StatusInfo session={session} />
 
       {/* Action buttons */}
-      {canChangeStatus && actions.map((action) => (
-        <Button
-          key={action.status}
-          variant={action.variant}
-          size="sm"
-          onClick={() => handleStatusChange(action.status)}
-          disabled={loading}
-          className="gap-1.5"
-        >
-          {loading ? (
-            <Spinner size="sm" />
-          ) : action.status === 'approved' ? (
-            <CheckIcon className="size-4" />
-          ) : action.status === 'draft' ? (
-            <CloseIcon className="size-4" />
-          ) : null}
-          <span className="hidden sm:inline">{action.label}</span>
-          <span className="sm:hidden">{action.label.split(' ')[0]}</span>
-        </Button>
-      ))}
+      {canChangeStatus &&
+        actions.map((action) => (
+          <Button
+            key={action.status}
+            variant={action.variant}
+            size="sm"
+            onClick={() => handleStatusChange(action.status)}
+            disabled={loading}
+            className="gap-1.5"
+          >
+            {loading ? (
+              <Spinner size="sm" />
+            ) : action.status === 'approved' ? (
+              <CheckIcon className="size-4" />
+            ) : action.status === 'draft' ? (
+              <CloseIcon className="size-4" />
+            ) : null}
+            <span className="hidden sm:inline">{action.label}</span>
+            <span className="sm:hidden">{action.label.split(' ')[0]}</span>
+          </Button>
+        ))}
     </div>
   );
 }

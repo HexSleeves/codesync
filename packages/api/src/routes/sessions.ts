@@ -193,12 +193,7 @@ export const sessionRoutes = new Hono<{ Variables: AuthVariables }>()
       const participant = await db
         .select({ role: sessionParticipants.role })
         .from(sessionParticipants)
-        .where(
-          and(
-            eq(sessionParticipants.sessionId, id),
-            eq(sessionParticipants.userId, userId)
-          )
-        )
+        .where(and(eq(sessionParticipants.sessionId, id), eq(sessionParticipants.userId, userId)))
         .limit(1)
         .then((rows) => rows[0]);
 
